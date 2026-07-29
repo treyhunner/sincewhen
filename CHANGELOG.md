@@ -9,6 +9,40 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ## Unreleased
 
+### Dataset
+
+- **255 features have a better answer, because the version now comes from that release's own interpreter.**
+  All fourteen releases from 0.9.1 to 2.5 are built from their pinned tarballs and asked whether a name resolves.
+  Every other method in the pipeline reads a description of Python; this one reads Python, so it sees what no text can.
+
+  | what changed | count | example |
+  |---|---|---|
+  | an older, exact version replaces a newer one | 182 | `operator` was 1.5, is 1.4 |
+  | a bound became an exact version | 71 | `math.fmod` was "1.0 or earlier", is 1.0 |
+  | a bound stayed a bound, but a tighter one | 1 | `os.path` was "1.5 or earlier", is "1.2 or earlier" |
+  | an exact version was too old and is now newer | 1 | `re.finditer` was 2.2, is 2.3 |
+  | anything got vaguer | 0 | |
+
+- **Bounded features drop from 346 to 113.**
+  109 of those sit at Python 0.9.1, the first public release, and are bounded because nothing older survives to be asked.
+  Only four remain above that floor: `os.path`, `resource`, `zlib` and `copyreg`, each because a module needed something the interpreter build could not provide.
+  The "or earlier" problem is now almost entirely the floor itself.
+- **A feature at that floor no longer reports as "0.9 or earlier".**
+  It reads `0.9 (first public release)` instead, because "or earlier" is an evasion when there is no earlier release to reach for: nothing has been in Python longer than Python has been public.
+  The `or_earlier` flag is unchanged for anything reading the dataset, since the claim itself has not changed.
+- **`re.finditer` is 2.3, not 2.2**, and this is the one entry in the project's history to move to a *newer* version.
+  Python 2.2 defines `finditer` in `Lib/sre.py`, behind a `sys.hexversion` guard that passes.
+  But `sre.__all__` does not list it and `re.py` is `from sre import *`, so the name was never bound in `re`.
+  2.3 fixed it by appending `"finditer"` to `__all__`.
+  The 2.7 docs say "New in version 2.2" and the function is plainly there in the 2.2 file; it still could not be reached.
+- Notable answers that got older, all of them modules or members the archives could only bound because a C extension's availability is a build-time choice:
+  - `operator` is 1.4, not 1.5, which dates its 31 members with it.
+  - `signal` is 1.1 and `fcntl` is 1.0, where the tarball alone could not say whether `Modules/Setup` would compile them.
+  - `cmath` is 1.4, `os.path` is 1.2, and `mmap` and `unicodedata` are 1.6 rather than 2.0.
+  - `itertools.chain` is 2.3, not 2.6, where 2.6 was only the oldest inventory that indexed it.
+  - `re.UNICODE` is 1.6, not 3.11.
+- Every claim is still re-derived by `just verify-dataset`, which now has a sixth method to check them against.
+
 ### Tool
 
 - **Removed the `Minimum: Python X` line from the end of a report.**

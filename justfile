@@ -54,6 +54,7 @@ interpreters-vs-dataset:
 # Re-derive every version claim in the dataset and compare
 verify-dataset *args='':
     uv run scripts/release_dates.py --check
+    uv run scripts/interpreters.py --check
     uv run scripts/verify_dataset.py {{ args }}
 
 # Look up what the cached docs say about a symbol

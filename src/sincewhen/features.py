@@ -26,6 +26,15 @@ MATCHER_FIELDS = ("nodes", "builtins", "modules", "attributes")
 #                absences count for as much as its presences, because
 #                the table is the list the interpreter registers its
 #                builtins from rather than a description of one
+#   interpreter  the name was asked of that release's own interpreter,
+#                built from its pinned tarball, and resolved. The only
+#                method that reads Python rather than a description of
+#                it, so it sees what no text can: a name filtered out of
+#                a star-import by `__all__`, a module that ships and
+#                raises on import, a C extension the build config
+#                decides. Its absences are guarded, because a module
+#                missing from a build is not a module missing from a
+#                release
 #   annotation   the documentation says so itself, in an
 #                "Added in version" marker that is quoted here
 #   grammar      the token is absent from one release's grammar and
@@ -36,13 +45,23 @@ MATCHER_FIELDS = ("nodes", "builtins", "modules", "attributes")
 #                what was read and why the automated methods do not
 #                settle it
 EVIDENCE_METHODS = frozenset(
-    {"objects.inv", "archive", "source", "grammar", "annotation", "pep", "manual"}
+    {
+        "objects.inv",
+        "archive",
+        "source",
+        "interpreter",
+        "grammar",
+        "annotation",
+        "pep",
+        "manual",
+    }
 )
 
 EVIDENCE_REQUIRED = {
     "objects.inv": ("symbol", "absent_in", "present_in"),
     "archive": ("present_in",),
     "source": ("symbol", "file", "present_in"),
+    "interpreter": ("symbol", "present_in"),
     "grammar": ("symbol", "absent_in", "present_in"),
     "annotation": ("docs", "quote"),
     "pep": ("pep", "python_version"),
@@ -100,7 +119,17 @@ class Feature:
         `max()` is in the builtins table of Python 0.9.1, the first
         public release, so 0.9 is the oldest version it can be shown to
         have existed in rather than the version that added it.
+
+        At that oldest release the bound stops being worth phrasing as
+        one. "0.9 or earlier" is literally true, since Python existed
+        before it was published, but it reads as an evasion when there is
+        no earlier release to reach for: nothing has been in Python longer
+        than Python has been public. So the floor says what it means, and
+        the `or_earlier` flag stays set for anything that reads the
+        dataset, because the claim itself has not changed.
         """
+        if self.or_earlier and self.added.is_first_public_release:
+            return f"{self.added} (first public release)"
         return f"{self.added} or earlier" if self.or_earlier else str(self.added)
 
     @property

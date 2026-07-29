@@ -1068,6 +1068,11 @@ def main(argv: list[str]) -> int:
         help="where the interpreters disagree with the dataset",
     )
     parser.add_argument("--grep", help="report only names containing this")
+    parser.add_argument(
+        "--check",
+        action="store_true",
+        help="fail if the table and the dataset disagree",
+    )
     args = parser.parse_args(argv)
 
     if args.build is not None:
@@ -1083,8 +1088,24 @@ def main(argv: list[str]) -> int:
         report(args.grep)
     if args.compare:
         compare()
+    if args.check:
+        findings = compare()
+        unresolved = [
+            row
+            for kind in ("closes", "disagrees", "older")
+            for row in findings.get(kind, [])
+        ]
+        if unresolved:
+            print(
+                f"{len(unresolved)} entries disagree with the interpreters. "
+                "Either the dataset is stale or the table is: re-run "
+                "--build --probe, or correct the entries.",
+                file=sys.stderr,
+            )
+            return 1
+        print("The dataset agrees with every name the interpreters resolve.")
     if args.build is None and not (
-        args.probe or args.report or args.grep or args.compare
+        args.probe or args.report or args.grep or args.compare or args.check
     ):
         print(__doc__)
         return 1

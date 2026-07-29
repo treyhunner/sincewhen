@@ -1097,16 +1097,16 @@ checked = "2026-07-29"
 [[features]]
 id = "os-error"
 name = "os.error"
-added = "1.5"
+added = "1.0"
 category = "exception"
-or_earlier = true
 attributes = ["os.error"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "os.error"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "zlib-error"
@@ -1674,14 +1674,15 @@ checked = "2026-07-29"
 [[features]]
 id = "fcntl"
 name = "fcntl module"
-added = "1.1"
+added = "1.0"
 category = "module"
 modules = ["fcntl"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.0"
-present_in = "1.1"
+method = "interpreter"
+symbol = "fcntl"
+absent_in = "0.9"
+present_in = "1.0"
 checked = "2026-07-29"
 
 [[features]]
@@ -1747,14 +1748,15 @@ checked = "2026-07-29"
 [[features]]
 id = "signal"
 name = "signal module"
-added = "1.2"
+added = "1.1"
 category = "module"
 modules = ["signal"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.1"
-present_in = "1.2"
+method = "interpreter"
+symbol = "signal"
+absent_in = "1.0"
+present_in = "1.1"
 checked = "2026-07-29"
 
 [[features]]
@@ -1920,15 +1922,15 @@ checked = "2026-07-29"
 [[features]]
 id = "cmath"
 name = "cmath module"
-added = "1.5"
+added = "1.4"
 category = "module"
-or_earlier = true
 modules = ["cmath"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
+method = "interpreter"
+symbol = "cmath"
+absent_in = "1.3"
+present_in = "1.4"
 checked = "2026-07-29"
 
 [[features]]
@@ -2191,29 +2193,30 @@ checked = "2026-07-29"
 [[features]]
 id = "operator"
 name = "operator module"
-added = "1.5"
+added = "1.4"
 category = "module"
-or_earlier = true
 modules = ["operator"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
+method = "interpreter"
+symbol = "operator"
+absent_in = "1.3"
+present_in = "1.4"
 checked = "2026-07-29"
 
 [[features]]
 id = "os-path"
 name = "os.path module"
-added = "1.5"
+added = "1.2"
 category = "module"
 or_earlier = true
 modules = ["os.path"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
+method = "interpreter"
+symbol = "os.path"
+present_in = "1.2"
+note = "Resolves in 1.2, and no earlier release can be shown to lack it. Resolves from 1.2. Python 1.1 ships it too, so its absence there is this build's and not that release's."
 checked = "2026-07-29"
 
 [[features]]
@@ -2722,14 +2725,15 @@ checked = "2026-07-29"
 [[features]]
 id = "mmap"
 name = "mmap module"
-added = "2.0"
+added = "1.6"
 category = "module"
 modules = ["mmap"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.6"
-present_in = "2.0"
+method = "interpreter"
+symbol = "mmap"
+absent_in = "1.5"
+present_in = "1.6"
 checked = "2026-07-29"
 
 [[features]]
@@ -2748,14 +2752,15 @@ checked = "2026-07-29"
 [[features]]
 id = "unicodedata"
 name = "unicodedata module"
-added = "2.0"
+added = "1.6"
 category = "module"
 modules = ["unicodedata"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.6"
-present_in = "2.0"
+method = "interpreter"
+symbol = "unicodedata"
+absent_in = "1.5"
+present_in = "1.6"
 checked = "2026-07-29"
 
 [[features]]
@@ -4049,16 +4054,16 @@ checked = "2026-07-29"
 [[features]]
 id = "types-frametype"
 name = "types.FrameType"
-added = "1.2"
+added = "1.1"
 category = "class"
-or_earlier = true
 attributes = ["types.FrameType"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "types.FrameType"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "types-functiontype"
@@ -4123,16 +4128,16 @@ checked = "2026-07-29"
 [[features]]
 id = "types-tracebacktype"
 name = "types.TracebackType"
-added = "1.2"
+added = "1.1"
 category = "class"
-or_earlier = true
 attributes = ["types.TracebackType"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "types.TracebackType"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "complex"
@@ -4245,14 +4250,14 @@ id = "socket-sockettype"
 name = "socket.SocketType"
 added = "1.5"
 category = "class"
-or_earlier = true
 attributes = ["socket.SocketType"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "socket.SocketType"
+absent_in = "1.4"
 present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "threading-condition"
@@ -4690,28 +4695,28 @@ id = "types-getsetdescriptortype"
 name = "types.GetSetDescriptorType"
 added = "2.5"
 category = "class"
-or_earlier = true
 attributes = ["types.GetSetDescriptorType"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "types.GetSetDescriptorType"
+absent_in = "2.4"
 present_in = "2.5"
-note = "Documented in 2.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "types-memberdescriptortype"
 name = "types.MemberDescriptorType"
 added = "2.5"
 category = "class"
-or_earlier = true
 attributes = ["types.MemberDescriptorType"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "types.MemberDescriptorType"
+absent_in = "2.4"
 present_in = "2.5"
-note = "Documented in 2.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "types-notimplementedtype"
@@ -8435,15 +8440,13 @@ id = "math-fmod"
 name = "math.fmod()"
 added = "1.0"
 category = "function"
-or_earlier = true
 attributes = ["math.fmod"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "math.fmod"
-file = "Modules/mathmodule.c"
+absent_in = "0.9"
 present_in = "1.0"
-note = "Bound in 1.0, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -8451,31 +8454,27 @@ id = "math-frexp"
 name = "math.frexp()"
 added = "1.0"
 category = "function"
-or_earlier = true
 attributes = ["math.frexp"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "math.frexp"
-file = "Modules/mathmodule.c"
+absent_in = "0.9"
 present_in = "1.0"
-note = "Bound in 1.0, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
 id = "math-hypot"
 name = "math.hypot()"
-added = "1.4"
+added = "1.2"
 category = "function"
-or_earlier = true
 attributes = ["math.hypot"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "math.hypot"
-file = "Modules/mathmodule.c"
-present_in = "1.4"
-note = "Bound in 1.4, so it is at least that old. No earlier source release can be shown to lack it."
+absent_in = "1.1"
+present_in = "1.2"
 checked = "2026-07-29"
 
 [[features]]
@@ -8483,15 +8482,13 @@ id = "math-ldexp"
 name = "math.ldexp()"
 added = "1.0"
 category = "function"
-or_earlier = true
 attributes = ["math.ldexp"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "math.ldexp"
-file = "Modules/mathmodule.c"
+absent_in = "0.9"
 present_in = "1.0"
-note = "Bound in 1.0, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -8531,15 +8528,13 @@ id = "math-modf"
 name = "math.modf()"
 added = "1.0"
 category = "function"
-or_earlier = true
 attributes = ["math.modf"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "math.modf"
-file = "Modules/mathmodule.c"
+absent_in = "0.9"
 present_in = "1.0"
-note = "Bound in 1.0, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -8641,310 +8636,310 @@ checked = "2026-07-29"
 [[features]]
 id = "operator-abs"
 name = "operator.abs()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.abs"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.abs"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-add"
 name = "operator.add()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.add"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.add"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-and-"
 name = "operator.and_()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.and_"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.and_"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-concat"
 name = "operator.concat()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.concat"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.concat"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-contains"
 name = "operator.contains()"
 added = "1.5"
 category = "function"
-or_earlier = true
 attributes = ["operator.contains"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "operator.contains"
+absent_in = "1.4"
 present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-countof"
 name = "operator.countOf()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.countOf"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.countOf"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-delitem"
 name = "operator.delitem()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.delitem"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.delitem"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-getitem"
 name = "operator.getitem()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.getitem"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.getitem"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-indexof"
 name = "operator.indexOf()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.indexOf"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.indexOf"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-inv"
 name = "operator.inv()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.inv"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.inv"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-lshift"
 name = "operator.lshift()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.lshift"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.lshift"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-mod"
 name = "operator.mod()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.mod"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.mod"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-mul"
 name = "operator.mul()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.mul"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.mul"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-neg"
 name = "operator.neg()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.neg"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.neg"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-not-"
 name = "operator.not_()"
 added = "1.5"
 category = "function"
-or_earlier = true
 attributes = ["operator.not_"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "operator.not_"
+absent_in = "1.4"
 present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-or-"
 name = "operator.or_()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.or_"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.or_"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-pos"
 name = "operator.pos()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.pos"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.pos"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-rshift"
 name = "operator.rshift()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.rshift"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.rshift"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-setitem"
 name = "operator.setitem()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.setitem"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.setitem"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-sub"
 name = "operator.sub()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.sub"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.sub"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-truth"
 name = "operator.truth()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.truth"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.truth"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-xor"
 name = "operator.xor()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["operator.xor"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.xor"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "os-makedirs"
@@ -9390,58 +9385,58 @@ checked = "2026-07-29"
 [[features]]
 id = "signal-alarm"
 name = "signal.alarm()"
-added = "1.5"
+added = "1.1"
 category = "function"
-or_earlier = true
 attributes = ["signal.alarm"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "signal.alarm"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "signal-getsignal"
 name = "signal.getsignal()"
-added = "1.5"
+added = "1.1"
 category = "function"
-or_earlier = true
 attributes = ["signal.getsignal"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "signal.getsignal"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "signal-pause"
 name = "signal.pause()"
-added = "1.5"
+added = "1.1"
 category = "function"
-or_earlier = true
 attributes = ["signal.pause"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "signal.pause"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "signal-signal"
 name = "signal.signal()"
-added = "1.5"
+added = "1.1"
 category = "function"
-or_earlier = true
 attributes = ["signal.signal"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "signal.signal"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "socket-gethostbyaddr"
@@ -9463,84 +9458,84 @@ id = "socket-gethostbyname-ex"
 name = "socket.gethostbyname_ex()"
 added = "1.5"
 category = "function"
-or_earlier = true
 attributes = ["socket.gethostbyname_ex"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "socket.gethostbyname_ex"
+absent_in = "1.4"
 present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "socket-getprotobyname"
 name = "socket.getprotobyname()"
 added = "1.5"
 category = "function"
-or_earlier = true
 attributes = ["socket.getprotobyname"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "socket.getprotobyname"
+absent_in = "1.4"
 present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "socket-htonl"
 name = "socket.htonl()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["socket.htonl"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "socket.htonl"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "socket-htons"
 name = "socket.htons()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["socket.htons"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "socket.htons"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "socket-ntohl"
 name = "socket.ntohl()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["socket.ntohl"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "socket.ntohl"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "socket-ntohs"
 name = "socket.ntohs()"
-added = "1.5"
+added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["socket.ntohs"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "socket.ntohs"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "stat-s-ifmt"
@@ -9691,15 +9686,13 @@ id = "string-capwords"
 name = "string.capwords()"
 added = "1.4"
 category = "function"
-or_earlier = true
 attributes = ["string.capwords"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "string.capwords"
-file = "Lib/string.py"
+absent_in = "1.3"
 present_in = "1.4"
-note = "Bound in 1.4, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -9811,30 +9804,30 @@ checked = "2026-07-29"
 [[features]]
 id = "time-strftime"
 name = "time.strftime()"
-added = "1.5"
+added = "1.3"
 category = "function"
-or_earlier = true
 attributes = ["time.strftime"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "time.strftime"
+absent_in = "1.2"
+present_in = "1.3"
+checked = "2026-07-29"
 
 [[features]]
 id = "time-strptime"
 name = "time.strptime()"
 added = "1.5"
 category = "function"
-or_earlier = true
 attributes = ["time.strptime"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "time.strptime"
+absent_in = "1.4"
 present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "tokenize-tokenize"
@@ -10126,15 +10119,13 @@ id = "binascii-crc32"
 name = "binascii.crc32()"
 added = "1.6"
 category = "function"
-or_earlier = true
 attributes = ["binascii.crc32"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "binascii.crc32"
-file = "Modules/binascii.c"
+absent_in = "1.5"
 present_in = "1.6"
-note = "Bound in 1.6, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -10348,28 +10339,28 @@ id = "socket-inet-aton"
 name = "socket.inet_aton()"
 added = "1.6"
 category = "function"
-or_earlier = true
 attributes = ["socket.inet_aton"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "socket.inet_aton"
+absent_in = "1.5"
 present_in = "1.6"
-note = "Documented in 1.6, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "socket-inet-ntoa"
 name = "socket.inet_ntoa()"
 added = "1.6"
 category = "function"
-or_earlier = true
 attributes = ["socket.inet_ntoa"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "socket.inet_ntoa"
+absent_in = "1.5"
 present_in = "1.6"
-note = "Documented in 1.6, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "binascii-a2b-hex"
@@ -10451,13 +10442,13 @@ id = "calendar-month"
 name = "calendar.month()"
 added = "2.0"
 category = "function"
-or_earlier = true
 attributes = ["calendar.month"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "calendar.month"
+absent_in = "1.6"
 present_in = "2.0"
-note = "Documented in 2.0, the oldest archived doc build, so it is at least that old and may be older."
 checked = "2026-07-29"
 
 [[features]]
@@ -10646,14 +10637,14 @@ id = "select-poll"
 name = "select.poll()"
 added = "2.0"
 category = "function"
-or_earlier = true
 attributes = ["select.poll"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "select.poll"
+absent_in = "1.6"
 present_in = "2.0"
-note = "Documented in 2.0, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "shutil-copyfileobj"
@@ -10748,113 +10739,113 @@ checked = "2026-07-29"
 [[features]]
 id = "unicodedata-bidirectional"
 name = "unicodedata.bidirectional()"
-added = "2.0"
+added = "1.6"
 category = "function"
 attributes = ["unicodedata.bidirectional"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.6"
-present_in = "2.0"
-note = "unicodedata is absent from 1.6 and arrived in 2.0, so nothing in it can be older."
+method = "interpreter"
+symbol = "unicodedata.bidirectional"
+absent_in = "1.5"
+present_in = "1.6"
 checked = "2026-07-29"
 
 [[features]]
 id = "unicodedata-category"
 name = "unicodedata.category()"
-added = "2.0"
+added = "1.6"
 category = "function"
 attributes = ["unicodedata.category"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.6"
-present_in = "2.0"
-note = "unicodedata is absent from 1.6 and arrived in 2.0, so nothing in it can be older."
+method = "interpreter"
+symbol = "unicodedata.category"
+absent_in = "1.5"
+present_in = "1.6"
 checked = "2026-07-29"
 
 [[features]]
 id = "unicodedata-combining"
 name = "unicodedata.combining()"
-added = "2.0"
+added = "1.6"
 category = "function"
 attributes = ["unicodedata.combining"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.6"
-present_in = "2.0"
-note = "unicodedata is absent from 1.6 and arrived in 2.0, so nothing in it can be older."
+method = "interpreter"
+symbol = "unicodedata.combining"
+absent_in = "1.5"
+present_in = "1.6"
 checked = "2026-07-29"
 
 [[features]]
 id = "unicodedata-decimal"
 name = "unicodedata.decimal()"
-added = "2.0"
+added = "1.6"
 category = "function"
 attributes = ["unicodedata.decimal"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.6"
-present_in = "2.0"
-note = "unicodedata is absent from 1.6 and arrived in 2.0, so nothing in it can be older."
+method = "interpreter"
+symbol = "unicodedata.decimal"
+absent_in = "1.5"
+present_in = "1.6"
 checked = "2026-07-29"
 
 [[features]]
 id = "unicodedata-decomposition"
 name = "unicodedata.decomposition()"
-added = "2.0"
+added = "1.6"
 category = "function"
 attributes = ["unicodedata.decomposition"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.6"
-present_in = "2.0"
-note = "unicodedata is absent from 1.6 and arrived in 2.0, so nothing in it can be older."
+method = "interpreter"
+symbol = "unicodedata.decomposition"
+absent_in = "1.5"
+present_in = "1.6"
 checked = "2026-07-29"
 
 [[features]]
 id = "unicodedata-digit"
 name = "unicodedata.digit()"
-added = "2.0"
+added = "1.6"
 category = "function"
 attributes = ["unicodedata.digit"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.6"
-present_in = "2.0"
-note = "unicodedata is absent from 1.6 and arrived in 2.0, so nothing in it can be older."
+method = "interpreter"
+symbol = "unicodedata.digit"
+absent_in = "1.5"
+present_in = "1.6"
 checked = "2026-07-29"
 
 [[features]]
 id = "unicodedata-mirrored"
 name = "unicodedata.mirrored()"
-added = "2.0"
+added = "1.6"
 category = "function"
 attributes = ["unicodedata.mirrored"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.6"
-present_in = "2.0"
-note = "unicodedata is absent from 1.6 and arrived in 2.0, so nothing in it can be older."
+method = "interpreter"
+symbol = "unicodedata.mirrored"
+absent_in = "1.5"
+present_in = "1.6"
 checked = "2026-07-29"
 
 [[features]]
 id = "unicodedata-numeric"
 name = "unicodedata.numeric()"
-added = "2.0"
+added = "1.6"
 category = "function"
 attributes = ["unicodedata.numeric"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.6"
-present_in = "2.0"
-note = "unicodedata is absent from 1.6 and arrived in 2.0, so nothing in it can be older."
+method = "interpreter"
+symbol = "unicodedata.numeric"
+absent_in = "1.5"
+present_in = "1.6"
 checked = "2026-07-29"
 
 [[features]]
@@ -10935,16 +10926,16 @@ checked = "2026-07-29"
 [[features]]
 id = "operator-invert"
 name = "operator.invert()"
-added = "2.1"
+added = "2.0"
 category = "function"
-or_earlier = true
 attributes = ["operator.invert"]
 
 [features.evidence]
-method = "archive"
-present_in = "2.1"
-note = "Documented in 2.1, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "operator.invert"
+absent_in = "1.6"
+present_in = "2.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "random-choice"
@@ -11101,15 +11092,13 @@ id = "unicodedata-lookup"
 name = "unicodedata.lookup()"
 added = "2.1"
 category = "function"
-or_earlier = true
 attributes = ["unicodedata.lookup"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "unicodedata.lookup"
-file = "Modules/unicodedata.c"
+absent_in = "2.0"
 present_in = "2.1"
-note = "Bound in 2.1, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -11117,15 +11106,13 @@ id = "unicodedata-name"
 name = "unicodedata.name()"
 added = "2.1"
 category = "function"
-or_earlier = true
 attributes = ["unicodedata.name"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "unicodedata.name"
-file = "Modules/unicodedata.c"
+absent_in = "2.0"
 present_in = "2.1"
-note = "Bound in 2.1, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -11218,15 +11205,13 @@ id = "codecs-getdecoder"
 name = "codecs.getdecoder()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["codecs.getdecoder"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "codecs.getdecoder"
-file = "Lib/codecs.py"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Bound in 2.2, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -11234,15 +11219,13 @@ id = "codecs-getencoder"
 name = "codecs.getencoder()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["codecs.getencoder"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "codecs.getencoder"
-file = "Lib/codecs.py"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Bound in 2.2, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -11250,15 +11233,13 @@ id = "codecs-getreader"
 name = "codecs.getreader()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["codecs.getreader"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "codecs.getreader"
-file = "Lib/codecs.py"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Bound in 2.2, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -11266,15 +11247,13 @@ id = "codecs-getwriter"
 name = "codecs.getwriter()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["codecs.getwriter"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "codecs.getwriter"
-file = "Lib/codecs.py"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Bound in 2.2, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -11312,15 +11291,13 @@ id = "difflib-ndiff"
 name = "difflib.ndiff()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["difflib.ndiff"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "difflib.ndiff"
-file = "Lib/difflib.py"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Bound in 2.2, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -11371,14 +11348,14 @@ id = "gc-get-referrers"
 name = "gc.get_referrers()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["gc.get_referrers"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "gc.get_referrers"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "help"
@@ -11442,126 +11419,126 @@ id = "locale-nl-langinfo"
 name = "locale.nl_langinfo()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["locale.nl_langinfo"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.nl_langinfo"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-eq"
 name = "operator.eq()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["operator.eq"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "operator.eq"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-floordiv"
 name = "operator.floordiv()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["operator.floordiv"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "operator.floordiv"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-ge"
 name = "operator.ge()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["operator.ge"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "operator.ge"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-gt"
 name = "operator.gt()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["operator.gt"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "operator.gt"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-le"
 name = "operator.le()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["operator.le"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "operator.le"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-lt"
 name = "operator.lt()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["operator.lt"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "operator.lt"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-ne"
 name = "operator.ne()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["operator.ne"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "operator.ne"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator-truediv"
 name = "operator.truediv()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["operator.truediv"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "operator.truediv"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "os-chroot"
@@ -11592,43 +11569,45 @@ checked = "2026-07-28"
 [[features]]
 id = "re-finditer"
 name = "re.finditer()"
-added = "2.2"
+added = "2.3"
 category = "function"
 attributes = ["re.finditer"]
 
 [features.evidence]
-method = "annotation"
-docs = "2.7:library/re.txt"
-quote = "New in version 2.2."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "re.finditer"
+absent_in = "2.2"
+present_in = "2.3"
+note = "The 2.7 docs date it to 2.2, but the 2.2 interpreter does not resolve it and 2.3 does."
+checked = "2026-07-29"
 
 [[features]]
 id = "socket-getaddrinfo"
 name = "socket.getaddrinfo()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["socket.getaddrinfo"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "socket.getaddrinfo"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "socket-getnameinfo"
 name = "socket.getnameinfo()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["socket.getnameinfo"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "socket.getnameinfo"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "staticmethod"
@@ -11648,41 +11627,41 @@ id = "sys-getdlopenflags"
 name = "sys.getdlopenflags()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["sys.getdlopenflags"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "sys.getdlopenflags"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "sys-setdlopenflags"
 name = "sys.setdlopenflags()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["sys.setdlopenflags"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "sys.setdlopenflags"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "tokenize-generate-tokens"
 name = "tokenize.generate_tokens()"
 added = "2.2"
 category = "function"
-or_earlier = true
 attributes = ["tokenize.generate_tokens"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "tokenize.generate_tokens"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
 checked = "2026-07-29"
 
 [[features]]
@@ -12750,15 +12729,17 @@ checked = "2026-07-28"
 [[features]]
 id = "itertools-chain"
 name = "itertools.chain()"
-added = "2.6"
+added = "2.3"
 category = "function"
 attributes = ["itertools.chain"]
 
 [features.evidence]
-method = "annotation"
-docs = "2.7:library/itertools.txt"
-quote = "New in version 2.6."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "itertools.chain"
+absent_in = "2.2"
+present_in = "2.3"
+note = "The 2.7 docs date it to 2.6, but the 2.2 interpreter does not resolve it and 2.3 does."
+checked = "2026-07-29"
 
 [[features]]
 id = "itertools-combinations"
@@ -13334,15 +13315,17 @@ checked = "2026-07-28"
 [[features]]
 id = "os-kill"
 name = "os.kill()"
-added = "2.7"
+added = "1.0"
 category = "function"
 attributes = ["os.kill"]
 
 [features.evidence]
-method = "annotation"
-docs = "2.7:library/os.txt"
-quote = "New in version 2.7: Windows support"
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "os.kill"
+absent_in = "0.9"
+present_in = "1.0"
+note = "The 2.7 docs date it to 2.7, but the 0.9 interpreter does not resolve it and 1.0 does."
+checked = "2026-07-29"
 
 [[features]]
 id = "os-setresgid"
@@ -13781,32 +13764,30 @@ checked = "2026-07-28"
 [[features]]
 id = "codecs-decode"
 name = "codecs.decode()"
-added = "3.3"
+added = "2.4"
 category = "function"
 attributes = ["codecs.decode"]
 
 [features.evidence]
-method = "objects.inv"
-symbol = "py:function codecs.decode"
-absent_in = "3.2"
-present_in = "3.3"
-note = "Also in Python 2.4, but missing from 3.2 as well as 3.0 and 3.1, so 3.3 is the oldest release it has been available in ever since."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "codecs.decode"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "codecs-encode"
 name = "codecs.encode()"
-added = "3.3"
+added = "2.4"
 category = "function"
 attributes = ["codecs.encode"]
 
 [features.evidence]
-method = "objects.inv"
-symbol = "py:function codecs.encode"
-absent_in = "3.2"
-present_in = "3.3"
-note = "Also in Python 2.4, but missing from 3.2 as well as 3.0 and 3.1, so 3.3 is the oldest release it has been available in ever since."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "codecs.encode"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "hmac-compare-digest"
@@ -18715,56 +18696,56 @@ id = "time-altzone"
 name = "time.altzone"
 added = "1.0"
 category = "constant"
-or_earlier = true
 attributes = ["time.altzone"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "time.altzone"
+absent_in = "0.9"
 present_in = "1.0"
-note = "Documented in 1.0, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "time-daylight"
 name = "time.daylight"
 added = "1.0"
 category = "constant"
-or_earlier = true
 attributes = ["time.daylight"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "time.daylight"
+absent_in = "0.9"
 present_in = "1.0"
-note = "Documented in 1.0, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "time-timezone"
 name = "time.timezone"
 added = "1.0"
 category = "constant"
-or_earlier = true
 attributes = ["time.timezone"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "time.timezone"
+absent_in = "0.9"
 present_in = "1.0"
-note = "Documented in 1.0, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "time-tzname"
 name = "time.tzname"
 added = "1.0"
 category = "constant"
-or_earlier = true
 attributes = ["time.tzname"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "time.tzname"
+absent_in = "0.9"
 present_in = "1.0"
-note = "Documented in 1.0, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "math-e"
@@ -18785,71 +18766,71 @@ checked = "2026-07-29"
 [[features]]
 id = "os-defpath"
 name = "os.defpath"
-added = "1.2"
+added = "1.1"
 category = "constant"
-or_earlier = true
 attributes = ["os.defpath"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "os.defpath"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "os-pathsep"
 name = "os.pathsep"
-added = "1.2"
+added = "1.1"
 category = "constant"
-or_earlier = true
 attributes = ["os.pathsep"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "os.pathsep"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "signal-nsig"
 name = "signal.NSIG"
-added = "1.2"
+added = "1.1"
 category = "constant"
 attributes = ["signal.NSIG"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.1"
-present_in = "1.2"
-note = "signal is absent from 1.1 and arrived in 1.2, so nothing in it can be older."
+method = "interpreter"
+symbol = "signal.NSIG"
+absent_in = "1.0"
+present_in = "1.1"
 checked = "2026-07-29"
 
 [[features]]
 id = "signal-sig-dfl"
 name = "signal.SIG_DFL"
-added = "1.2"
+added = "1.1"
 category = "constant"
 attributes = ["signal.SIG_DFL"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.1"
-present_in = "1.2"
-note = "signal is absent from 1.1 and arrived in 1.2, so nothing in it can be older."
+method = "interpreter"
+symbol = "signal.SIG_DFL"
+absent_in = "1.0"
+present_in = "1.1"
 checked = "2026-07-29"
 
 [[features]]
 id = "signal-sig-ign"
 name = "signal.SIG_IGN"
-added = "1.2"
+added = "1.1"
 category = "constant"
 attributes = ["signal.SIG_IGN"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.1"
-present_in = "1.2"
-note = "signal is absent from 1.1 and arrived in 1.2, so nothing in it can be older."
+method = "interpreter"
+symbol = "signal.SIG_IGN"
+absent_in = "1.0"
+present_in = "1.1"
 checked = "2026-07-29"
 
 [[features]]
@@ -18932,14 +18913,15 @@ id = "socket-somaxconn"
 name = "socket.SOMAXCONN"
 added = "1.2"
 category = "constant"
-or_earlier = true
 attributes = ["socket.SOMAXCONN"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "socket.SOMAXCONN"
+absent_in = "1.1"
 present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+note = "The 2.7 docs date it to 2.6, but the 1.1 interpreter does not resolve it and 1.2 does."
+checked = "2026-07-29"
 
 [[features]]
 id = "sys-stderr"
@@ -19161,1472 +19143,1472 @@ checked = "2026-07-29"
 [[features]]
 id = "errno-e2big"
 name = "errno.E2BIG"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.E2BIG"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.E2BIG"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eacces"
 name = "errno.EACCES"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EACCES"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EACCES"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eaddrinuse"
 name = "errno.EADDRINUSE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EADDRINUSE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EADDRINUSE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eaddrnotavail"
 name = "errno.EADDRNOTAVAIL"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EADDRNOTAVAIL"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EADDRNOTAVAIL"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eadv"
 name = "errno.EADV"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EADV"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EADV"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eafnosupport"
 name = "errno.EAFNOSUPPORT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EAFNOSUPPORT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EAFNOSUPPORT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eagain"
 name = "errno.EAGAIN"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EAGAIN"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EAGAIN"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ealready"
 name = "errno.EALREADY"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EALREADY"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EALREADY"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ebade"
 name = "errno.EBADE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EBADE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EBADE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ebadf"
 name = "errno.EBADF"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EBADF"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EBADF"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ebadfd"
 name = "errno.EBADFD"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EBADFD"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EBADFD"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ebadmsg"
 name = "errno.EBADMSG"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EBADMSG"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EBADMSG"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ebadr"
 name = "errno.EBADR"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EBADR"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EBADR"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ebadrqc"
 name = "errno.EBADRQC"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EBADRQC"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EBADRQC"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ebadslt"
 name = "errno.EBADSLT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EBADSLT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EBADSLT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ebfont"
 name = "errno.EBFONT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EBFONT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EBFONT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ebusy"
 name = "errno.EBUSY"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EBUSY"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EBUSY"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-echild"
 name = "errno.ECHILD"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ECHILD"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ECHILD"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-echrng"
 name = "errno.ECHRNG"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ECHRNG"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ECHRNG"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ecomm"
 name = "errno.ECOMM"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ECOMM"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ECOMM"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-econnaborted"
 name = "errno.ECONNABORTED"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ECONNABORTED"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ECONNABORTED"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-econnrefused"
 name = "errno.ECONNREFUSED"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ECONNREFUSED"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ECONNREFUSED"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-econnreset"
 name = "errno.ECONNRESET"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ECONNRESET"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ECONNRESET"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-edeadlk"
 name = "errno.EDEADLK"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EDEADLK"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EDEADLK"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-edeadlock"
 name = "errno.EDEADLOCK"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EDEADLOCK"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EDEADLOCK"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-edestaddrreq"
 name = "errno.EDESTADDRREQ"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EDESTADDRREQ"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EDESTADDRREQ"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-edom"
 name = "errno.EDOM"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EDOM"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EDOM"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-edotdot"
 name = "errno.EDOTDOT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EDOTDOT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EDOTDOT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-edquot"
 name = "errno.EDQUOT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EDQUOT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EDQUOT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eexist"
 name = "errno.EEXIST"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EEXIST"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EEXIST"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-efault"
 name = "errno.EFAULT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EFAULT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EFAULT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-efbig"
 name = "errno.EFBIG"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EFBIG"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EFBIG"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ehostdown"
 name = "errno.EHOSTDOWN"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EHOSTDOWN"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EHOSTDOWN"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ehostunreach"
 name = "errno.EHOSTUNREACH"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EHOSTUNREACH"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EHOSTUNREACH"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eidrm"
 name = "errno.EIDRM"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EIDRM"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EIDRM"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eilseq"
 name = "errno.EILSEQ"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EILSEQ"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EILSEQ"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-einprogress"
 name = "errno.EINPROGRESS"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EINPROGRESS"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EINPROGRESS"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eintr"
 name = "errno.EINTR"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EINTR"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EINTR"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-einval"
 name = "errno.EINVAL"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EINVAL"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EINVAL"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eio"
 name = "errno.EIO"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EIO"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EIO"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eisconn"
 name = "errno.EISCONN"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EISCONN"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EISCONN"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eisdir"
 name = "errno.EISDIR"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EISDIR"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EISDIR"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eisnam"
 name = "errno.EISNAM"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EISNAM"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EISNAM"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-el2hlt"
 name = "errno.EL2HLT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EL2HLT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EL2HLT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-el2nsync"
 name = "errno.EL2NSYNC"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EL2NSYNC"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EL2NSYNC"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-el3hlt"
 name = "errno.EL3HLT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EL3HLT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EL3HLT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-el3rst"
 name = "errno.EL3RST"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EL3RST"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EL3RST"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-elibacc"
 name = "errno.ELIBACC"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ELIBACC"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ELIBACC"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-elibbad"
 name = "errno.ELIBBAD"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ELIBBAD"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ELIBBAD"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-elibexec"
 name = "errno.ELIBEXEC"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ELIBEXEC"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ELIBEXEC"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-elibmax"
 name = "errno.ELIBMAX"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ELIBMAX"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ELIBMAX"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-elibscn"
 name = "errno.ELIBSCN"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ELIBSCN"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ELIBSCN"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-elnrng"
 name = "errno.ELNRNG"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ELNRNG"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ELNRNG"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eloop"
 name = "errno.ELOOP"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ELOOP"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ELOOP"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-emfile"
 name = "errno.EMFILE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EMFILE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EMFILE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-emlink"
 name = "errno.EMLINK"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EMLINK"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EMLINK"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-emsgsize"
 name = "errno.EMSGSIZE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EMSGSIZE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EMSGSIZE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-emultihop"
 name = "errno.EMULTIHOP"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EMULTIHOP"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EMULTIHOP"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enametoolong"
 name = "errno.ENAMETOOLONG"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENAMETOOLONG"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENAMETOOLONG"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enavail"
 name = "errno.ENAVAIL"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENAVAIL"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENAVAIL"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enetdown"
 name = "errno.ENETDOWN"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENETDOWN"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENETDOWN"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enetreset"
 name = "errno.ENETRESET"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENETRESET"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENETRESET"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enetunreach"
 name = "errno.ENETUNREACH"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENETUNREACH"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENETUNREACH"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enfile"
 name = "errno.ENFILE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENFILE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENFILE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enoano"
 name = "errno.ENOANO"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOANO"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOANO"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enobufs"
 name = "errno.ENOBUFS"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOBUFS"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOBUFS"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enocsi"
 name = "errno.ENOCSI"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOCSI"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOCSI"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enodata"
 name = "errno.ENODATA"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENODATA"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENODATA"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enodev"
 name = "errno.ENODEV"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENODEV"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENODEV"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enoent"
 name = "errno.ENOENT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOENT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOENT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enoexec"
 name = "errno.ENOEXEC"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOEXEC"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOEXEC"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enolck"
 name = "errno.ENOLCK"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOLCK"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOLCK"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enolink"
 name = "errno.ENOLINK"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOLINK"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOLINK"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enomem"
 name = "errno.ENOMEM"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOMEM"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOMEM"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enomsg"
 name = "errno.ENOMSG"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOMSG"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOMSG"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enonet"
 name = "errno.ENONET"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENONET"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENONET"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enopkg"
 name = "errno.ENOPKG"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOPKG"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOPKG"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enoprotoopt"
 name = "errno.ENOPROTOOPT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOPROTOOPT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOPROTOOPT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enospc"
 name = "errno.ENOSPC"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOSPC"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOSPC"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enosr"
 name = "errno.ENOSR"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOSR"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOSR"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enostr"
 name = "errno.ENOSTR"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOSTR"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOSTR"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enosys"
 name = "errno.ENOSYS"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOSYS"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOSYS"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enotblk"
 name = "errno.ENOTBLK"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOTBLK"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOTBLK"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enotconn"
 name = "errno.ENOTCONN"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOTCONN"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOTCONN"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enotdir"
 name = "errno.ENOTDIR"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOTDIR"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOTDIR"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enotempty"
 name = "errno.ENOTEMPTY"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOTEMPTY"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOTEMPTY"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enotnam"
 name = "errno.ENOTNAM"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOTNAM"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOTNAM"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enotsock"
 name = "errno.ENOTSOCK"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOTSOCK"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOTSOCK"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enotty"
 name = "errno.ENOTTY"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOTTY"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOTTY"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enotuniq"
 name = "errno.ENOTUNIQ"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENOTUNIQ"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENOTUNIQ"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-enxio"
 name = "errno.ENXIO"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ENXIO"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ENXIO"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eopnotsupp"
 name = "errno.EOPNOTSUPP"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EOPNOTSUPP"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EOPNOTSUPP"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eoverflow"
 name = "errno.EOVERFLOW"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EOVERFLOW"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EOVERFLOW"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eperm"
 name = "errno.EPERM"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EPERM"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EPERM"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-epfnosupport"
 name = "errno.EPFNOSUPPORT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EPFNOSUPPORT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EPFNOSUPPORT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-epipe"
 name = "errno.EPIPE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EPIPE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EPIPE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eproto"
 name = "errno.EPROTO"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EPROTO"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EPROTO"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eprotonosupport"
 name = "errno.EPROTONOSUPPORT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EPROTONOSUPPORT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EPROTONOSUPPORT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eprototype"
 name = "errno.EPROTOTYPE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EPROTOTYPE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EPROTOTYPE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-erange"
 name = "errno.ERANGE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ERANGE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ERANGE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eremchg"
 name = "errno.EREMCHG"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EREMCHG"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EREMCHG"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eremote"
 name = "errno.EREMOTE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EREMOTE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EREMOTE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eremoteio"
 name = "errno.EREMOTEIO"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EREMOTEIO"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EREMOTEIO"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-erestart"
 name = "errno.ERESTART"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ERESTART"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ERESTART"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-erofs"
 name = "errno.EROFS"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EROFS"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EROFS"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-errorcode"
@@ -20646,240 +20628,240 @@ checked = "2026-07-29"
 [[features]]
 id = "errno-eshutdown"
 name = "errno.ESHUTDOWN"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ESHUTDOWN"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ESHUTDOWN"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-esocktnosupport"
 name = "errno.ESOCKTNOSUPPORT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ESOCKTNOSUPPORT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ESOCKTNOSUPPORT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-espipe"
 name = "errno.ESPIPE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ESPIPE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ESPIPE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-esrch"
 name = "errno.ESRCH"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ESRCH"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ESRCH"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-esrmnt"
 name = "errno.ESRMNT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ESRMNT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ESRMNT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-estale"
 name = "errno.ESTALE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ESTALE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ESTALE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-estrpipe"
 name = "errno.ESTRPIPE"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ESTRPIPE"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ESTRPIPE"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-etime"
 name = "errno.ETIME"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ETIME"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ETIME"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-etimedout"
 name = "errno.ETIMEDOUT"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ETIMEDOUT"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ETIMEDOUT"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-etoomanyrefs"
 name = "errno.ETOOMANYREFS"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ETOOMANYREFS"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ETOOMANYREFS"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-etxtbsy"
 name = "errno.ETXTBSY"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.ETXTBSY"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.ETXTBSY"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-euclean"
 name = "errno.EUCLEAN"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EUCLEAN"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EUCLEAN"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eunatch"
 name = "errno.EUNATCH"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EUNATCH"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EUNATCH"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-eusers"
 name = "errno.EUSERS"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EUSERS"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EUSERS"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-ewouldblock"
 name = "errno.EWOULDBLOCK"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EWOULDBLOCK"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EWOULDBLOCK"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-exdev"
 name = "errno.EXDEV"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EXDEV"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EXDEV"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno-exfull"
 name = "errno.EXFULL"
-added = "1.5"
+added = "1.4"
 category = "constant"
-or_earlier = true
 attributes = ["errno.EXFULL"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "errno.EXFULL"
+absent_in = "1.3"
+present_in = "1.4"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-char-max"
@@ -21434,15 +21416,13 @@ id = "string-printable"
 name = "string.printable"
 added = "2.0"
 category = "constant"
-or_earlier = true
 attributes = ["string.printable"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "string.printable"
-file = "Lib/string.py"
+absent_in = "1.6"
 present_in = "2.0"
-note = "Bound in 2.0, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -21450,15 +21430,13 @@ id = "string-punctuation"
 name = "string.punctuation"
 added = "2.0"
 category = "constant"
-or_earlier = true
 attributes = ["string.punctuation"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "string.punctuation"
-file = "Lib/string.py"
+absent_in = "1.6"
 present_in = "2.0"
-note = "Bound in 2.0, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -21511,196 +21489,196 @@ id = "locale-alt-digits"
 name = "locale.ALT_DIGITS"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.ALT_DIGITS"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.ALT_DIGITS"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-codeset"
 name = "locale.CODESET"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.CODESET"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.CODESET"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-crncystr"
 name = "locale.CRNCYSTR"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.CRNCYSTR"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.CRNCYSTR"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-d-fmt"
 name = "locale.D_FMT"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.D_FMT"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.D_FMT"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-d-t-fmt"
 name = "locale.D_T_FMT"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.D_T_FMT"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.D_T_FMT"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-era"
 name = "locale.ERA"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.ERA"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.ERA"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-era-d-fmt"
 name = "locale.ERA_D_FMT"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.ERA_D_FMT"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.ERA_D_FMT"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-era-d-t-fmt"
 name = "locale.ERA_D_T_FMT"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.ERA_D_T_FMT"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.ERA_D_T_FMT"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-noexpr"
 name = "locale.NOEXPR"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.NOEXPR"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.NOEXPR"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-radixchar"
 name = "locale.RADIXCHAR"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.RADIXCHAR"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.RADIXCHAR"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-t-fmt"
 name = "locale.T_FMT"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.T_FMT"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.T_FMT"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-t-fmt-ampm"
 name = "locale.T_FMT_AMPM"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.T_FMT_AMPM"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.T_FMT_AMPM"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-thousep"
 name = "locale.THOUSEP"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.THOUSEP"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.THOUSEP"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-yesexpr"
 name = "locale.YESEXPR"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["locale.YESEXPR"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "locale.YESEXPR"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "os-extsep"
@@ -21718,16 +21696,16 @@ checked = "2026-07-28"
 [[features]]
 id = "socket-af-inet6"
 name = "socket.AF_INET6"
-added = "2.2"
+added = "1.6"
 category = "constant"
-or_earlier = true
 attributes = ["socket.AF_INET6"]
 
 [features.evidence]
-method = "archive"
-present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "socket.AF_INET6"
+absent_in = "1.5"
+present_in = "1.6"
+checked = "2026-07-29"
 
 [[features]]
 id = "string-ascii-letters"
@@ -21779,14 +21757,14 @@ id = "sys-maxunicode"
 name = "sys.maxunicode"
 added = "2.2"
 category = "constant"
-or_earlier = true
 attributes = ["sys.maxunicode"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "sys.maxunicode"
+absent_in = "2.1"
 present_in = "2.2"
-note = "Documented in 2.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "sys-warnoptions"
@@ -21808,71 +21786,69 @@ id = "codecs-bom-utf16"
 name = "codecs.BOM_UTF16"
 added = "2.3"
 category = "constant"
-or_earlier = true
 attributes = ["codecs.BOM_UTF16"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "codecs.BOM_UTF16"
+absent_in = "2.2"
 present_in = "2.3"
-note = "Documented in 2.3, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "codecs-bom-utf16-be"
 name = "codecs.BOM_UTF16_BE"
 added = "2.3"
 category = "constant"
-or_earlier = true
 attributes = ["codecs.BOM_UTF16_BE"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "codecs.BOM_UTF16_BE"
+absent_in = "2.2"
 present_in = "2.3"
-note = "Documented in 2.3, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "codecs-bom-utf16-le"
 name = "codecs.BOM_UTF16_LE"
 added = "2.3"
 category = "constant"
-or_earlier = true
 attributes = ["codecs.BOM_UTF16_LE"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "codecs.BOM_UTF16_LE"
+absent_in = "2.2"
 present_in = "2.3"
-note = "Documented in 2.3, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "codecs-bom-utf32"
 name = "codecs.BOM_UTF32"
 added = "2.3"
 category = "constant"
-or_earlier = true
 attributes = ["codecs.BOM_UTF32"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "codecs.BOM_UTF32"
+absent_in = "2.2"
 present_in = "2.3"
-note = "Documented in 2.3, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "codecs-bom-utf32-be"
 name = "codecs.BOM_UTF32_BE"
 added = "2.3"
 category = "constant"
-or_earlier = true
 attributes = ["codecs.BOM_UTF32_BE"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "codecs.BOM_UTF32_BE"
-file = "Lib/codecs.py"
+absent_in = "2.2"
 present_in = "2.3"
-note = "Bound in 2.3, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -21880,15 +21856,13 @@ id = "codecs-bom-utf32-le"
 name = "codecs.BOM_UTF32_LE"
 added = "2.3"
 category = "constant"
-or_earlier = true
 attributes = ["codecs.BOM_UTF32_LE"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "codecs.BOM_UTF32_LE"
-file = "Lib/codecs.py"
+absent_in = "2.2"
 present_in = "2.3"
-note = "Bound in 2.3, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -21896,15 +21870,13 @@ id = "codecs-bom-utf8"
 name = "codecs.BOM_UTF8"
 added = "2.3"
 category = "constant"
-or_earlier = true
 attributes = ["codecs.BOM_UTF8"]
 
 [features.evidence]
-method = "source"
+method = "interpreter"
 symbol = "codecs.BOM_UTF8"
-file = "Lib/codecs.py"
+absent_in = "2.2"
 present_in = "2.3"
-note = "Bound in 2.3, so it is at least that old. No earlier source release can be shown to lack it."
 checked = "2026-07-29"
 
 [[features]]
@@ -22219,14 +22191,14 @@ id = "socket-has-ipv6"
 name = "socket.has_ipv6"
 added = "2.3"
 category = "constant"
-or_earlier = true
 attributes = ["socket.has_ipv6"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "socket.has_ipv6"
+absent_in = "2.2"
 present_in = "2.3"
-note = "Documented in 2.3, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "sys-api-version"
@@ -22263,13 +22235,13 @@ id = "marshal-version"
 name = "marshal.version"
 added = "2.4"
 category = "constant"
-or_earlier = true
 attributes = ["marshal.version"]
 
 [features.evidence]
-method = "archive"
+method = "interpreter"
+symbol = "marshal.version"
+absent_in = "2.3"
 present_in = "2.4"
-note = "Documented in 2.4, the oldest archived doc build, so it is at least that old and may be older."
 checked = "2026-07-29"
 
 [[features]]
@@ -22352,16 +22324,16 @@ checked = "2026-07-29"
 [[features]]
 id = "dis-opmap"
 name = "dis.opmap"
-added = "2.5"
+added = "2.3"
 category = "constant"
-or_earlier = true
 attributes = ["dis.opmap"]
 
 [features.evidence]
-method = "archive"
-present_in = "2.5"
-note = "Documented in 2.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "dis.opmap"
+absent_in = "2.2"
+present_in = "2.3"
+checked = "2026-07-29"
 
 [[features]]
 id = "os-seek-end"
@@ -23641,17 +23613,17 @@ checked = "2026-07-28"
 [[features]]
 id = "re-unicode"
 name = "re.UNICODE"
-added = "3.11"
+added = "1.6"
 category = "constant"
 attributes = ["re.UNICODE"]
 
 [features.evidence]
-method = "objects.inv"
-symbol = "py:data re.UNICODE"
-absent_in = "3.10"
-present_in = "3.11"
-note = "Also in Python 2.0, but missing from 3.10 as well as 3.0 and 3.1, so 3.11 is the oldest release it has been available in ever since."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "re.UNICODE"
+absent_in = "1.5"
+present_in = "1.6"
+note = "The 2.7 docs date it to 2.0, but the 1.5 interpreter does not resolve it and 1.6 does."
+checked = "2026-07-29"
 
 [[features]]
 id = "signal-sigstkflt"
