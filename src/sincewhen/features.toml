@@ -744,7 +744,7 @@ builtins = ["zip"]
 method = "archive"
 absent_in = "1.6"
 present_in = "2.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "bool"
@@ -771,7 +771,7 @@ builtins = ["enumerate"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "sum"
@@ -784,7 +784,7 @@ builtins = ["sum"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "reversed"
@@ -1455,10 +1455,12 @@ or_earlier = true
 modules = ["getopt"]
 
 [features.evidence]
-method = "archive"
+method = "source"
+symbol = "getopt"
+file = "lib/getopt.py"
 present_in = "0.9"
-note = "Documented in 0.9, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "math"
@@ -1472,7 +1474,7 @@ modules = ["math"]
 method = "archive"
 present_in = "0.9"
 note = "Documented in 0.9, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "posix"
@@ -1486,7 +1488,7 @@ modules = ["posix"]
 method = "archive"
 present_in = "0.9"
 note = "Documented in 0.9, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "string"
@@ -1497,10 +1499,12 @@ or_earlier = true
 modules = ["string"]
 
 [features.evidence]
-method = "archive"
+method = "source"
+symbol = "string"
+file = "lib/string.py"
 present_in = "0.9"
-note = "Documented in 0.9, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "sys"
@@ -1514,7 +1518,7 @@ modules = ["sys"]
 method = "archive"
 present_in = "0.9"
 note = "Documented in 0.9, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "time"
@@ -1528,7 +1532,7 @@ modules = ["time"]
 method = "archive"
 present_in = "0.9"
 note = "Documented in 0.9, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "array"
@@ -1541,7 +1545,7 @@ modules = ["array"]
 method = "archive"
 absent_in = "0.9"
 present_in = "1.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "dbm"
@@ -1554,7 +1558,7 @@ modules = ["dbm"]
 method = "archive"
 absent_in = "0.9"
 present_in = "1.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "grp"
@@ -1567,7 +1571,7 @@ modules = ["grp"]
 method = "archive"
 absent_in = "0.9"
 present_in = "1.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "marshal"
@@ -1580,7 +1584,7 @@ modules = ["marshal"]
 method = "archive"
 absent_in = "0.9"
 present_in = "1.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "os"
@@ -1590,10 +1594,12 @@ category = "module"
 modules = ["os"]
 
 [features.evidence]
-method = "archive"
+method = "source"
+symbol = "os"
+file = "Lib/os.py"
 absent_in = "0.9"
 present_in = "1.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "pwd"
@@ -1606,7 +1612,7 @@ modules = ["pwd"]
 method = "archive"
 absent_in = "0.9"
 present_in = "1.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "select"
@@ -1619,7 +1625,7 @@ modules = ["select"]
 method = "archive"
 absent_in = "0.9"
 present_in = "1.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "socket"
@@ -1632,7 +1638,7 @@ modules = ["socket"]
 method = "archive"
 absent_in = "0.9"
 present_in = "1.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "struct"
@@ -1645,7 +1651,7 @@ modules = ["struct"]
 method = "archive"
 absent_in = "0.9"
 present_in = "1.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "fcntl"
@@ -1658,7 +1664,7 @@ modules = ["fcntl"]
 method = "archive"
 absent_in = "1.0"
 present_in = "1.1"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "copy"
@@ -1671,20 +1677,22 @@ modules = ["copy"]
 method = "archive"
 absent_in = "1.1"
 present_in = "1.2"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "ftplib"
 name = "ftplib module"
-added = "1.2"
+added = "1.0"
 category = "module"
 modules = ["ftplib"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.1"
-present_in = "1.2"
-checked = "2026-07-28"
+method = "source"
+symbol = "ftplib"
+file = "Lib/ftplib.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "pickle"
@@ -1697,7 +1705,7 @@ modules = ["pickle"]
 method = "archive"
 absent_in = "1.1"
 present_in = "1.2"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "shelve"
@@ -1710,7 +1718,7 @@ modules = ["shelve"]
 method = "archive"
 absent_in = "1.1"
 present_in = "1.2"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "signal"
@@ -1723,60 +1731,68 @@ modules = ["signal"]
 method = "archive"
 absent_in = "1.1"
 present_in = "1.2"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "tempfile"
 name = "tempfile module"
-added = "1.2"
+added = "1.0"
 category = "module"
 modules = ["tempfile"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.1"
-present_in = "1.2"
-checked = "2026-07-28"
+method = "source"
+symbol = "tempfile"
+file = "Lib/tempfile.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "traceback"
 name = "traceback module"
-added = "1.2"
+added = "1.1"
 category = "module"
 modules = ["traceback"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.1"
-present_in = "1.2"
-note = "The 3.14 docs date it to 3.13, but the 1.2 documentation already lists it."
-checked = "2026-07-28"
+method = "source"
+symbol = "traceback"
+file = "Lib/traceback.py"
+absent_in = "1.0"
+present_in = "1.1"
+note = "The 3.14 docs date it to 3.13, but the 1.0 interpreter does not register it."
+checked = "2026-07-29"
 
 [[features]]
 id = "types"
 name = "types module"
-added = "1.2"
+added = "1.1"
 category = "module"
 modules = ["types"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.1"
-present_in = "1.2"
-checked = "2026-07-28"
+method = "source"
+symbol = "types"
+file = "Lib/types.py"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "urllib"
 name = "urllib module"
-added = "1.2"
+added = "1.1"
 category = "module"
 modules = ["urllib"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.1"
-present_in = "1.2"
-checked = "2026-07-28"
+method = "source"
+symbol = "urllib"
+file = "Lib/urllib.py"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "binascii"
@@ -1789,7 +1805,7 @@ modules = ["binascii"]
 method = "archive"
 absent_in = "1.2"
 present_in = "1.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "syslog"
@@ -1802,7 +1818,7 @@ modules = ["syslog"]
 method = "archive"
 absent_in = "1.2"
 present_in = "1.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "termios"
@@ -1815,7 +1831,7 @@ modules = ["termios"]
 method = "archive"
 absent_in = "1.2"
 present_in = "1.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "errno"
@@ -1828,7 +1844,7 @@ modules = ["errno"]
 method = "archive"
 absent_in = "1.3"
 present_in = "1.4"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "base64"
@@ -1842,35 +1858,39 @@ modules = ["base64"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "bisect"
 name = "bisect module"
-added = "1.5"
+added = "1.0"
 category = "module"
-or_earlier = true
 modules = ["bisect"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "bisect"
+file = "Lib/bisect.py"
+absent_in = "0.9"
+present_in = "1.0"
+note = "The 2.7 docs date it to 2.1, but the 0.9 interpreter does not register it."
+checked = "2026-07-29"
 
 [[features]]
 id = "calendar"
 name = "calendar module"
-added = "1.5"
+added = "0.9"
 category = "module"
 or_earlier = true
 modules = ["calendar"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "calendar"
+file = "lib/calendar.py"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "cmath"
@@ -1884,21 +1904,22 @@ modules = ["cmath"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "cmd"
 name = "cmd module"
-added = "1.5"
+added = "1.0"
 category = "module"
-or_earlier = true
 modules = ["cmd"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "cmd"
+file = "Lib/cmd.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "code"
@@ -1912,35 +1933,37 @@ modules = ["code"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "colorsys"
 name = "colorsys module"
-added = "1.5"
+added = "1.0"
 category = "module"
-or_earlier = true
 modules = ["colorsys"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "colorsys"
+file = "Lib/colorsys.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "compileall"
 name = "compileall module"
-added = "1.5"
+added = "1.1"
 category = "module"
-or_earlier = true
 modules = ["compileall"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "compileall"
+file = "Lib/compileall.py"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "copyreg"
@@ -1954,21 +1977,23 @@ modules = ["copyreg"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "dis"
 name = "dis module"
-added = "1.5"
+added = "0.9"
 category = "module"
 or_earlier = true
 modules = ["dis"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "dis"
+file = "lib/dis.py"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "fileinput"
@@ -1982,21 +2007,23 @@ modules = ["fileinput"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "fnmatch"
 name = "fnmatch module"
-added = "1.5"
+added = "0.9"
 category = "module"
 or_earlier = true
 modules = ["fnmatch"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "fnmatch"
+file = "lib/fnmatch.py"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "getpass"
@@ -2010,21 +2037,23 @@ modules = ["getpass"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "glob"
 name = "glob module"
-added = "1.5"
+added = "0.9"
 category = "module"
 or_earlier = true
 modules = ["glob"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "glob"
+file = "lib/glob.py"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "gzip"
@@ -2038,7 +2067,7 @@ modules = ["gzip"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "imaplib"
@@ -2052,7 +2081,7 @@ modules = ["imaplib"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "keyword"
@@ -2066,7 +2095,7 @@ modules = ["keyword"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale"
@@ -2080,21 +2109,22 @@ modules = ["locale"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "mailbox"
 name = "mailbox module"
-added = "1.5"
+added = "1.1"
 category = "module"
-or_earlier = true
 modules = ["mailbox"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "mailbox"
+file = "Lib/mailbox.py"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "mimetypes"
@@ -2108,7 +2138,7 @@ modules = ["mimetypes"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "netrc"
@@ -2122,7 +2152,7 @@ modules = ["netrc"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "operator"
@@ -2136,7 +2166,7 @@ modules = ["operator"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "os-path"
@@ -2150,21 +2180,22 @@ modules = ["os.path"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "pdb"
 name = "pdb module"
-added = "1.5"
+added = "1.0"
 category = "module"
-or_earlier = true
 modules = ["pdb"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "pdb"
+file = "Lib/pdb.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "poplib"
@@ -2178,7 +2209,7 @@ modules = ["poplib"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "pprint"
@@ -2192,21 +2223,22 @@ modules = ["pprint"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "profile"
 name = "profile module"
-added = "1.5"
+added = "1.0"
 category = "module"
-or_earlier = true
 modules = ["profile"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "profile"
+file = "Lib/profile.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "pyclbr"
@@ -2220,7 +2252,7 @@ modules = ["pyclbr"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "quopri"
@@ -2234,21 +2266,22 @@ modules = ["quopri"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "random"
 name = "random module"
-added = "1.5"
+added = "1.1"
 category = "module"
-or_earlier = true
 modules = ["random"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "random"
+file = "Lib/random.py"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "re"
@@ -2262,21 +2295,22 @@ modules = ["re"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "repr"
 name = "repr module"
-added = "1.5"
+added = "1.0"
 category = "module"
-or_earlier = true
 modules = ["repr"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "repr"
+file = "Lib/repr.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "resource"
@@ -2290,7 +2324,7 @@ modules = ["resource"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "shlex"
@@ -2304,21 +2338,23 @@ modules = ["shlex"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "shutil"
 name = "shutil module"
-added = "1.5"
+added = "0.9"
 category = "module"
 or_earlier = true
 modules = ["shutil"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "shutil"
+file = "lib/shutil.py"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "site"
@@ -2332,7 +2368,7 @@ modules = ["site"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "smtplib"
@@ -2346,21 +2382,23 @@ modules = ["smtplib"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "stat"
 name = "stat module"
-added = "1.5"
+added = "0.9"
 category = "module"
 or_earlier = true
 modules = ["stat"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "stat"
+file = "lib/stat.py"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "threading"
@@ -2374,35 +2412,37 @@ modules = ["threading"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "token"
 name = "token module"
-added = "1.5"
+added = "1.0"
 category = "module"
-or_earlier = true
 modules = ["token"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "token"
+file = "Lib/token.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "tokenize"
 name = "tokenize module"
-added = "1.5"
+added = "1.0"
 category = "module"
-or_earlier = true
 modules = ["tokenize"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "tokenize"
+file = "Lib/tokenize.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "zlib"
@@ -2416,7 +2456,7 @@ modules = ["zlib"]
 method = "archive"
 present_in = "1.5"
 note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "codecs"
@@ -2429,7 +2469,7 @@ modules = ["codecs"]
 method = "archive"
 absent_in = "1.5"
 present_in = "1.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "codeop"
@@ -2442,7 +2482,7 @@ modules = ["codeop"]
 method = "archive"
 absent_in = "1.5"
 present_in = "1.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "curses"
@@ -2455,7 +2495,7 @@ modules = ["curses"]
 method = "archive"
 absent_in = "1.5"
 present_in = "1.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "filecmp"
@@ -2468,33 +2508,37 @@ modules = ["filecmp"]
 method = "archive"
 absent_in = "1.5"
 present_in = "1.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "linecache"
 name = "linecache module"
-added = "1.6"
+added = "1.0"
 category = "module"
 modules = ["linecache"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.5"
-present_in = "1.6"
-checked = "2026-07-28"
+method = "source"
+symbol = "linecache"
+file = "Lib/linecache.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "pty"
 name = "pty module"
-added = "1.6"
+added = "1.1"
 category = "module"
 modules = ["pty"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.5"
-present_in = "1.6"
-checked = "2026-07-28"
+method = "source"
+symbol = "pty"
+file = "Lib/pty.py"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "rlcompleter"
@@ -2507,20 +2551,22 @@ modules = ["rlcompleter"]
 method = "archive"
 absent_in = "1.5"
 present_in = "1.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "sched"
 name = "sched module"
-added = "1.6"
+added = "1.0"
 category = "module"
 modules = ["sched"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.5"
-present_in = "1.6"
-checked = "2026-07-28"
+method = "source"
+symbol = "sched"
+file = "Lib/sched.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "tabnanny"
@@ -2533,33 +2579,37 @@ modules = ["tabnanny"]
 method = "archive"
 absent_in = "1.5"
 present_in = "1.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "tty"
 name = "tty module"
-added = "1.6"
+added = "1.1"
 category = "module"
 modules = ["tty"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.5"
-present_in = "1.6"
-checked = "2026-07-28"
+method = "source"
+symbol = "tty"
+file = "Lib/tty.py"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "wave"
 name = "wave module"
-added = "1.6"
+added = "1.0"
 category = "module"
 modules = ["wave"]
 
 [features.evidence]
-method = "archive"
-absent_in = "1.5"
-present_in = "1.6"
-checked = "2026-07-28"
+method = "source"
+symbol = "wave"
+file = "Lib/wave.py"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "zipfile"
@@ -2584,7 +2634,7 @@ modules = ["atexit"]
 method = "archive"
 absent_in = "1.6"
 present_in = "2.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "gc"
@@ -2597,7 +2647,7 @@ modules = ["gc"]
 method = "archive"
 absent_in = "1.6"
 present_in = "2.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "gettext"
@@ -2610,7 +2660,7 @@ modules = ["gettext"]
 method = "archive"
 absent_in = "1.6"
 present_in = "2.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "mmap"
@@ -2623,7 +2673,7 @@ modules = ["mmap"]
 method = "archive"
 absent_in = "1.6"
 present_in = "2.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "readline"
@@ -2636,7 +2686,7 @@ modules = ["readline"]
 method = "archive"
 absent_in = "1.6"
 present_in = "2.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "unicodedata"
@@ -2649,7 +2699,7 @@ modules = ["unicodedata"]
 method = "archive"
 absent_in = "1.6"
 present_in = "2.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "webbrowser"
@@ -2662,7 +2712,7 @@ modules = ["webbrowser"]
 method = "archive"
 absent_in = "1.6"
 present_in = "2.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "difflib"
@@ -2675,7 +2725,7 @@ modules = ["difflib"]
 method = "archive"
 absent_in = "2.0"
 present_in = "2.1"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "doctest"
@@ -2688,7 +2738,7 @@ modules = ["doctest"]
 method = "archive"
 absent_in = "2.0"
 present_in = "2.1"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "inspect"
@@ -2701,7 +2751,7 @@ modules = ["inspect"]
 method = "archive"
 absent_in = "2.0"
 present_in = "2.1"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "pydoc"
@@ -2727,7 +2777,7 @@ modules = ["unittest"]
 method = "archive"
 absent_in = "2.0"
 present_in = "2.1"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "warnings"
@@ -2740,7 +2790,7 @@ modules = ["warnings"]
 method = "archive"
 absent_in = "2.0"
 present_in = "2.1"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "weakref"
@@ -2753,7 +2803,7 @@ modules = ["weakref"]
 method = "archive"
 absent_in = "2.0"
 present_in = "2.1"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "email"
@@ -2766,7 +2816,7 @@ modules = ["email"]
 method = "archive"
 absent_in = "2.1"
 present_in = "2.2"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "hmac"
@@ -2779,7 +2829,7 @@ modules = ["hmac"]
 method = "archive"
 absent_in = "2.1"
 present_in = "2.2"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "turtle"
@@ -2792,7 +2842,7 @@ modules = ["turtle"]
 method = "archive"
 absent_in = "2.1"
 present_in = "2.2"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "bz2"
@@ -2805,7 +2855,7 @@ modules = ["bz2"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "csv"
@@ -2818,7 +2868,7 @@ modules = ["csv"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "datetime"
@@ -2831,7 +2881,7 @@ modules = ["datetime"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "heapq"
@@ -2844,7 +2894,7 @@ modules = ["heapq"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "itertools"
@@ -2857,7 +2907,7 @@ modules = ["itertools"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "logging"
@@ -2870,7 +2920,7 @@ modules = ["logging"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "modulefinder"
@@ -2896,7 +2946,7 @@ modules = ["optparse"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "pickletools"
@@ -2922,7 +2972,7 @@ modules = ["pkgutil"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "platform"
@@ -2947,7 +2997,7 @@ modules = ["stringprep"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "tarfile"
@@ -2960,7 +3010,7 @@ modules = ["tarfile"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "textwrap"
@@ -2973,7 +3023,7 @@ modules = ["textwrap"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "timeit"
@@ -2986,7 +3036,7 @@ modules = ["timeit"]
 method = "archive"
 absent_in = "2.2"
 present_in = "2.3"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "zipimport"
@@ -3012,7 +3062,7 @@ modules = ["collections"]
 method = "archive"
 absent_in = "2.3"
 present_in = "2.4"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "decimal"
@@ -3025,7 +3075,7 @@ modules = ["decimal"]
 method = "archive"
 absent_in = "2.3"
 present_in = "2.4"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "subprocess"
@@ -3039,7 +3089,7 @@ modules = ["subprocess"]
 method = "archive"
 absent_in = "2.3"
 present_in = "2.4"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "contextlib"
@@ -3052,7 +3102,7 @@ modules = ["contextlib"]
 method = "archive"
 absent_in = "2.4"
 present_in = "2.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "ctypes"
@@ -3065,7 +3115,7 @@ modules = ["ctypes"]
 method = "archive"
 absent_in = "2.4"
 present_in = "2.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "functools"
@@ -3078,7 +3128,7 @@ modules = ["functools"]
 method = "archive"
 absent_in = "2.4"
 present_in = "2.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "hashlib"
@@ -3091,7 +3141,7 @@ modules = ["hashlib"]
 method = "archive"
 absent_in = "2.4"
 present_in = "2.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "runpy"
@@ -3104,7 +3154,7 @@ modules = ["runpy"]
 method = "archive"
 absent_in = "2.4"
 present_in = "2.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "sqlite3"
@@ -3117,7 +3167,7 @@ modules = ["sqlite3"]
 method = "archive"
 absent_in = "2.4"
 present_in = "2.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "trace"
@@ -3130,7 +3180,7 @@ modules = ["trace"]
 method = "archive"
 absent_in = "2.4"
 present_in = "2.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "uuid"
@@ -3143,7 +3193,7 @@ modules = ["uuid"]
 method = "archive"
 absent_in = "2.4"
 present_in = "2.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "wsgiref"
@@ -3156,7 +3206,7 @@ modules = ["wsgiref"]
 method = "archive"
 absent_in = "2.4"
 present_in = "2.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "xml-etree-elementtree"
@@ -3169,7 +3219,7 @@ modules = ["xml.etree.ElementTree"]
 method = "archive"
 absent_in = "2.4"
 present_in = "2.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "abc"
@@ -3182,7 +3232,7 @@ modules = ["abc"]
 method = "archive"
 absent_in = "2.5"
 present_in = "2.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "ast"
@@ -3207,7 +3257,7 @@ modules = ["cProfile"]
 method = "archive"
 absent_in = "2.5"
 present_in = "2.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "fractions"
@@ -3220,7 +3270,7 @@ modules = ["fractions"]
 method = "archive"
 absent_in = "2.5"
 present_in = "2.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "io"
@@ -3233,7 +3283,7 @@ modules = ["io"]
 method = "archive"
 absent_in = "2.5"
 present_in = "2.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "json"
@@ -3246,7 +3296,7 @@ modules = ["json"]
 method = "archive"
 absent_in = "2.5"
 present_in = "2.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "multiprocessing"
@@ -3259,7 +3309,7 @@ modules = ["multiprocessing"]
 method = "archive"
 absent_in = "2.5"
 present_in = "2.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "numbers"
@@ -3272,7 +3322,7 @@ modules = ["numbers"]
 method = "archive"
 absent_in = "2.5"
 present_in = "2.6"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "importlib"
@@ -3743,86 +3793,96 @@ checked = "2026-07-28"
 [[features]]
 id = "float"
 name = "float()"
-added = "1.2"
+added = "0.9"
 category = "class"
 or_earlier = true
 builtins = ["float"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "float"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "int"
 name = "int()"
-added = "1.2"
+added = "0.9"
 category = "class"
 or_earlier = true
 builtins = ["int"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "int"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "range"
 name = "range()"
-added = "1.2"
+added = "0.9"
 category = "class"
 or_earlier = true
 builtins = ["range"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "range"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "str"
 name = "str()"
-added = "1.2"
+added = "1.0"
 category = "class"
-or_earlier = true
 builtins = ["str"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "str"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "tuple"
 name = "tuple()"
-added = "1.2"
+added = "1.1"
 category = "class"
-or_earlier = true
 builtins = ["tuple"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "tuple"
+file = "Python/bltinmodule.c"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "type"
 name = "type()"
-added = "1.2"
+added = "0.9"
 category = "class"
 or_earlier = true
 builtins = ["type"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "type"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "types-builtinfunctiontype"
@@ -3961,7 +4021,7 @@ builtins = ["complex"]
 method = "archive"
 absent_in = "1.2"
 present_in = "1.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "fileinput-fileinput"
@@ -4002,7 +4062,7 @@ builtins = ["list"]
 method = "archive"
 absent_in = "1.2"
 present_in = "1.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "pprint-prettyprinter"
@@ -4043,7 +4103,7 @@ builtins = ["slice"]
 method = "archive"
 absent_in = "1.2"
 present_in = "1.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "socket-sockettype"
@@ -4210,7 +4270,7 @@ builtins = ["dict"]
 method = "archive"
 absent_in = "2.1"
 present_in = "2.2"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "object"
@@ -6679,10 +6739,12 @@ category = "function"
 builtins = ["posixpath"]
 
 [features.evidence]
-method = "archive"
+method = "source"
+symbol = "posixpath"
+file = "Lib/posixpath.py"
 absent_in = "0.9"
 present_in = "1.0"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "select-select"
@@ -6953,352 +7015,389 @@ checked = "2026-07-28"
 [[features]]
 id = "abs"
 name = "abs()"
-added = "1.2"
+added = "0.9"
 category = "function"
 or_earlier = true
 builtins = ["abs"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "abs"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "chr"
 name = "chr()"
-added = "1.2"
+added = "0.9"
 category = "function"
 or_earlier = true
 builtins = ["chr"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "chr"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "compile"
 name = "compile()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["compile"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "compile"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+note = "The 3.14 docs date it to 3.8, but the 0.9 interpreter does not register it."
+checked = "2026-07-29"
 
 [[features]]
 id = "delattr"
 name = "delattr()"
-added = "1.2"
+added = "1.1"
 category = "function"
-or_earlier = true
 builtins = ["delattr"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "delattr"
+file = "Python/bltinmodule.c"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "dir"
 name = "dir()"
-added = "1.2"
+added = "0.9"
 category = "function"
 or_earlier = true
 builtins = ["dir"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "dir"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "divmod"
 name = "divmod()"
-added = "1.2"
+added = "0.9"
 category = "function"
 or_earlier = true
 builtins = ["divmod"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "divmod"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "eval"
 name = "eval()"
-added = "1.2"
+added = "0.9"
 category = "function"
 or_earlier = true
 builtins = ["eval"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "eval"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "filter"
 name = "filter()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["filter"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "filter"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "getattr"
 name = "getattr()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["getattr"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "getattr"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "hasattr"
 name = "hasattr()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["hasattr"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "hasattr"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "hash"
 name = "hash()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["hash"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "hash"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "hex"
 name = "hex()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["hex"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "hex"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "id"
 name = "id()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["id"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "id"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "input"
 name = "input()"
-added = "1.2"
+added = "0.9"
 category = "function"
 or_earlier = true
 builtins = ["input"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "input"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "len"
 name = "len()"
-added = "1.2"
+added = "0.9"
 category = "function"
 or_earlier = true
 builtins = ["len"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "len"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "map"
 name = "map()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["map"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "map"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "max"
 name = "max()"
-added = "1.2"
+added = "0.9"
 category = "function"
 or_earlier = true
 builtins = ["max"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "max"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "min"
 name = "min()"
-added = "1.2"
+added = "0.9"
 category = "function"
 or_earlier = true
 builtins = ["min"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "min"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "oct"
 name = "oct()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["oct"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "oct"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "open"
 name = "open()"
-added = "1.2"
+added = "0.9"
 category = "function"
 or_earlier = true
 builtins = ["open"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "open"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "ord"
 name = "ord()"
-added = "1.2"
+added = "0.9"
 category = "function"
 or_earlier = true
 builtins = ["ord"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "ord"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
 
 [[features]]
 id = "pow"
 name = "pow()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["pow"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "pow"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "round"
 name = "round()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["round"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "round"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "setattr"
 name = "setattr()"
-added = "1.2"
+added = "1.0"
 category = "function"
-or_earlier = true
 builtins = ["setattr"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "setattr"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
 
 [[features]]
 id = "vars"
 name = "vars()"
-added = "1.2"
+added = "1.1"
 category = "function"
-or_earlier = true
 builtins = ["vars"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.2"
-note = "Documented in 1.2, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-28"
+method = "source"
+symbol = "vars"
+file = "Python/bltinmodule.c"
+absent_in = "1.0"
+present_in = "1.1"
+checked = "2026-07-29"
 
 [[features]]
 id = "base64-decode"
@@ -7759,7 +7858,7 @@ builtins = ["globals"]
 method = "archive"
 absent_in = "1.2"
 present_in = "1.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "gzip-open"
@@ -7786,7 +7885,7 @@ builtins = ["isinstance"]
 method = "archive"
 absent_in = "1.2"
 present_in = "1.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "issubclass"
@@ -7799,7 +7898,7 @@ builtins = ["issubclass"]
 method = "archive"
 absent_in = "1.2"
 present_in = "1.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "keyword-iskeyword"
@@ -7924,7 +8023,7 @@ builtins = ["locals"]
 method = "archive"
 absent_in = "1.2"
 present_in = "1.5"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "math-asin"
@@ -10836,7 +10935,7 @@ builtins = ["help"]
 method = "archive"
 absent_in = "2.1"
 present_in = "2.2"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "hmac-digest"
@@ -10877,7 +10976,7 @@ builtins = ["iter"]
 method = "archive"
 absent_in = "2.1"
 present_in = "2.2"
-checked = "2026-07-28"
+checked = "2026-07-29"
 
 [[features]]
 id = "locale-nl-langinfo"

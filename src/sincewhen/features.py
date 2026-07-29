@@ -20,6 +20,12 @@ MATCHER_FIELDS = ("nodes", "builtins", "modules", "attributes")
 #   archive      the same diff for the era before Sphinx, over the
 #                module lists and built-in function pages in the
 #                archived HTML doc builds
+#   source       the same diff over the builtins table in CPython's own
+#                `bltinmodule.c`, which reaches back to 0.9.1 and so
+#                predates every doc build. Alone among these, its
+#                absences count for as much as its presences, because
+#                the table is the list the interpreter registers its
+#                builtins from rather than a description of one
 #   annotation   the documentation says so itself, in an
 #                "Added in version" marker that is quoted here
 #   grammar      the token is absent from one release's grammar and
@@ -30,12 +36,13 @@ MATCHER_FIELDS = ("nodes", "builtins", "modules", "attributes")
 #                what was read and why the automated methods do not
 #                settle it
 EVIDENCE_METHODS = frozenset(
-    {"objects.inv", "archive", "grammar", "annotation", "pep", "manual"}
+    {"objects.inv", "archive", "source", "grammar", "annotation", "pep", "manual"}
 )
 
 EVIDENCE_REQUIRED = {
     "objects.inv": ("symbol", "absent_in", "present_in"),
     "archive": ("present_in",),
+    "source": ("symbol", "file", "present_in"),
     "grammar": ("symbol", "absent_in", "present_in"),
     "annotation": ("docs", "quote"),
     "pep": ("pep", "python_version"),
@@ -57,6 +64,7 @@ class Evidence:
     absent_in: str | None = None
     present_in: str | None = None
     docs: str | None = None
+    file: str | None = None
     quote: str | None = None
     pep: int | None = None
     python_version: str | None = None
@@ -88,10 +96,10 @@ class Feature:
     def since(self) -> str:
         """How to say when this arrived, in one phrase.
 
-        Some features are older than the oldest surviving documentation.
-        `map()` is listed in the Python 1.2 docs, which is as far back as
-        the archives go, so 1.2 is the oldest release it can be shown to
-        have existed in rather than the release that added it.
+        Some features are older than the oldest surviving record.
+        `max()` is in the builtins table of Python 0.9.1, the first
+        public release, so 0.9 is the oldest version it can be shown to
+        have existed in rather than the version that added it.
         """
         return f"{self.added} or earlier" if self.or_earlier else str(self.added)
 

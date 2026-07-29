@@ -106,8 +106,8 @@ The Python version you *run* `sincewhen` on has nothing to do with the versions 
 - `added` is the oldest release from which a feature has been available *ever since*, ignoring Python 3.0 and 3.1.
   Nobody shipped code on those two, so a gap there is not a gap anyone lived through: `argparse` shipped in 2.7 and again in 3.2, and is dated 2.7.
   A feature missing from 3.2 as well has a real gap and takes the later date.
-- Some features are older than the oldest surviving documentation, and are reported as "1.2 or earlier".
-  Python 0.9.1 is as far back as the archives go.
+- Some features are older than the oldest surviving record, and are reported as "0.9 or earlier".
+  Python 0.9.1, from 1991, is as far back as anything goes.
 - Release dates come from python.org's downloads database back to 2.2, and from CPython's release tags before that.
   Python 0.9 and 1.6 have no release tag, so they show no date.
 - Searching for a module member that has no entry of its own falls back to the module it lives in, since a member cannot be older than its module.
@@ -170,16 +170,17 @@ $ just verify-dataset                   # re-derive every claim in the dataset
 
 `just verify-dataset` also runs in CI, so a pull request that edits a version without editing its evidence fails.
 
-Evidence has five `method` values, four of which a machine can recheck:
+Evidence has seven `method` values, six of which a machine can recheck:
 
 | method | what it means |
 |---|---|
 | `objects.inv` | the symbol is absent from one release's Sphinx inventory and present in the next |
 | `archive` | the same diff over the module lists and built-in function pages in the pre-Sphinx doc builds, back to the 0.9.1 LaTeX |
+| `source` | the builtin is absent from one release's `bltinmodule.c` table and present in the next, which reaches back further than any doc build |
 | `annotation` | the documentation dates it itself, in an "Added in version" marker quoted in the entry |
 | `grammar` | the token is absent from one release's grammar and present in the next, which is what shipped rather than what a PEP intended |
 | `pep` | the feature's PEP carries a `Python-Version` header |
-| `manual` | a human read the archives and wrote down what they found, and why the other four do not settle it |
+| `manual` | a human read the archives and wrote down what they found, and why the other six do not settle it |
 
 `manual` is for the cases where the sources genuinely disagree, and every one of them is printed on every `verify-dataset` run so the override stays visible.
 

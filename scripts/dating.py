@@ -3,7 +3,7 @@
 # requires-python = ">=3.14"
 # dependencies = []
 # ///
-"""Answer "when was this added?" from the cached docs, two ways.
+"""Answer "when was this added?" from the cached sources, several ways.
 
 This is the oracle the dataset is checked against. It never guesses: it
 reports what each method found, says whether they agree, and leaves a
@@ -16,6 +16,12 @@ only give a *floor*: "already documented in 3.0", which rules out later
 versions without picking one. The annotation grep fills that in, since
 the Python 2.7 docs still carry markers going back to 1.3.
 
+Below all of those sits the interpreter's own source, which is the only
+witness that predates the HTML doc builds and the only one whose absence
+means anything. It speaks for builtins alone, and only for names it
+actually finds, so everything else falls through to the doc-derived
+methods exactly as before.
+
 Usage:
 
     uv run scripts/dating.py math.isclose tomllib itertools.batched
@@ -27,6 +33,9 @@ from functools import cache
 
 from annotations import collect as collect_annotations
 from modindex import HTML_BUILDS, dated_builtins, dated_members, dated_modules
+from source import dated_builtins as source_builtins
+from source import dated_modules as source_modules
+from source import source_file
 from sources import load_inventories
 
 # The 3.x line, in release order: a single linear history.
@@ -80,6 +89,10 @@ class Verdict:
     """What each method says about one name, and whether they agree."""
 
     name: str
+    source: str | None = None
+    source_absent_in: str | None = None
+    source_is_floor: bool = False
+    source_path: str | None = None
     archive: str | None = None
     archive_absent_in: str | None = None
     archive_is_floor: bool = False
@@ -90,7 +103,7 @@ class Verdict:
     annotation: str | None = None
     annotation_build: str | None = None
     quote: str | None = None
-    source_file: str | None = None
+    annotation_file: str | None = None
     line: str | None = None
     roles: set[str] = field(default_factory=set)
 
@@ -98,10 +111,14 @@ class Verdict:
     def or_earlier(self) -> bool:
         """Whether the answer is a bound rather than a date.
 
-        Only true when the answer *is* the archive floor. A name that
-        the archives can merely bound but the inventories date outright
-        gets a real date, not a bounded one.
+        Only true when the answer *is* the floor of whichever method
+        produced it. A name that one method can merely bound but another
+        dates outright gets a real date, not a bounded one, which is why
+        `map` stopped being "1.2 or earlier" once the source could be
+        read: the archives were reporting their own age, not its.
         """
+        if self.source is not None:
+            return self.source_is_floor and self.added == self.source
         return self.archive_is_floor and self.added == self.archive
 
     @property
@@ -111,6 +128,8 @@ class Verdict:
         match self.status:
             case "conflict":
                 return None
+            case "source" | "source-overrides-docs":
+                return self.source
             case "archive" | "docs-overstate":
                 # `docs-overstate` means the docs claim it arrived later
                 # than a release that demonstrably has it, so the
@@ -172,6 +191,18 @@ class Verdict:
         # current docs say the same*. Two sources agreeing means the
         # name really did go away and come back: `types.NoneType` is in
         # the 1.2 docs, gone for all of Python 3 until 3.10.
+        # The interpreter's source outranks every doc-derived method,
+        # and it is the one place where absence carries as much weight
+        # as presence, because the builtins table is the list the
+        # interpreter is built from rather than a description of it. So
+        # unlike the archive, it wins in both directions: the docs
+        # cannot be right that a builtin predates a release whose source
+        # does not register it.
+        if self.source:
+            if self.annotation and self.annotation != self.source:
+                return "source-overrides-docs"
+            return "source"
+
         readded = (
             self.inventory
             and self.line == "spine"
@@ -203,6 +234,26 @@ class Verdict:
 
     def evidence(self, checked: str) -> dict:
         """The provenance table this verdict justifies, ready for TOML."""
+        if self.source is not None and self.added == self.source:
+            evidence = {
+                "method": "source",
+                "symbol": self.name,
+                "file": self.source_path,
+                "absent_in": self.source_absent_in,
+                "present_in": self.source,
+            }
+            if self.or_earlier:
+                evidence["note"] = (
+                    f"Registered in {self.source}, the oldest source release "
+                    "there is, so it is at least that old and may be older."
+                )
+            elif self.status == "source-overrides-docs":
+                evidence["note"] = (
+                    f"The {self.annotation_build} docs date it to "
+                    f"{self.annotation}, but the {self.source_absent_in} "
+                    "interpreter does not register it."
+                )
+            return evidence | {"checked": checked}
         if self.added == self.archive:
             evidence = {
                 "method": "archive",
@@ -240,7 +291,7 @@ class Verdict:
             return evidence | {"checked": checked}
         evidence = {
             "method": "annotation",
-            "docs": f"{self.annotation_build}:{self.source_file}",
+            "docs": f"{self.annotation_build}:{self.annotation_file}",
             "quote": self.quote,
         }
         if self.status == "backported":
@@ -281,6 +332,34 @@ def _annotation_index() -> dict[str, dict]:
     return index
 
 
+def _date_from_source(verdict: Verdict) -> None:
+    """Fill in what the interpreter's own source says about a name.
+
+    Only builtins are covered, and only those the builtins table names.
+    A name bound into the builtins dict some other way, like `None` or
+    an exception, is absent from the table without being absent from the
+    release, so staying quiet about those is what keeps this method's
+    absences worth trusting.
+
+    A module wins the name outright, the way it does for the archives,
+    because a name can be both: `repr` is a builtin and a module, and
+    reading the builtins table for the module would answer about the
+    wrong thing. A module the source era never shipped is left to the
+    archives rather than answered from the builtins table.
+    """
+    module = verdict.name in source_modules() or verdict.name in dated_modules()
+    if module:
+        record = source_modules().get(verdict.name)
+    else:
+        record = source_builtins().get(verdict.name)
+    if record is None:
+        return
+    verdict.source = record.get("added") or record["floor"]
+    verdict.source_absent_in = record.get("absent_in")
+    verdict.source_is_floor = "added" not in record
+    verdict.source_path = source_file(verdict.source, verdict.name if module else None)
+
+
 def _date_from_archive(verdict: Verdict, presence: dict) -> None:
     """Fill in what the pre-Sphinx HTML docs say about a name.
 
@@ -317,6 +396,7 @@ def date_symbol(name: str) -> Verdict:
     verdict = Verdict(name=name)
 
     presence = _inventory_index().get(name, {})
+    _date_from_source(verdict)
     _date_from_archive(verdict, presence)
     if presence:
         for label, line in (("spine", SPINE), ("legacy", LEGACY)):
@@ -341,7 +421,7 @@ def date_symbol(name: str) -> Verdict:
         verdict.annotation = marker["added"]
         verdict.annotation_build = marker["build"]
         verdict.quote = marker["quote"]
-        verdict.source_file = marker["file"]
+        verdict.annotation_file = marker["file"]
 
     return verdict
 
@@ -354,7 +434,16 @@ def main(argv: list[str]) -> int:
         verdict = date_symbol(name)
         print(f"{name}")
         print(f"  status      {verdict.status}")
-        print(f"  added       {verdict.added or '?'}")
+        print(
+            f"  added       {verdict.added or '?'}{' or earlier' if verdict.or_earlier else ''}"
+        )
+        if verdict.source:
+            where = (
+                f"already registered in {verdict.source}"
+                if verdict.source_is_floor
+                else f"absent in {verdict.source_absent_in}, present in {verdict.source}"
+            )
+            print(f"  source      {where} ({verdict.source_path})")
         if verdict.inventory:
             print(
                 f"  objects.inv absent in {verdict.absent_in}, present in {verdict.present_in}"
@@ -364,7 +453,7 @@ def main(argv: list[str]) -> int:
         if verdict.annotation:
             print(
                 f"  annotation  {verdict.annotation} "
-                f"({verdict.annotation_build} docs, {verdict.source_file}): {verdict.quote}"
+                f"({verdict.annotation_build} docs, {verdict.annotation_file}): {verdict.quote}"
             )
         print()
     return 0

@@ -26,23 +26,36 @@ Things the code cannot tell you:
 
 ## The research pipeline
 
-Three independent methods date things, and they cross-check each other.
+Four independent methods date things, and they cross-check each other.
 Where they disagree, the disagreement is the finding, and `dating.py` reports it rather than picking a winner.
 
 - `inventory.py` diffs Sphinx `objects.inv` files from 2.6 to 3.14. Deterministic for anything added in 3.1 or later.
 - `modindex.py` diffs the module lists and built-in function pages in the doc builds from 0.9.1 to 2.5, reading LaTeX for the three source-only releases and HTML for the rest. This is the only method that reaches the pre-Sphinx era.
+- `source.py` diffs what CPython's own tarballs contain across 0.9.1, 1.0.1 and 1.1: the `builtin_methods[]` table in `bltinmodule.c`, and the `.py` files in the library directory. Builtins and Python modules only, and it outranks every other method for them. It found that `map` is 1.0 and `bisect` is 1.0, where the archives could only say "1.2 or earlier" and "1.5 or earlier". C extensions are deliberately excluded: `Modules/Setup` decides which get compiled, so the tarball cannot say what a release could import.
 - `annotations.py` greps the docs' own "Added in version" markers out of the 2.7 and 3.14 text builds. Covers what the other two cannot, and is the least trustworthy of the three.
 - `grammar.py` diffs CPython's grammar at every release tag, from 0.9.1 to 3.14. This is the only source that settles *syntax*, and it is ground truth where a PEP header is intent: PEP 3129 says class decorators are 3.0 and the 2.6 grammar already has them. It found that `lambda` is 1.0, not "1.2 or earlier" as the docs suggested.
 
 Two failure modes to keep in mind, both of which the dataset already has examples of:
 
 - The docs can be wrong about their own history. The 2.7 docs date `bisect` to 2.1; the 1.5 module index contains it.
+- A doc-derived floor reports the age of the archive, not the age of the feature. Every builtin used to bottom out at "1.2 or earlier" because 1.2 is the oldest HTML build with a built-in functions page, and reading the interpreter's source dated 16 of the 31 outright.
 - The inventory and the module index date *documentation*, not shipping. `platform` shipped in 2.3 and was documented in 2.4, and `hashlib.sha3_256` shipped in 3.6 and was given its own inventory entry in 3.11.
 - Prose is not a heading. Matching "standard module" anywhere in a doc collects words out of sentences like "standard modules that ...", and a stray comment in the 0.9.1 C source ("this should become a built-in module 'io'") once dated `io` to 1991. Anchor on the section heading.
 
 Presence is strong evidence and absence is weak.
 Seeing a symbol in a release proves it was there; not seeing it may only mean that release's docs had a gap.
 This is why module members only ever get a floor from the archives: the 2.3 doc build paginates module pages, so it indexes 476 members where 2.2 indexes 1456, and diffing that would invent a thousand additions.
+
+`source.py` is the one exception, and only because of what it reads.
+The `builtin_methods[]` table is the list the interpreter registers its builtins from rather than a description of one, so a name missing from it is a name that release did not have.
+That is why it wins against the docs in both directions, where the archives only win when they show a feature is *older* than the docs claim.
+The exception is narrow on purpose: it holds for that one table, it says nothing about names bound into the builtins dict some other way (`None`, the exceptions), and a name that is also a module belongs to the module.
+`repr` is a builtin from 1.0 and a module from 1.5, and letting the table answer for the module dated it five releases early.
+
+The same argument extends to `Lib/*.py` and stops there.
+A `.py` file in the library directory is importable in every build of that release, so its absence means something.
+A C extension's availability is a build-time choice: `curses`, `syslog` and `termios` all ship in the 1.1 tarball with their `Modules/Setup` lines commented out, and `select` is documented in 1.0 and commented out there too.
+Neither reading the tarball nor filtering on `Setup` gets that right, so C extensions are left to the archives.
 
 ## Curation rules for the dataset
 
@@ -51,7 +64,7 @@ Getting a version wrong is the worst bug this project can have, because the whol
 
 - **Cite the evidence.** Every entry carries a `[features.evidence]` table saying how its version was established, and `just verify-dataset` re-derives all of them. Never write a version number from memory: run `just whenadded <symbol>` and let the archived docs answer. An LLM is useful for proposing *which* features are worth having and useless as a source for *when* they arrived.
 - **`added` is the oldest release it has been available in ever since, ignoring 3.0 and 3.1.** Not the oldest release that ever had it. Nobody shipped code on 3.0 or 3.1, so a gap there does not count: `argparse` shipped in 2.7 and again in 3.2 and is dated 2.7. A gap that reaches 3.2 is real, and takes the later date. When the dates differ, say so in the evidence.
-- **Say "or earlier" when that is all the archives support.** A feature already present in the oldest archive that documents it cannot be dated, only bounded. Those entries set `or_earlier = true` and report as "1.2 or earlier".
+- **Say "or earlier" when that is all the sources support.** A feature already present in the oldest source that records it cannot be dated, only bounded. Those entries set `or_earlier = true` and report as "0.9 or earlier" for a builtin in the first public release, or "1.5 or earlier" for a module member the archives can only bound. Before adding one, check whether a method that reaches further back can date it outright.
 - **Leave out what's ambiguous.** `a | b` could be a 3.9 dict merge, a 3.10 union type, or bitwise-or on integers that has worked forever. The AST cannot distinguish them, so the feature is omitted rather than guessed at. A false positive is much worse than a missing entry, because a wrong minimum version is actively misleading while a missing one is merely incomplete.
 - **Prefer unambiguous node matches.** `{**a}` (a `Dict` with a `None` key) is safe. A bare `Starred` node is not, because it means different things in different contexts.
 - **The minimum version is a lower bound.** The dataset is incomplete by nature, so `minimum_version()` can only ever say "at least this new." Do not phrase it as a guarantee in docs or output.
