@@ -972,6 +972,16 @@ def compare() -> dict[str, list[str]]:
       before the release claimed
     - **confirms** what is already recorded
     """
+    # Every absence is cross-checked against what the release's own tree
+    # implements, so without the corpus this would take each one at face
+    # value and report differences that are really missing evidence.
+    missing = [version for version in RELEASES if not source_root(version).exists()]
+    if missing:
+        raise SystemExit(
+            f"No cached source for {', '.join(missing)}, so an absence cannot "
+            "be told from a build gap. Run: uv run scripts/fetch_docs.py"
+        )
+
     entries = tomllib.loads(DATASET.read_text(encoding="utf-8"))["features"]
     findings: dict[str, list[str]] = {}
     for entry in entries:

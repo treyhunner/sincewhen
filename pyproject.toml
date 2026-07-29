@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "sincewhen"
-version = "0.2.0"
+version = "0.3.0"
 description = "Find out which Python version added each feature your code uses"
 readme = "README.md"
 requires-python = ">=3.14"
