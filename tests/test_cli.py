@@ -114,6 +114,13 @@ def test_search_with_no_match(capsys):
     assert "No feature matches" in capsys.readouterr().err
 
 
+def test_search_says_when_it_fell_back_to_a_module(capsys):
+    assert main(["--search", "platform.system"]) == 0
+    output = capsys.readouterr().out
+    assert "No entry for platform.system, but it lives in:" in output
+    assert "platform module" in output
+
+
 def test_search_json(capsys):
     assert main(["--search", "tomllib", "--json"]) == 0
     entry, *_ = json.loads(capsys.readouterr().out)

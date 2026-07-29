@@ -126,6 +126,22 @@ def test_lookup_with_no_matches():
     assert lookup("no-such-feature") == []
 
 
+def test_lookup_falls_back_to_the_enclosing_module():
+    """A member with no entry is answered by the module it lives in."""
+    assert not [f for f in load_features() if "platform.system" in f.attributes]
+    assert [f.id for f in lookup("platform.system")] == ["platform"]
+
+
+def test_lookup_falls_back_through_a_dotted_package():
+    assert [f.id for f in lookup("importlib.resources.nonesuch")] == [
+        "importlib-resources"
+    ]
+
+
+def test_lookup_gives_up_when_no_module_matches():
+    assert lookup("nosuchmodule.member") == []
+
+
 def test_missing_matcher_is_rejected():
     with pytest.raises(DatasetError, match="exactly one matcher"):
         _build({"id": "x", "name": "x", "added": "3.0", "category": "syntax"})
