@@ -67,6 +67,10 @@ check-package: build
 bump value:
     uv version --bump {{ value }}
 
+# Show the release notes for a version (usage: just changelog 0.2.0)
+changelog version:
+    uv run scripts/changelog.py {{ version }}
+
 # Build the package
 build:
     uv sync  # Force uv version error if applicable
@@ -90,6 +94,9 @@ release: check
         echo "Working tree is dirty. Commit the version bump first." >&2
         exit 1
     fi
+    # The release workflow builds its notes from this section, so a
+    # missing one would ship a release that documents itself as nothing.
+    uv run scripts/changelog.py "${version}" --check
     if git rev-parse "v${version}" >/dev/null 2>&1; then
         echo "Tag v${version} already exists. Run 'just bump' first." >&2
         exit 1

@@ -3,7 +3,7 @@
 # requires-python = ">=3.14"
 # dependencies = []
 # ///
-"""Answer "when was this added?" from the cached docs, two ways.
+"""Answer "when was this added?" from the cached sources, several ways.
 
 This is the oracle the dataset is checked against. It never guesses: it
 reports what each method found, says whether they agree, and leaves a
@@ -16,6 +16,12 @@ only give a *floor*: "already documented in 3.0", which rules out later
 versions without picking one. The annotation grep fills that in, since
 the Python 2.7 docs still carry markers going back to 1.3.
 
+Below all of those sits the interpreter's own source, which is the only
+witness that predates the HTML doc builds and the only one whose absence
+means anything. It speaks for builtins, modules and module members, and
+only for names it actually finds and can account for, so everything else
+falls through to the doc-derived methods exactly as before.
+
 Usage:
 
     uv run scripts/dating.py math.isclose tomllib itertools.batched
@@ -27,6 +33,10 @@ from functools import cache
 
 from annotations import collect as collect_annotations
 from modindex import HTML_BUILDS, dated_builtins, dated_members, dated_modules
+from source import SOURCE_ORDER
+from source import dated_builtins as source_builtins
+from source import dated_members as source_members
+from source import dated_modules as source_modules
 from sources import load_inventories
 
 # The 3.x line, in release order: a single linear history.
@@ -56,6 +66,10 @@ LEGACY = ("2.6", "2.7")
 # the Python 2 markers, and the 2.7 docs obviously stop at 2.7.
 ANNOTATION_BUILDS = ("2.7", "3.14")
 
+# The oldest release whose source survives, and so the floor of every
+# method here. A name already in it cannot be dated, only bounded.
+OLDEST_SOURCE = SOURCE_ORDER[0]
+
 
 def version_key(version: str) -> tuple[int, int]:
     major, _, minor = version.partition(".")
@@ -80,6 +94,10 @@ class Verdict:
     """What each method says about one name, and whether they agree."""
 
     name: str
+    source: str | None = None
+    source_absent_in: str | None = None
+    source_is_floor: bool = False
+    source_path: str | None = None
     archive: str | None = None
     archive_absent_in: str | None = None
     archive_is_floor: bool = False
@@ -90,27 +108,88 @@ class Verdict:
     annotation: str | None = None
     annotation_build: str | None = None
     quote: str | None = None
-    source_file: str | None = None
+    annotation_file: str | None = None
     line: str | None = None
+    module: str | None = None
+    module_added: str | None = None
+    module_absent_in: str | None = None
+    module_is_floor: bool = False
     roles: set[str] = field(default_factory=set)
+
+    @property
+    def _is_floor(self) -> bool:
+        """Whether the winning method could only bound the answer."""
+        match self.status:
+            case "source" | "source-overrides-docs":
+                return self.source_is_floor
+            case "archive" | "docs-overstate":
+                return self.archive_is_floor
+        return False
+
+    @property
+    def bounded_by_its_module(self) -> bool:
+        """Whether the module this belongs to closes an open bound.
+
+        A member cannot predate the module that holds it, so a bound at
+        exactly the release the module arrived in is not a bound at all:
+        there is nothing under it to reach. `weakref` arrived in 2.1 and
+        the 2.1 docs are the oldest that describe `weakref.ref`, so
+        `weakref.ref` is 2.1 and not "2.1 or earlier".
+
+        This only follows when the module is *dated*. A module that is
+        itself bounded passes its bound along rather than closing it,
+        which is why `operator.add` stays "1.5 or earlier": `operator` is
+        a C extension, the archives can only bound it, and both of them
+        may well be older.
+
+        A member the sources dated on its own is not bounded by anything,
+        and keeps the bracket its own evidence found rather than
+        borrowing the module's.
+        """
+        return (
+            self._is_floor
+            and self.module_added is not None
+            and not self.module_is_floor
+            and self.module_added == self.added
+        )
+
+    @property
+    def absent_from(self) -> str | None:
+        """The newest release that demonstrably lacks this name.
+
+        Whichever method won says it, and each keeps its own, so this
+        picks the one that matches the answer rather than the first one
+        that happens to be filled in.
+        """
+        match self.status:
+            case "source" | "source-overrides-docs":
+                return self.source_absent_in
+            case "archive" | "docs-overstate":
+                return self.archive_absent_in
+        return self.absent_in
 
     @property
     def or_earlier(self) -> bool:
         """Whether the answer is a bound rather than a date.
 
-        Only true when the answer *is* the archive floor. A name that
-        the archives can merely bound but the inventories date outright
-        gets a real date, not a bounded one.
+        Only true when the answer *is* the floor of whichever method
+        produced it, and nothing else closes it. A name that one method
+        can merely bound but another dates outright gets a real date, not
+        a bounded one, which is why `map` stopped being "1.2 or earlier"
+        once the source could be read: the archives were reporting their
+        own age, not its.
         """
-        return self.archive_is_floor and self.added == self.archive
+        return self._is_floor and not self.bounded_by_its_module
 
     @property
     def added(self) -> str | None:
         """The version to believe, or `None` if the methods disagree."""
         inventory, annotation = self.inventory, self.annotation
         match self.status:
-            case "conflict":
+            case "conflict" | "source-contradicts-archive":
                 return None
+            case "source" | "source-overrides-docs":
+                return self.source
             case "archive" | "docs-overstate":
                 # `docs-overstate` means the docs claim it arrived later
                 # than a release that demonstrably has it, so the
@@ -163,20 +242,63 @@ class Verdict:
         page in 2.3. In all three the docs are right and the archive is
         merely late.
         """
-        # A pre-Sphinx archive speaks for the 2.x line, and usually
-        # beats the 3.x inventories, which are sparse for 3.0 and 3.1
-        # and make old modules look new: `profile` is in the 1.5 docs
-        # and first indexed in 3.1.
+        # Both the source and the pre-Sphinx archives speak for the old
+        # era, and both usually beat the 3.x inventories, which are
+        # sparse for 3.0 and 3.1 and make old modules look new:
+        # `profile` is in the 1.5 docs and first indexed in 3.1.
         #
-        # It loses when the 3.x line dates the name itself *and the
+        # Both lose when the 3.x line dates the name itself *and the
         # current docs say the same*. Two sources agreeing means the
-        # name really did go away and come back: `types.NoneType` is in
-        # the 1.2 docs, gone for all of Python 3 until 3.10.
+        # name really did go away and come back: `types.NoneType` is
+        # bound in the 1.1 tarball and in the 1.2 docs, then gone for
+        # all of Python 3 until 3.10.
         readded = (
             self.inventory
             and self.line == "spine"
             and self.annotation == self.inventory
         )
+
+        # The interpreter's source outranks every doc-derived method,
+        # and it is the one place where absence carries as much weight
+        # as presence, because a method table is the list the module is
+        # built from rather than a description of it. So unlike the
+        # archive, it wins in both directions: the docs cannot be right
+        # that a name predates a release whose source does not bind it.
+        #
+        # That holds only for the dates it can prove. A source *floor* is
+        # not an absence claim at all, only a limit on what could be
+        # read: `gc.collect` is in a table this cannot follow until 2.3
+        # and the 2.0 docs list it, `time.strptime` is behind an
+        # `#ifdef` until 2.3, and `random.randrange` reaches `random` by
+        # a re-export until 2.1.
+        #
+        # So a floor yields to an archive that shows the name earlier,
+        # and to any annotation that does not show it later, because an
+        # annotation is a date and a floor is only a bound. That second
+        # case is mostly the newest release the source can read: without
+        # it, everything the docs date to 2.5 would be reported as "2.5
+        # or earlier" purely because 2.5 is where the tarballs stop.
+        #
+        # A source date older than the archive's is the whole point of
+        # the method. One that is newer is a real disagreement: both
+        # sides claim proof and they cannot both be right, so it is left
+        # standing rather than resolved.
+        if self.source and not readded:
+            outranked = self.archive and version_key(self.archive) < version_key(
+                self.source
+            )
+            if self.source_is_floor:
+                dated = self.annotation and version_key(self.annotation) <= version_key(
+                    self.source
+                )
+                outranked = outranked or dated
+            elif outranked:
+                return "source-contradicts-archive"
+            if not outranked:
+                if self.annotation and self.annotation != self.source:
+                    return "source-overrides-docs"
+                return "source"
+
         if self.archive and not readded:
             if self.annotation and self.annotation != self.archive:
                 later = version_key(self.annotation) > version_key(self.archive)
@@ -201,14 +323,61 @@ class Verdict:
             return "annotation-only"
         return "unknown"
 
+    def _closed_by_module(self) -> dict:
+        """The half of a member's evidence that its module supplies.
+
+        A bound that the module closes has to say so, and it has a
+        release that demonstrably lacks the name to point at: whatever
+        lacks the module lacks everything in it. So `gc.DEBUG_LEAK`
+        brackets on 1.6 and 2.0, the same two releases `gc` does.
+        """
+        if not self.bounded_by_its_module:
+            return {}
+        return {
+            "absent_in": self.module_absent_in,
+            "note": (
+                f"{self.module} is absent from {self.module_absent_in} and "
+                f"arrived in {self.module_added}, so nothing in it can be older."
+            ),
+        }
+
     def evidence(self, checked: str) -> dict:
         """The provenance table this verdict justifies, ready for TOML."""
-        if self.added == self.archive:
+        if self.status in {"source", "source-overrides-docs"}:
+            evidence = {
+                "method": "source",
+                "symbol": self.name,
+                "file": self.source_path,
+                "absent_in": self.source_absent_in,
+                "present_in": self.source,
+            } | self._closed_by_module()
+            if self.or_earlier and self.source == OLDEST_SOURCE:
+                evidence["note"] = (
+                    f"Registered in {self.source}, the oldest source release "
+                    "there is, so it is at least that old and may be older."
+                )
+            elif self.or_earlier:
+                # A floor above the oldest release means the older
+                # source neither binds the name nor rules it out: a
+                # method table row inside an `#if`, or a module whose
+                # own file is not the whole of its namespace.
+                evidence["note"] = (
+                    f"Bound in {self.source}, so it is at least that old. "
+                    "No earlier source release can be shown to lack it."
+                )
+            elif self.status == "source-overrides-docs":
+                evidence["note"] = (
+                    f"The {self.annotation_build} docs date it to "
+                    f"{self.annotation}, but the {self.source_absent_in} "
+                    "interpreter does not register it."
+                )
+            return evidence | {"checked": checked}
+        if self.status in {"archive", "docs-overstate"}:
             evidence = {
                 "method": "archive",
                 "absent_in": self.archive_absent_in,
                 "present_in": self.archive,
-            }
+            } | self._closed_by_module()
             if self.or_earlier:
                 evidence["note"] = (
                     f"Documented in {self.archive}, the oldest archived "
@@ -240,7 +409,7 @@ class Verdict:
             return evidence | {"checked": checked}
         evidence = {
             "method": "annotation",
-            "docs": f"{self.annotation_build}:{self.source_file}",
+            "docs": f"{self.annotation_build}:{self.annotation_file}",
             "quote": self.quote,
         }
         if self.status == "backported":
@@ -281,6 +450,75 @@ def _annotation_index() -> dict[str, dict]:
     return index
 
 
+def _date_from_source(verdict: Verdict) -> None:
+    """Fill in what the interpreter's own source says about a name.
+
+    Builtins come from the builtins table, and only those it names. A
+    name bound into the builtins dict some other way, like `None` or an
+    exception, is absent from the table without being absent from the
+    release, so staying quiet about those is what keeps this method's
+    absences worth trusting.
+
+    A module wins the name outright, the way it does for the archives,
+    because a name can be both: `repr` is a builtin and a module, and
+    reading the builtins table for the module would answer about the
+    wrong thing. A module the source era never shipped is left to the
+    archives rather than answered from the builtins table.
+
+    A dotted name is a module member, which is read from whatever
+    implements the module: the method table and insert calls of a C
+    module, or the top-level bindings of a Python one.
+    """
+    if verdict.module is not None:
+        record = source_members().get(verdict.name)
+    elif verdict.name in source_modules() or verdict.name in dated_modules():
+        record = source_modules().get(verdict.name)
+    else:
+        record = source_builtins().get(verdict.name)
+    if record is None:
+        return
+
+    found = record.get("added") or record["floor"]
+    if verdict.module is not None and _predates_module(verdict, found):
+        return
+    verdict.source = found
+    verdict.source_absent_in = record.get("absent_in")
+    verdict.source_is_floor = "added" not in record
+    verdict.source_path = record["file"]
+
+
+def _date_the_module(verdict: Verdict) -> None:
+    """Date the module a dotted name belongs to, if it is one.
+
+    A member is answered partly by its module, in both directions: the
+    module is a floor under it, and where the module is dated the module
+    is a ceiling too. Both need the module's own verdict, so it is taken
+    once here rather than recomputed by each rule that wants it.
+    """
+    module, _, member = verdict.name.rpartition(".")
+    if not (module and member):
+        return
+    found = date_symbol(module)
+    verdict.module = module
+    verdict.module_added = found.added
+    verdict.module_absent_in = found.absent_from
+    verdict.module_is_floor = found.or_earlier
+
+
+def _predates_module(verdict: Verdict, version: str) -> bool:
+    """Whether a member's source date is older than its module's own.
+
+    A member cannot be available before the module that holds it, and
+    the source can claim otherwise. `signalmodule.c` is in the 1.1
+    tarball and `signal` is dated 1.2, because `Modules/Setup` ships the
+    module commented out and the tarball cannot say what a build could
+    import. Where the two disagree the module is the binding constraint,
+    so the source stays quiet and the archives answer for both.
+    """
+    added = verdict.module_added
+    return added is not None and version_key(version) < version_key(added)
+
+
 def _date_from_archive(verdict: Verdict, presence: dict) -> None:
     """Fill in what the pre-Sphinx HTML docs say about a name.
 
@@ -315,8 +553,10 @@ def _date_from_archive(verdict: Verdict, presence: dict) -> None:
 def date_symbol(name: str) -> Verdict:
     """What the cached docs say about when `name` arrived."""
     verdict = Verdict(name=name)
+    _date_the_module(verdict)
 
     presence = _inventory_index().get(name, {})
+    _date_from_source(verdict)
     _date_from_archive(verdict, presence)
     if presence:
         for label, line in (("spine", SPINE), ("legacy", LEGACY)):
@@ -341,7 +581,7 @@ def date_symbol(name: str) -> Verdict:
         verdict.annotation = marker["added"]
         verdict.annotation_build = marker["build"]
         verdict.quote = marker["quote"]
-        verdict.source_file = marker["file"]
+        verdict.annotation_file = marker["file"]
 
     return verdict
 
@@ -354,7 +594,16 @@ def main(argv: list[str]) -> int:
         verdict = date_symbol(name)
         print(f"{name}")
         print(f"  status      {verdict.status}")
-        print(f"  added       {verdict.added or '?'}")
+        print(
+            f"  added       {verdict.added or '?'}{' or earlier' if verdict.or_earlier else ''}"
+        )
+        if verdict.source:
+            where = (
+                f"already registered in {verdict.source}"
+                if verdict.source_is_floor
+                else f"absent in {verdict.source_absent_in}, present in {verdict.source}"
+            )
+            print(f"  source      {where} ({verdict.source_path})")
         if verdict.inventory:
             print(
                 f"  objects.inv absent in {verdict.absent_in}, present in {verdict.present_in}"
@@ -364,7 +613,7 @@ def main(argv: list[str]) -> int:
         if verdict.annotation:
             print(
                 f"  annotation  {verdict.annotation} "
-                f"({verdict.annotation_build} docs, {verdict.source_file}): {verdict.quote}"
+                f"({verdict.annotation_build} docs, {verdict.annotation_file}): {verdict.quote}"
             )
         print()
     return 0

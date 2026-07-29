@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "sincewhen"
-version = "0.1.0"
+version = "0.2.0"
 description = "Find out which Python version added each feature your code uses"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -26,6 +26,7 @@ dependencies = []
 
 [project.urls]
 Documentation = "https://github.com/treyhunner/sincewhen#readme"
+Changelog = "https://github.com/treyhunner/sincewhen/blob/main/CHANGELOG.md"
 Issues = "https://github.com/treyhunner/sincewhen/issues"
 Source = "https://github.com/treyhunner/sincewhen"
 
@@ -42,7 +43,7 @@ dev = [
 
 [tool.uv.build-backend]
 module-name = "sincewhen"
-source-include = ["tests/**"]
+source-include = ["tests/**", "CHANGELOG.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

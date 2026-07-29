@@ -59,8 +59,13 @@ def check_symbols(entry: dict, names: list[str]) -> tuple[str, str]:
     Every name a feature matches on has to date to the same release. If
     they do not, the entry is bundling two different features together
     and the version it claims is right for at most one of them.
+
+    Whether the version is a date or a bound is checked too, because
+    "1.5" and "1.5 or earlier" are different claims and only one of them
+    can be right.
     """
     added = entry["added"]
+    bounded = entry.get("or_earlier", False)
     dated = {}
     for name in names:
         verdict = date_symbol(name)
@@ -70,8 +75,19 @@ def check_symbols(entry: dict, names: list[str]) -> tuple[str, str]:
                 f"{name}: inventory says {verdict.inventory}, "
                 f"docs say {verdict.annotation}; settle it with manual evidence",
             )
+        if verdict.status == "source-contradicts-archive":
+            return (
+                MISMATCH,
+                f"{name}: the {verdict.source_absent_in} source does not bind it "
+                f"and the {verdict.archive} docs already list it; "
+                "settle it with manual evidence",
+            )
         if verdict.added is not None:
             dated[name] = verdict.added
+            if verdict.added == added and verdict.or_earlier != bounded:
+                claimed = "or earlier" if bounded else "exactly"
+                found = "a bound" if verdict.or_earlier else "a date"
+                return MISMATCH, f"claims {added} {claimed}, but {name} is {found}"
 
     if not dated:
         return UNCHECKABLE, f"no cached source dates {', '.join(sorted(names))}"

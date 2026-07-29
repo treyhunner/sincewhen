@@ -47,6 +47,7 @@ from sources import (
     read_manifest,
     releases_path,
     source_archive_path,
+    source_root,
     tags_path,
     text_archive_path,
     text_root,
@@ -68,7 +69,16 @@ def relative(path) -> str:
 
 
 def fetch_all() -> dict[str, str]:
-    entries = read_manifest()
+    """Every payload the corpus declares, fetched if missing, then hashed.
+
+    Built from nothing rather than from the existing manifest, so that a
+    source the corpus stops declaring drops out instead of lingering.
+    Carrying the old entries forward left `src/python-1.5.tar.gz` in the
+    manifest after 1.5 moved to the 1.5.2 tarball, which no clean
+    checkout could satisfy: nothing fetches it, so `--check` reported it
+    missing forever.
+    """
+    entries: dict[str, str] = {}
 
     for version in INVENTORY_VERSIONS:
         path = inventory_path(version)
@@ -138,7 +148,7 @@ def fetch_all() -> dict[str, str]:
             download(url, archive)
         entries[relative(archive)] = digest(archive)
 
-        root = html_root(version)
+        root = source_root(version)
         if not root.exists():
             print(f"extracting {archive.name}")
             root.mkdir(parents=True)

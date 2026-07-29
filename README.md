@@ -106,8 +106,8 @@ The Python version you *run* `sincewhen` on has nothing to do with the versions 
 - `added` is the oldest release from which a feature has been available *ever since*, ignoring Python 3.0 and 3.1.
   Nobody shipped code on those two, so a gap there is not a gap anyone lived through: `argparse` shipped in 2.7 and again in 3.2, and is dated 2.7.
   A feature missing from 3.2 as well has a real gap and takes the later date.
-- Some features are older than the oldest surviving documentation, and are reported as "1.2 or earlier".
-  Python 0.9.1 is as far back as the archives go.
+- Some features are older than the oldest surviving record, and are reported as "0.9 or earlier".
+  Python 0.9.1, from 1991, is as far back as anything goes.
 - Release dates come from python.org's downloads database back to 2.2, and from CPython's release tags before that.
   Python 0.9 and 1.6 have no release tag, so they show no date.
 - Searching for a module member that has no entry of its own falls back to the module it lives in, since a member cannot be older than its module.
@@ -162,7 +162,7 @@ Nobody should be typing version numbers from memory.
 For anything in the standard library, let the archived documentation say what the version is:
 
 ```console
-$ just fetch-docs                       # one-time, into a gitignored .cache/
+$ just fetch-docs                       # one-time, ~500 MB into a gitignored .cache/
 $ just whenadded math.lcm               # what each source says, and whether they agree
 $ just propose math.lcm math.isqrt      # entries with evidence, ready to paste
 $ just verify-dataset                   # re-derive every claim in the dataset
@@ -170,30 +170,36 @@ $ just verify-dataset                   # re-derive every claim in the dataset
 
 `just verify-dataset` also runs in CI, so a pull request that edits a version without editing its evidence fails.
 
-Evidence has five `method` values, four of which a machine can recheck:
+Evidence has seven `method` values, six of which a machine can recheck:
 
 | method | what it means |
 |---|---|
 | `objects.inv` | the symbol is absent from one release's Sphinx inventory and present in the next |
 | `archive` | the same diff over the module lists and built-in function pages in the pre-Sphinx doc builds, back to the 0.9.1 LaTeX |
+| `source` | the name is absent from one release's own C or Python implementation and present in the next, which reaches back further than any doc build |
 | `annotation` | the documentation dates it itself, in an "Added in version" marker quoted in the entry |
 | `grammar` | the token is absent from one release's grammar and present in the next, which is what shipped rather than what a PEP intended |
 | `pep` | the feature's PEP carries a `Python-Version` header |
-| `manual` | a human read the archives and wrote down what they found, and why the other four do not settle it |
+| `manual` | a human read the archives and wrote down what they found, and why the other six do not settle it |
 
 `manual` is for the cases where the sources genuinely disagree, and every one of them is printed on every `verify-dataset` run so the override stays visible.
+
+A new entry, or a corrected version on an existing one, also gets a line under `Unreleased` in [`CHANGELOG.md`](CHANGELOG.md).
+Dataset changes are the ones that alter what `sincewhen` reports about code that did not change, so they are worth spelling out.
 
 
 ## Releasing
 
-Bump the version, then tag and push:
+Move the `Unreleased` notes in [`CHANGELOG.md`](CHANGELOG.md) under a heading for the new version, then bump, tag, and push:
 
 ```console
 $ just bump patch
 $ just release
 ```
 
-Pushing a `v*` tag runs the release workflow, which publishes to PyPI with trusted publishing and creates a GitHub release.
+`just release` refuses to tag a version that the changelog has nothing to say about, so the notes have to be written before the release goes out rather than after.
+
+Pushing a `v*` tag runs the release workflow, which publishes to PyPI with trusted publishing and creates a GitHub release whose notes are that version's changelog section.
 
 
 ## License
