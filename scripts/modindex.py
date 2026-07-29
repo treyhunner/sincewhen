@@ -35,7 +35,7 @@ import re
 from functools import cache
 from pathlib import Path
 
-from sources import HTML_BUILDS, SOURCE_BUILDS, html_root
+from sources import HTML_BUILDS, LATEX_BUILDS, html_root
 
 # `<a href="lib/module-bisect.html">` in a Sphinx-era module index.
 INDEX_LINK = re.compile(r'href="[^"]*module-(?P<name>[a-zA-Z0-9_.]+)\.html"')
@@ -63,10 +63,11 @@ HTML_HEADING = re.compile(
     re.IGNORECASE,
 )
 
-# The releases whose module list comes out of LaTeX rather than HTML.
-# Everything about the extraction is the same; only the file extension
-# and the markup around the name differ.
-ARCHIVE_ORDER = list(SOURCE_BUILDS) + list(HTML_BUILDS)
+# Every release with documentation to read, oldest first. The first
+# three come out of LaTeX rather than HTML; everything about the
+# extraction is the same, and only the file extension and the markup
+# around the name differ.
+ARCHIVE_ORDER = list(LATEX_BUILDS) + list(HTML_BUILDS)
 
 # Doc-set artefacts rather than importable modules.
 NOT_MODULES = frozenset(

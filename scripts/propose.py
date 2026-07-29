@@ -85,6 +85,11 @@ def propose(group: list[str]) -> tuple[str | None, str]:
                 f"{name}: inventory says {verdict.inventory}, "
                 f"docs say {verdict.annotation}"
             )
+        if verdict.status == "source-contradicts-archive":
+            return None, (
+                f"{name}: the {verdict.source_absent_in} source does not bind it, "
+                f"and the {verdict.archive} docs already list it"
+            )
         if verdict.added is None:
             return None, f"{name}: no cached source dates it"
 

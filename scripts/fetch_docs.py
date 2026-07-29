@@ -47,6 +47,7 @@ from sources import (
     read_manifest,
     releases_path,
     source_archive_path,
+    source_root,
     tags_path,
     text_archive_path,
     text_root,
@@ -138,7 +139,7 @@ def fetch_all() -> dict[str, str]:
             download(url, archive)
         entries[relative(archive)] = digest(archive)
 
-        root = html_root(version)
+        root = source_root(version)
         if not root.exists():
             print(f"extracting {archive.name}")
             root.mkdir(parents=True)

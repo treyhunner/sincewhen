@@ -52,15 +52,41 @@ TEXT_URL = (
     "https://www.python.org/ftp/python/doc/{micro}/python-{micro}-docs-text.tar.bz2"
 )
 
-# The source releases, which are all that exists before the docs were
-# built as HTML. Their `Doc/` LaTeX carries the same "Standard module"
-# and "Built-in module" section headings the early HTML builds do, so
-# the two eras can be read the same way. 0.9.1 is the first public
-# release of Python, from 1991.
+# The source releases: the interpreter as it shipped, which is the only
+# witness whose absences mean anything. The oldest three are also all
+# that exists before the docs were built as HTML, and their `Doc/` LaTeX
+# carries the same "Standard module" and "Built-in module" section
+# headings the early HTML builds do, so the two eras can be read the
+# same way. 0.9.1 is the first public release of Python, from 1991.
+#
+# Each entry is its feature release exactly, rather than the last micro
+# of it, because a name found in 2.1.3 may have arrived in 2.1.3 and
+# this is a table of feature releases. Two exceptions, both because the
+# micro is what the rest of the corpus means by the release: 1.0 only
+# ever shipped as 1.0.1, and 1.5 has to be 1.5.2 to match the doc
+# archive. Pairing the 1.5 source with the 1.5.2 docs manufactured fifty
+# false 1.6 additions, because 1.5.1 and 1.5.2 predate the convention
+# that a micro release adds nothing: `threading`, `smtplib`, `imaplib`
+# and `sys.__stdout__` all arrived in one.
+#
+# Every path is spelled out because python.org's naming changed three
+# times across the era, from `Python-0.9.1` to `python1.1` to
+# `python-1.2` to `Python-2.1`.
 SOURCE_BUILDS = {
     "0.9": "src/Python-0.9.1.tar.gz",
     "1.0": "src/python1.0.1.tar.gz",
     "1.1": "src/python1.1.tar.gz",
+    "1.2": "src/python-1.2.tar.gz",
+    "1.3": "src/python-1.3.tar.gz",
+    "1.4": "src/python-1.4.tar.gz",
+    "1.5": "src/python-1.5.2.tar.gz",
+    "1.6": "src/python-1.6.tar.gz",
+    "2.0": "src/python-2.0.tar.gz",
+    "2.1": "2.1/Python-2.1.tgz",
+    "2.2": "2.2/Python-2.2.tgz",
+    "2.3": "2.3/Python-2.3.tgz",
+    "2.4": "2.4/Python-2.4.tgz",
+    "2.5": "2.5/Python-2.5.tgz",
 }
 
 # The HTML doc archives, which are all that exists before the Sphinx
@@ -83,6 +109,11 @@ HTML_BUILDS = {
 }
 
 HTML_URL = "https://www.python.org/ftp/python/{path}"
+
+# The releases whose documentation is only in the source tarball, as
+# LaTeX, because nobody built HTML for them. From 1.2 on both exist, and
+# the module index reads the HTML.
+LATEX_BUILDS = tuple(version for version in SOURCE_BUILDS if version not in HTML_BUILDS)
 
 # CPython's grammar at each release tag. This is ground truth for
 # syntax: a keyword or rule absent from one release's grammar and
@@ -222,14 +253,21 @@ def source_archive_path(version: str) -> Path:
     return CACHE / "src" / Path(SOURCE_BUILDS[version]).name
 
 
+def source_root(version: str) -> Path:
+    """Where a release's extracted source tarball lives."""
+    return CACHE / "src" / version
+
+
 def html_root(version: str) -> Path:
     """Where a release's extracted documentation lives.
 
-    Source releases and HTML doc archives unpack into different trees,
-    so this is the one place that knows which is which.
+    Most releases have both a source tarball and an HTML doc build, and
+    the two unpack into different trees, so this is the one place that
+    knows which is which. The oldest three have no HTML build at all,
+    and their documentation is the LaTeX inside the source tree.
     """
-    if version in SOURCE_BUILDS:
-        return CACHE / "src" / version
+    if version in LATEX_BUILDS:
+        return source_root(version)
     return CACHE / "html" / version
 
 

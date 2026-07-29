@@ -62,24 +62,45 @@ def test_categories_are_known():
         assert feature.category in known, feature.id
 
 
-def test_no_attribute_predates_its_module():
-    """A module member cannot be older than the module it lives in."""
-    modules = {
-        name: feature.added for feature in load_features() for name in feature.modules
-    }
+def covered_attributes():
+    """Every member entry paired with its module's entry, where there is one."""
+    modules = {name: feature for feature in load_features() for name in feature.modules}
     for feature in load_features():
         for name in feature.attributes:
             parts = name.split(".")
             covering = next(
                 (
-                    ".".join(parts[:size])
+                    modules[".".join(parts[:size])]
                     for size in range(len(parts) - 1, 0, -1)
                     if ".".join(parts[:size]) in modules
                 ),
                 None,
             )
             if covering is not None:
-                assert modules[covering] <= feature.added, (feature.id, covering)
+                yield feature, covering
+
+
+def test_no_attribute_predates_its_module():
+    """A module member cannot be older than the module it lives in."""
+    for feature, module in covered_attributes():
+        assert module.added <= feature.added, (feature.id, module.id)
+
+
+def test_no_attribute_is_bounded_below_a_dated_module():
+    """A bound at the module's own arrival is not a bound at all.
+
+    "`weakref` arrived in 2.1" and "`weakref.ref` is 2.1 or earlier" are
+    not both sayable: a member cannot predate its module, so there is
+    nothing under 2.1 left for the member to reach. `weakref.ref` is 2.1
+    exactly.
+
+    A module that is itself bounded passes the bound along instead of
+    closing it, which is why `operator.add` is still "1.5 or earlier".
+    """
+    for feature, module in covered_attributes():
+        if module.or_earlier or module.added != feature.added:
+            continue
+        assert not feature.or_earlier, (feature.id, module.id)
 
 
 def test_versions_are_plausible():
@@ -231,8 +252,9 @@ def test_source_evidence_cites_the_file_it_was_read_from():
     The path moves between eras and between kinds of module, so it is
     recorded per entry rather than assumed: 0.9.1 keeps every C file in
     a flat `src/` and 1.0 onward split the tree up, a builtin is always
-    in `bltinmodule.c`, and a module is in `Lib/bisect.py` or
-    `Modules/mathmodule.c` depending on what it is written in.
+    in `bltinmodule.c`, and a module or one of its members is in
+    `Lib/bisect.py` or `Modules/mathmodule.c` depending on what it is
+    written in.
     """
     cited_by_source = [
         (feature, evidence)
@@ -243,7 +265,8 @@ def test_source_evidence_cites_the_file_it_was_read_from():
     for feature, evidence in cited_by_source:
         assert evidence.file is not None, feature.id
         assert evidence.file.endswith((".c", ".py")), feature.id
-        assert evidence.symbol in feature.builtins | feature.modules, feature.id
+        targets = feature.builtins | feature.modules | feature.attributes
+        assert evidence.symbol in targets, feature.id
 
 
 def test_pep_evidence_agrees_with_the_feature():
