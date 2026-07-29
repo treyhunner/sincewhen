@@ -1,6 +1,9 @@
 `sincewhen` is a Python library and CLI tool that reports which Python version introduced each feature used in a piece of code.
 See `README.md` for usage, development setup, how to add a feature to the dataset, and the release process.
 
+The question it answers is **"how long has this been in Python?"**, not "what version should I target?".
+`minimum_version()` exists in the library because it is a reasonable thing to compute, not because it is the point.
+
 ## Commands
 
 This project uses uv and just.

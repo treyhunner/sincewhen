@@ -5,7 +5,7 @@
 
 Find out which Python version added each feature your code uses.
 
-Point `sincewhen` at a file and it will tell you what's in there, when each piece of it arrived, and how old a Python you could get away with running it on.
+Point `sincewhen` at a file and it will tell you what's in there and how long each piece of it has been in Python, back to the first public release in 1991.
 
 
 ## Installation
@@ -31,11 +31,10 @@ Give `sincewhen` a file to see every dated feature it uses:
 
 ```console
 $ sincewhen example.py
-example.py:1  tomllib module                  3.11  2022-10-24
-example.py:3  positional-only parameters (/)  3.8   2019-10-14
-example.py:4  with statement                  2.5   2006-09-19
-
-Minimum: Python 3.11, released 2022-10-24 (set by tomllib module)
+example.py:1  tomllib module                  3.11            2022-10-24
+example.py:3  positional-only parameters (/)  3.8             2019-10-14
+example.py:5  with statement                  2.5             2006-09-19
+example.py:5  open()                          0.9 or earlier
 ```
 
 The last column is the day that release shipped, so a version number reads as an age.
@@ -43,8 +42,8 @@ The last column is the day that release shipped, so a version number reads as an
 Only the first use of each feature is shown by default.
 Pass `--all` to see every occurrence.
 
-The dataset reaches back to Python 0.9.1, which means a file will report things like `str()` and `open()` that have been there since 1991.
-Pass `--since` to hide them:
+The dataset reaches back to Python 0.9.1, so a file will report things like `str()` and `open()` that have been there since 1991.
+That is usually the point, but pass `--since` when you only want the recent arrivals:
 
 ```console
 $ sincewhen --since 3.0 example.py
@@ -54,9 +53,8 @@ Read from standard input with `-`:
 
 ```console
 $ echo 'x: int = 1' | sincewhen -
-<stdin>:1  variable annotation  3.6  2016-12-23
-
-Minimum: Python 3.6, released 2016-12-23 (set by variable annotation)
+<stdin>:1  variable annotation  3.6             2016-12-23
+<stdin>:1  int()                0.9 or earlier
 ```
 
 Look a single feature up by name instead of analyzing code:

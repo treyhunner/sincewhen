@@ -24,13 +24,22 @@ def example(tmp_path):
     return path
 
 
-def test_reports_features_and_minimum(example, capsys):
+def test_reports_every_feature_it_finds(example, capsys):
     assert main([str(example)]) == 0
     output = capsys.readouterr().out
     assert "tomllib module" in output
     assert "positional-only parameters (/)" in output
-    assert "Minimum: Python 3.11, released 2022-10-24 (set by" in output
-    assert "tomllib module" in output
+
+
+def test_reports_no_summary_verdict(example, capsys):
+    """The report is a list of ages, not a compatibility judgment.
+
+    `sincewhen` answers how long each feature has been in Python. A
+    closing "minimum version" line reframed every run as advice about
+    what to target, which is a different question and not this one.
+    """
+    main([str(example)])
+    assert "Minimum" not in capsys.readouterr().out
 
 
 def test_a_module_line_gives_way_to_its_member(capsys, tmp_path):

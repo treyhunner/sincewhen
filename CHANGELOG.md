@@ -4,12 +4,15 @@ Everything notable that changed in each release of `sincewhen`.
 This project follows [semantic versioning](https://semver.org).
 
 Dataset changes are listed apart from everything else, because they are the changes that can alter what `sincewhen` says about code that did not change.
-A corrected version is not a cosmetic fix: it can move the minimum version a file reports.
+A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
 ## Unreleased
 
-Nothing yet.
+### Tool
+
+- **Removed the `Minimum: Python X` line from the end of a report.**
+  `sincewhen.minimum_version()` is unchanged for anyone who wants that number from the library.
 
 
 ## 0.2.0 - 2026-07-29

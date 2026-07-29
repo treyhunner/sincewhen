@@ -38,7 +38,7 @@ def _parser() -> argparse.ArgumentParser:
         "--since",
         metavar="VERSION",
         type=Version.parse,
-        help="hide features older than this, for when the ancient ones are noise",
+        help="hide features older than this, to see only the recent arrivals",
     )
     parser.add_argument("--json", action="store_true", help="emit JSON")
     parser.add_argument(
@@ -132,20 +132,6 @@ def _report(results: list[tuple[str, list[Detection]]]) -> None:
     for location, name, since, released in rows:
         line = f"{location:<{location_width}}  {name:<{name_width}}  {since:<{since_width}}"
         print(f"{line}  {released}".rstrip())
-
-    # Non-empty rows guarantee at least one detection, so there is a floor.
-    floor = max(found.added for _, detections in results for found in detections)
-    setters = sorted(
-        {
-            found.feature.name
-            for _, detections in results
-            for found in detections
-            if found.added == floor
-        }
-    )
-    released = _released(floor)
-    since = f", released {released}" if released else ""
-    print(f"\nMinimum: Python {floor}{since} (set by {', '.join(setters)})")
 
 
 def _search(term: str, as_json: bool) -> int:
