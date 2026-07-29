@@ -1,0 +1,84 @@
+[build-system]
+requires = ["uv_build>=0.11.7,<0.12.0"]
+build-backend = "uv_build"
+
+[project]
+name = "sincewhen"
+version = "0.1.0"
+description = "Find out which Python version added each feature your code uses"
+readme = "README.md"
+requires-python = ">=3.14"
+license = "MIT"
+license-files = ["LICENSE.txt"]
+keywords =["python-version", "compatibility", "ast", "whatsnew", "history"]
+authors = [
+  { name = "Trey Hunner" },
+]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python",
+  "Programming Language :: Python :: 3.14",
+  "Programming Language :: Python :: Implementation :: CPython",
+  "Programming Language :: Python :: Implementation :: PyPy",
+  "Topic :: Software Development :: Quality Assurance",
+]
+dependencies = []
+
+[project.urls]
+Documentation = "https://github.com/treyhunner/sincewhen#readme"
+Issues = "https://github.com/treyhunner/sincewhen/issues"
+Source = "https://github.com/treyhunner/sincewhen"
+
+[project.scripts]
+sincewhen = "sincewhen.cli:main"
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=5.0.0",
+    "ruff>=0.14.0",
+    "ty>=0.0.64",
+]
+
+[tool.uv.build-backend]
+module-name = "sincewhen"
+source-include = ["tests/**"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+target-version = "py314"
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "I",      # isort
+    "UP",     # pyupgrade
+    "B",      # flake8-bugbear
+    "C4",     # flake8-comprehensions
+]
+ignore = [
+    "E501",   # line too long (handled by formatter)
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+
+[tool.coverage.run]
+source = ["sincewhen", "tests"]
+branch = true
+# `python -m sincewhen` is verified by a subprocess test, which coverage
+# cannot measure from the parent process. Two lines of delegation.
+omit = ["src/sincewhen/__main__.py"]
+
+[tool.coverage.report]
+fail_under = 100
+exclude_lines = [
+  "no cov",
+  "if __name__ == .__main__.:",
+  "if TYPE_CHECKING:",
+]

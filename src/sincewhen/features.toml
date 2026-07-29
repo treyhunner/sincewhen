@@ -1,0 +1,656 @@
+# The sincewhen feature dataset.
+#
+# Each entry records one detectable feature and the Python version that
+# introduced it. Matchers are declarative:
+#
+#   nodes       AST node class names that signal the feature
+#   requires    name of a node attribute that must be truthy
+#   check       name of a predicate registered in detect.py
+#   builtins    builtin names whose use signals the feature
+#   modules     stdlib modules whose import signals the feature
+#   attributes  dotted names (module.attr) whose use signals the feature
+#
+# Every entry needs exactly one matcher kind. Documentation links are
+# generated from `added` and `pep`, so only set `docs` to override.
+#
+# Curation notes live in CLAUDE.md. Python 1.x entries are still TODO.
+
+
+# --------------------------------------------------------------------
+# Syntax
+# --------------------------------------------------------------------
+
+[[features]]
+id = "generator-expression"
+name = "generator expression"
+added = "2.4"
+category = "syntax"
+pep = 289
+nodes = ["GeneratorExp"]
+
+[[features]]
+id = "decorator"
+name = "function decorator"
+added = "2.4"
+category = "syntax"
+pep = 318
+nodes = ["FunctionDef", "AsyncFunctionDef"]
+requires = "decorator_list"
+
+[[features]]
+id = "class-decorator"
+name = "class decorator"
+added = "2.6"
+category = "syntax"
+pep = 3129
+nodes = ["ClassDef"]
+requires = "decorator_list"
+
+[[features]]
+id = "with-statement"
+name = "with statement"
+added = "2.5"
+category = "syntax"
+pep = 343
+nodes = ["With"]
+
+[[features]]
+id = "conditional-expression"
+name = "conditional expression (a if b else c)"
+added = "2.5"
+category = "syntax"
+pep = 308
+nodes = ["IfExp"]
+
+[[features]]
+id = "set-literal"
+name = "set literal"
+added = "2.7"
+category = "syntax"
+nodes = ["Set"]
+
+[[features]]
+id = "set-comprehension"
+name = "set comprehension"
+added = "2.7"
+category = "syntax"
+nodes = ["SetComp"]
+
+[[features]]
+id = "dict-comprehension"
+name = "dict comprehension"
+added = "2.7"
+category = "syntax"
+nodes = ["DictComp"]
+
+[[features]]
+id = "nonlocal"
+name = "nonlocal statement"
+added = "3.0"
+category = "syntax"
+pep = 3104
+nodes = ["Nonlocal"]
+
+[[features]]
+id = "keyword-only-arguments"
+name = "keyword-only arguments"
+added = "3.0"
+category = "syntax"
+pep = 3102
+nodes = ["arguments"]
+requires = "kwonlyargs"
+
+[[features]]
+id = "function-annotation"
+name = "function annotation"
+added = "3.0"
+category = "syntax"
+pep = 3107
+nodes = ["arg"]
+requires = "annotation"
+
+[[features]]
+id = "yield-from"
+name = "yield from"
+added = "3.3"
+category = "syntax"
+pep = 380
+nodes = ["YieldFrom"]
+
+[[features]]
+id = "async-await"
+name = "async and await"
+added = "3.5"
+category = "syntax"
+pep = 492
+nodes = ["AsyncFunctionDef", "AsyncFor", "AsyncWith", "Await"]
+
+[[features]]
+id = "async-comprehension"
+name = "asynchronous comprehension"
+added = "3.6"
+category = "syntax"
+pep = 530
+nodes = ["ListComp", "SetComp", "DictComp", "GeneratorExp"]
+check = "has_async_comprehension"
+
+[[features]]
+id = "matrix-multiplication"
+name = "matrix multiplication operator (@)"
+added = "3.5"
+category = "syntax"
+pep = 465
+nodes = ["MatMult"]
+
+[[features]]
+id = "dict-unpacking"
+name = "dict unpacking in a literal ({**a})"
+added = "3.5"
+category = "syntax"
+pep = 448
+nodes = ["Dict"]
+check = "has_none_key"
+
+[[features]]
+id = "iterable-unpacking-literal"
+name = "iterable unpacking in a literal ([*a])"
+added = "3.5"
+category = "syntax"
+pep = 448
+nodes = ["List", "Tuple", "Set"]
+check = "has_starred_element"
+
+[[features]]
+id = "f-string"
+name = "f-string"
+added = "3.6"
+category = "syntax"
+pep = 498
+nodes = ["JoinedStr"]
+
+[[features]]
+id = "variable-annotation"
+name = "variable annotation"
+added = "3.6"
+category = "syntax"
+pep = 526
+nodes = ["AnnAssign"]
+
+[[features]]
+id = "walrus"
+name = "walrus operator (:=)"
+added = "3.8"
+category = "syntax"
+pep = 572
+nodes = ["NamedExpr"]
+
+[[features]]
+id = "positional-only-parameters"
+name = "positional-only parameters (/)"
+added = "3.8"
+category = "syntax"
+pep = 570
+nodes = ["arguments"]
+requires = "posonlyargs"
+
+[[features]]
+id = "match-statement"
+name = "match statement"
+added = "3.10"
+category = "syntax"
+pep = 634
+nodes = ["Match"]
+
+[[features]]
+id = "except-star"
+name = "except* (exception groups)"
+added = "3.11"
+category = "syntax"
+pep = 654
+nodes = ["TryStar"]
+
+[[features]]
+id = "type-parameters"
+name = "type parameter syntax (PEP 695)"
+added = "3.12"
+category = "syntax"
+pep = 695
+nodes = ["FunctionDef", "AsyncFunctionDef", "ClassDef"]
+requires = "type_params"
+
+[[features]]
+id = "type-alias-statement"
+name = "type alias statement"
+added = "3.12"
+category = "syntax"
+pep = 695
+nodes = ["TypeAlias"]
+
+[[features]]
+id = "t-string"
+name = "t-string (template string)"
+added = "3.14"
+category = "syntax"
+pep = 750
+nodes = ["TemplateStr"]
+
+
+# --------------------------------------------------------------------
+# Builtins
+# --------------------------------------------------------------------
+
+[[features]]
+id = "zip"
+name = "zip()"
+added = "2.0"
+category = "builtin"
+builtins = ["zip"]
+
+[[features]]
+id = "sum"
+name = "sum()"
+added = "2.3"
+category = "builtin"
+builtins = ["sum"]
+
+[[features]]
+id = "enumerate"
+name = "enumerate()"
+added = "2.3"
+category = "builtin"
+pep = 279
+builtins = ["enumerate"]
+
+[[features]]
+id = "bool"
+name = "bool()"
+added = "2.3"
+category = "builtin"
+pep = 285
+builtins = ["bool"]
+
+[[features]]
+id = "sorted"
+name = "sorted()"
+added = "2.4"
+category = "builtin"
+builtins = ["sorted"]
+
+[[features]]
+id = "reversed"
+name = "reversed()"
+added = "2.4"
+category = "builtin"
+builtins = ["reversed"]
+
+[[features]]
+id = "set-builtin"
+name = "set() and frozenset()"
+added = "2.4"
+category = "builtin"
+builtins = ["set", "frozenset"]
+
+[[features]]
+id = "any-all"
+name = "any() and all()"
+added = "2.5"
+category = "builtin"
+builtins = ["any", "all"]
+
+[[features]]
+id = "next"
+name = "next()"
+added = "2.6"
+category = "builtin"
+builtins = ["next"]
+
+[[features]]
+id = "format-builtin"
+name = "format()"
+added = "2.6"
+category = "builtin"
+builtins = ["format"]
+
+[[features]]
+id = "bin"
+name = "bin()"
+added = "2.6"
+category = "builtin"
+builtins = ["bin"]
+
+[[features]]
+id = "bytearray"
+name = "bytearray()"
+added = "2.6"
+category = "builtin"
+builtins = ["bytearray"]
+
+[[features]]
+id = "memoryview"
+name = "memoryview()"
+added = "2.7"
+category = "builtin"
+builtins = ["memoryview"]
+
+[[features]]
+id = "print-function"
+name = "print() function"
+added = "3.0"
+category = "builtin"
+pep = 3105
+builtins = ["print"]
+
+[[features]]
+id = "breakpoint"
+name = "breakpoint()"
+added = "3.7"
+category = "builtin"
+pep = 553
+builtins = ["breakpoint"]
+
+[[features]]
+id = "aiter-anext"
+name = "aiter() and anext()"
+added = "3.10"
+category = "builtin"
+builtins = ["aiter", "anext"]
+
+[[features]]
+id = "exception-group"
+name = "ExceptionGroup and BaseExceptionGroup"
+added = "3.11"
+category = "builtin"
+pep = 654
+builtins = ["ExceptionGroup", "BaseExceptionGroup"]
+
+
+# --------------------------------------------------------------------
+# Standard library modules
+# --------------------------------------------------------------------
+
+[[features]]
+id = "itertools"
+name = "itertools module"
+added = "2.3"
+category = "module"
+modules = ["itertools"]
+
+[[features]]
+id = "collections"
+name = "collections module"
+added = "2.4"
+category = "module"
+modules = ["collections"]
+
+[[features]]
+id = "subprocess"
+name = "subprocess module"
+added = "2.4"
+category = "module"
+pep = 324
+modules = ["subprocess"]
+
+[[features]]
+id = "functools"
+name = "functools module"
+added = "2.5"
+category = "module"
+modules = ["functools"]
+
+[[features]]
+id = "ctypes"
+name = "ctypes module"
+added = "2.5"
+category = "module"
+modules = ["ctypes"]
+
+[[features]]
+id = "json"
+name = "json module"
+added = "2.6"
+category = "module"
+modules = ["json"]
+
+[[features]]
+id = "argparse"
+name = "argparse module"
+added = "3.2"
+category = "module"
+pep = 389
+modules = ["argparse"]
+
+[[features]]
+id = "ipaddress"
+name = "ipaddress module"
+added = "3.3"
+category = "module"
+modules = ["ipaddress"]
+
+[[features]]
+id = "pathlib"
+name = "pathlib module"
+added = "3.4"
+category = "module"
+pep = 428
+modules = ["pathlib"]
+
+[[features]]
+id = "enum"
+name = "enum module"
+added = "3.4"
+category = "module"
+pep = 435
+modules = ["enum"]
+
+[[features]]
+id = "statistics"
+name = "statistics module"
+added = "3.4"
+category = "module"
+pep = 450
+modules = ["statistics"]
+
+[[features]]
+id = "asyncio"
+name = "asyncio module"
+added = "3.4"
+category = "module"
+pep = 3156
+modules = ["asyncio"]
+
+[[features]]
+id = "selectors"
+name = "selectors module"
+added = "3.4"
+category = "module"
+modules = ["selectors"]
+
+[[features]]
+id = "typing"
+name = "typing module"
+added = "3.5"
+category = "module"
+pep = 484
+modules = ["typing"]
+
+[[features]]
+id = "zipapp"
+name = "zipapp module"
+added = "3.5"
+category = "module"
+pep = 441
+modules = ["zipapp"]
+
+[[features]]
+id = "secrets"
+name = "secrets module"
+added = "3.6"
+category = "module"
+pep = 506
+modules = ["secrets"]
+
+[[features]]
+id = "dataclasses"
+name = "dataclasses module"
+added = "3.7"
+category = "module"
+pep = 557
+modules = ["dataclasses"]
+
+[[features]]
+id = "contextvars"
+name = "contextvars module"
+added = "3.7"
+category = "module"
+pep = 567
+modules = ["contextvars"]
+
+[[features]]
+id = "importlib-resources"
+name = "importlib.resources module"
+added = "3.7"
+category = "module"
+modules = ["importlib.resources"]
+
+[[features]]
+id = "zoneinfo"
+name = "zoneinfo module"
+added = "3.9"
+category = "module"
+pep = 615
+modules = ["zoneinfo"]
+
+[[features]]
+id = "graphlib"
+name = "graphlib module"
+added = "3.9"
+category = "module"
+modules = ["graphlib"]
+
+[[features]]
+id = "tomllib"
+name = "tomllib module"
+added = "3.11"
+category = "module"
+pep = 680
+modules = ["tomllib"]
+
+[[features]]
+id = "annotationlib"
+name = "annotationlib module"
+added = "3.14"
+category = "module"
+pep = 649
+modules = ["annotationlib"]
+
+[[features]]
+id = "compression-zstd"
+name = "compression.zstd module"
+added = "3.14"
+category = "module"
+pep = 784
+modules = ["compression.zstd"]
+
+
+# --------------------------------------------------------------------
+# Standard library functions and attributes
+# --------------------------------------------------------------------
+
+[[features]]
+id = "shutil-get-terminal-size"
+name = "shutil.get_terminal_size()"
+added = "3.3"
+category = "function"
+attributes = ["shutil.get_terminal_size"]
+
+[[features]]
+id = "os-cpu-count"
+name = "os.cpu_count()"
+added = "3.4"
+category = "function"
+attributes = ["os.cpu_count"]
+
+[[features]]
+id = "math-isclose"
+name = "math.isclose()"
+added = "3.5"
+category = "function"
+pep = 485
+attributes = ["math.isclose"]
+
+[[features]]
+id = "random-choices"
+name = "random.choices()"
+added = "3.6"
+category = "function"
+attributes = ["random.choices"]
+
+[[features]]
+id = "contextlib-asynccontextmanager"
+name = "contextlib.asynccontextmanager()"
+added = "3.7"
+category = "function"
+attributes = ["contextlib.asynccontextmanager"]
+
+[[features]]
+id = "functools-cached-property"
+name = "functools.cached_property"
+added = "3.8"
+category = "function"
+attributes = ["functools.cached_property"]
+
+[[features]]
+id = "math-prod"
+name = "math.prod()"
+added = "3.8"
+category = "function"
+attributes = ["math.prod"]
+
+[[features]]
+id = "math-dist"
+name = "math.dist()"
+added = "3.8"
+category = "function"
+attributes = ["math.dist"]
+
+[[features]]
+id = "math-comb-perm"
+name = "math.comb() and math.perm()"
+added = "3.8"
+category = "function"
+attributes = ["math.comb", "math.perm"]
+
+[[features]]
+id = "statistics-fmean"
+name = "statistics.fmean()"
+added = "3.8"
+category = "function"
+attributes = ["statistics.fmean"]
+
+[[features]]
+id = "functools-cache"
+name = "functools.cache()"
+added = "3.9"
+category = "function"
+attributes = ["functools.cache"]
+
+[[features]]
+id = "itertools-pairwise"
+name = "itertools.pairwise()"
+added = "3.10"
+category = "function"
+attributes = ["itertools.pairwise"]
+
+[[features]]
+id = "contextlib-chdir"
+name = "contextlib.chdir()"
+added = "3.11"
+category = "function"
+attributes = ["contextlib.chdir"]
+
+[[features]]
+id = "itertools-batched"
+name = "itertools.batched()"
+added = "3.12"
+category = "function"
+attributes = ["itertools.batched"]
