@@ -22,6 +22,13 @@ jobs:
         run: |
           test "v$(uv version --short)" = "${GITHUB_REF_NAME}"
 
+      # Before publishing, because publishing to PyPI cannot be undone
+      # and a release with nothing to say about itself is worth catching
+      # while the tag is still the only thing that exists.
+      - name: Read the release notes out of the changelog
+        run: |
+          uv run scripts/changelog.py "${GITHUB_REF_NAME#v}" > notes.md
+
       # The same command CI runs, so a release cannot ship something
       # CI would have rejected. Pushing a tag does not wait on CI.
       - run: uv run pytest -v --cov=sincewhen --cov=tests --cov-report=term-missing
@@ -33,4 +40,4 @@ jobs:
       - name: Create the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "${GITHUB_REF_NAME}" --generate-notes dist/*
+        run: gh release create "${GITHUB_REF_NAME}" --notes-file notes.md dist/*

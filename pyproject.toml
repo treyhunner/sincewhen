@@ -26,6 +26,7 @@ dependencies = []
 
 [project.urls]
 Documentation = "https://github.com/treyhunner/sincewhen#readme"
+Changelog = "https://github.com/treyhunner/sincewhen/blob/main/CHANGELOG.md"
 Issues = "https://github.com/treyhunner/sincewhen/issues"
 Source = "https://github.com/treyhunner/sincewhen"
 
@@ -42,7 +43,7 @@ dev = [
 
 [tool.uv.build-backend]
 module-name = "sincewhen"
-source-include = ["tests/**"]
+source-include = ["tests/**", "CHANGELOG.md"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

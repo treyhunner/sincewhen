@@ -183,17 +183,22 @@ Evidence has five `method` values, four of which a machine can recheck:
 
 `manual` is for the cases where the sources genuinely disagree, and every one of them is printed on every `verify-dataset` run so the override stays visible.
 
+A new entry, or a corrected version on an existing one, also gets a line under `Unreleased` in [`CHANGELOG.md`](CHANGELOG.md).
+Dataset changes are the ones that alter what `sincewhen` reports about code that did not change, so they are worth spelling out.
+
 
 ## Releasing
 
-Bump the version, then tag and push:
+Move the `Unreleased` notes in [`CHANGELOG.md`](CHANGELOG.md) under a heading for the new version, then bump, tag, and push:
 
 ```console
 $ just bump patch
 $ just release
 ```
 
-Pushing a `v*` tag runs the release workflow, which publishes to PyPI with trusted publishing and creates a GitHub release.
+`just release` refuses to tag a version that the changelog has nothing to say about, so the notes have to be written before the release goes out rather than after.
+
+Pushing a `v*` tag runs the release workflow, which publishes to PyPI with trusted publishing and creates a GitHub release whose notes are that version's changelog section.
 
 
 ## License
