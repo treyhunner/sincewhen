@@ -27,10 +27,12 @@ Things the code cannot tell you:
   It is stdlib-only and reads from a gitignored `.cache/` whose contents are pinned by SHA-256 in `scripts/sources.sha256`.
   `fetch_docs.py` is the only script that touches the network, and the cache it builds is about 500 MB.
   A release can have both a source tarball and a doc build in there, so `source_root()` and `html_root()` are separate trees.
+- `interpreters.py` is the one script that needs more than the cache: a C compiler, and about ten minutes to build fourteen interpreters into `.cache/pythons/`.
+  Its output is committed as `scripts/interpreters.json`, so nothing else in the pipeline needs either.
 
 ## The research pipeline
 
-Five independent methods date things, and they cross-check each other.
+Six independent methods date things, and they cross-check each other.
 Where they disagree, the disagreement is the finding, and `dating.py` reports it rather than picking a winner.
 
 - `inventory.py` diffs Sphinx `objects.inv` files from 2.6 to 3.14. Deterministic for anything added in 3.1 or later.
@@ -38,6 +40,7 @@ Where they disagree, the disagreement is the finding, and `dating.py` reports it
 - `source.py` diffs what CPython's own tarballs contain across every release from 0.9.1 to 2.5: the `builtin_methods[]` table in `bltinmodule.c`, the `.py` files in the library directory, and the members of both kinds of module. It outranks every other method for anything it can account for. It found that `map` is 1.0 and `bisect` is 1.0 where the archives could only say "1.2 or earlier" and "1.5 or earlier", that `globals` and `locals` arrived in 1.3, and that `calendar.day_abbr` has been there since 0.9.1 and was merely written down in 2.5. C extension *modules* are deliberately excluded: `Modules/Setup` decides which get compiled, so the tarball cannot say what a release could import.
 - `annotations.py` greps the docs' own "Added in version" markers out of the 2.7 and 3.14 text builds. Covers what the other two cannot, and is the least trustworthy of the three.
 - `grammar.py` diffs CPython's grammar at every release tag, from 0.9.1 to 3.14. This is the only source that settles *syntax*, and it is ground truth where a PEP header is intent: PEP 3129 says class decorators are 3.0 and the 2.6 grammar already has them. It found that `lambda` is 1.0, not "1.2 or earlier" as the docs suggested.
+- `interpreters.py` builds all fourteen releases from 0.9.1 to 2.5 out of the tarballs already in the corpus and asks each one whether a name resolves. Every other method reads a description of Python; this one reads Python. It is the only method that can speak for a C extension module, and the only one that sees through a star-import, an `#ifdef` or a name bound at runtime. It found that `operator` is 1.4, closing the whole cluster of members the archives could only call "1.5 or earlier". Its claim is narrower than the others': see below.
 
 Two failure modes to keep in mind, both of which the dataset already has examples of:
 
@@ -74,6 +77,28 @@ The exhaustive-list argument is decided per module, not per language, and gettin
 - **A source floor is not an absence claim**, only a limit on what could be read, so it never outranks a doc that shows the name earlier. `gc.collect` is in a table this cannot follow until 2.3 and the 2.0 docs list it; `random.randrange` reaches `random` by a re-export from `whrandom` until 2.1.
 - **A source date newer than an archive is a real disagreement.** Both sides claim proof, so `dating.py` refuses to answer and `verify-dataset` asks for manual evidence rather than picking one.
 - **A dated module closes a member's bound.** A member cannot predate its module, so a member bounded at exactly the release its module arrived in is not bounded at all: `weakref` is 2.1, so `weakref.ref` is 2.1 and not "2.1 or earlier". This only follows when the module is dated; a bounded module passes its bound along, which is why `operator.add` stays "1.5 or earlier". Do not generalise it to "a member is as old as its module", which is wrong 79% of the time against the members this dataset has actually dated.
+
+### What a built interpreter can and cannot settle
+
+The other five methods read a record of Python and inherit whatever the record left out.
+This one runs Python and inherits whatever the build decided.
+That is a better trade for everything still bounded, and a different one, so it answers a slightly different question and has to be read as answering it.
+
+- **The claim is "a default build of that release, on a modern Unix".** Not "the release shipped it", which is what the tarball says, and not "the docs wrote it down", which is what the archives say. `Modules/Setup.in` exactly as the release shipped it, with nothing enabled or disabled by hand.
+- **Absence is proof here, and its failure mode is the build rather than the record.** The interpreter is the thing being asked, so a name it cannot resolve is a name that build did not have. What it cannot tell you is whether the build is representative: an extension needing a third-party library is absent exactly when that library is absent from the machine that built it. So every absence is cross-checked against whether the release's own tree carries the module's C source, and a module whose source ships in a release that cannot import it is a question for a human, never a date.
+- **A platform-guarded name gets a platform answer.** `errno.EACCES` sits behind an `#ifdef`, so what a build settles is "available on Linux", and the dataset claims portable availability. That is why `errno`'s members are a schema question rather than a research one, and why they stay out until the schema can say "where the platform provides it".
+- **A release's own `Setup` comments are configuration, not modification.** 1.1 through 1.4 ship `crypt cryptmodule.c # -lcrypt  # crypt(3); needs -lcrypt on some systems`, and this is one of those systems, so enabling it is following the release's own instructions.
+- **Only two files are patched, and both are name collisions with a later toolchain rather than behaviour changes.** `getline` was Python's own function until glibc took the name in 2008, and `crypt` left libc. Dustin Ingram's `vintage-python` images, derived independently, carry the same two fixes, which is a useful check that this is the minimum rather than a preference. Everything else is compiler flags. Anything added to that list needs a note explaining why it is not tampering with the evidence.
+- **The pre-1.5 releases are built for i386, because 64-bit made them lie.** They were written when `int`, `long` and a pointer were all 32 bits, and 1.0 and 1.1 pass `va_list *` around in `modsupport.c`, which the x86-64 ABI does not permit. Built 64-bit, `chr()` segfaults; `string.py` calls `chr()` at import time, so `import string` takes the interpreter down and every module reports absent. 1.2 through 1.4 survive a 64-bit health check but share that era's argument-parsing code, so they are built 32-bit too rather than trusted to luck.
+- **A build has to prove it works before it is believed, and "it imports something" is not proof.** The health battery checks *values*: `chr(65)` really is `'A'`, `math.sqrt(4.0)` really is `2.0`. Two drafts of that check were too weak and two were too strong. `import string` alone passed a 1.1 build that segfaulted on everything else. `int('42')` fails legitimately before 1.5, and `os.getcwd` fails on 0.9.1 because 0.9.1 has no `os` module at all, only `posix`.
+- **The table is the artifact, not the builds.** Building fourteen interpreters needs Docker and about ten minutes, and the rest of the pipeline is offline and quick. So the build is an occasional manual step, `scripts/interpreters.json` records what it found along with the image and the recipe, and `verify-dataset` and CI read the table and stay exactly as reproducible as they were.
+
+Four ways a build can quietly answer "absent" for a reason that has nothing to do with the release, all of which happened:
+
+- **The stdlib was never installed.** 1.0 through 1.3 install the library under a separate `libinstall` target, so `make install` alone leaves a working interpreter that can find nothing. It dated `bisect` to 1.4 when the tarball proves 1.0.
+- **`configure` was helped, and broke.** Presetting `MACHDEP` to avoid the `Lib/plat-linux6` a 6.x kernel asks for looks like a fix. It is a trap: `configure` computes `ac_sys_system` inside `if test -z "$MACHDEP"`, so the `Linux*)` case that sets `LDSHARED='gcc -shared'` never runs, every extension links against a bare `ld` and fails, and `math` and `time` vanish. Supply the platform directory the release shipped instead and leave `configure` alone.
+- **A 2005 `setup.py` cannot find a 2024 library.** Multiarch arrived in 2009. 2.5 does not skip a library it cannot find: having found `sqlite3.h` it calls `os.path.dirname(None)`, raises, and fails `make sharedmods`, losing *every* shared extension. `LDFLAGS` is the supported way to tell it.
+- **Half a library is worse than none.** `libgdbm-dev` without `libgdbm-compat-dev` leaves `configure` believing dbm is available while `ndbm.h` is missing, and 2.2 fails to build rather than skipping the module.
 
 The corpus pairs a source tarball and a doc build per feature release, and they have to describe the same build.
 `SOURCE_BUILDS` takes the x.y tarball exactly, except where the rest of the corpus means a micro: pairing the 1.5 source with the 1.5.2 docs manufactured fifty false 1.6 additions, because 1.5.1 and 1.5.2 predate the convention that a micro release adds nothing.

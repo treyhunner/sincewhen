@@ -35,6 +35,22 @@ test *args='':
 fetch-docs:
     uv run scripts/fetch_docs.py
 
+# Build Python 0.9.1 through 2.5 from the cached tarballs (slow, needs a C compiler)
+build-pythons *versions='':
+    uv run scripts/interpreters.py --build {{ versions }}
+
+# Ask the built interpreters what each release had, and record it
+probe-pythons:
+    uv run scripts/interpreters.py --probe
+
+# Show what the built interpreters date
+interpreters *args='':
+    uv run scripts/interpreters.py --report {{ args }}
+
+# Show where the built interpreters disagree with the dataset
+interpreters-vs-dataset:
+    uv run scripts/interpreters.py --compare
+
 # Re-derive every version claim in the dataset and compare
 verify-dataset *args='':
     uv run scripts/release_dates.py --check

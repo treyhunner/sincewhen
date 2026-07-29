@@ -69,6 +69,13 @@ ignore = [
 quote-style = "double"
 indent-style = "space"
 
+[tool.ty.environment]
+# `scripts/` is the research pipeline. It is not a package and is not
+# installed, because it ships with the repo rather than with the wheel,
+# and its modules import each other by plain name. `tests/conftest.py`
+# puts the directory on `sys.path` at runtime; this is how `ty` finds it.
+extra-paths = ["scripts"]
+
 [tool.coverage.run]
 source = ["sincewhen", "tests"]
 branch = true
