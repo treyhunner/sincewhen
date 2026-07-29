@@ -3,6 +3,7 @@
 import argparse
 import json
 import sys
+from importlib.metadata import version
 from pathlib import Path
 
 from .detect import Detection, detect
@@ -40,6 +41,12 @@ def _parser() -> argparse.ArgumentParser:
         help="hide features older than this, for when the ancient ones are noise",
     )
     parser.add_argument("--json", action="store_true", help="emit JSON")
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {version('sincewhen')}",
+        help="show the version of sincewhen itself and exit",
+    )
     return parser
 
 

@@ -125,6 +125,14 @@ def test_missing_file(tmp_path, capsys):
     assert "sincewhen:" in capsys.readouterr().err
 
 
+def test_version(capsys):
+    """`--version` is sincewhen's own version, not a Python one."""
+    with pytest.raises(SystemExit) as caught:
+        main(["--version"])
+    assert caught.value.code == 0
+    assert capsys.readouterr().out.startswith("sincewhen ")
+
+
 def test_syntax_error(tmp_path, capsys):
     path = tmp_path / "broken.py"
     path.write_text("def (\n", encoding="utf-8")
