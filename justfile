@@ -7,8 +7,11 @@ _default:
 run *args='':
     uv run sincewhen {{ args }}
 
-# Run all checks (format, lint, typecheck, test)
-check: format lint typecheck test
+# Run all checks (format, lint, typecheck, test with coverage)
+#
+# Coverage is part of `check` because CI enforces it and a green local
+# run that CI then rejects is worse than a slower local run.
+check: format lint typecheck test-cov
 
 # Format code with ruff
 format *files='':

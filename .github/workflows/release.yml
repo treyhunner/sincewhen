@@ -22,7 +22,9 @@ jobs:
         run: |
           test "v$(uv version --short)" = "${GITHUB_REF_NAME}"
 
-      - run: uv run pytest -v
+      # The same command CI runs, so a release cannot ship something
+      # CI would have rejected. Pushing a tag does not wait on CI.
+      - run: uv run pytest -v --cov=sincewhen --cov=tests --cov-report=term-missing
 
       - run: uv build
 
