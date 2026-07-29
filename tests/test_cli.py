@@ -29,7 +29,30 @@ def test_reports_features_and_minimum(example, capsys):
     output = capsys.readouterr().out
     assert "tomllib module" in output
     assert "positional-only parameters (/)" in output
-    assert "Minimum: Python 3.11 (set by tomllib module)" in output
+    assert "Minimum: Python 3.11, released 2022-10-24 (set by" in output
+    assert "tomllib module" in output
+
+
+def test_a_module_line_gives_way_to_its_member(capsys, tmp_path):
+    """Both are true, so only the more specific one is printed."""
+    path = tmp_path / "m.py"
+    path.write_text("from dataclasses import dataclass\n", encoding="utf-8")
+    main([str(path)])
+    output = capsys.readouterr().out
+    assert "dataclasses.dataclass()" in output
+    assert "dataclasses module" not in output
+
+
+def test_reports_release_dates(example, capsys):
+    main([str(example)])
+    assert "2022-10-24" in capsys.readouterr().out
+
+
+def test_since_hides_older_features(example, capsys):
+    main([str(example), "--since", "3.0"])
+    output = capsys.readouterr().out
+    assert "tomllib module" in output
+    assert "with statement" not in output
 
 
 def test_reports_line_numbers(example, capsys):
@@ -93,7 +116,7 @@ def test_search_with_no_match(capsys):
 
 def test_search_json(capsys):
     assert main(["--search", "tomllib", "--json"]) == 0
-    (entry,) = json.loads(capsys.readouterr().out)
+    entry, *_ = json.loads(capsys.readouterr().out)
     assert entry["added"] == "3.11"
 
 

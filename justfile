@@ -28,6 +28,23 @@ typecheck *files='':
 test *args='':
     uv run pytest -v {{ args }}
 
+# Download the documentation corpus the dataset is derived from
+fetch-docs:
+    uv run scripts/fetch_docs.py
+
+# Re-derive every version claim in the dataset and compare
+verify-dataset *args='':
+    uv run scripts/release_dates.py --check
+    uv run scripts/verify_dataset.py {{ args }}
+
+# Look up what the cached docs say about a symbol
+whenadded *names='':
+    uv run scripts/dating.py {{ names }}
+
+# Draft dataset entries for stdlib symbols, with evidence
+propose *names='':
+    uv run scripts/propose.py {{ names }}
+
 # Run tests with coverage
 test-cov:
     uv run pytest --cov=sincewhen --cov=tests --cov-report=term-missing --cov-report=html

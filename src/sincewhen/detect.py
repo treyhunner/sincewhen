@@ -23,12 +23,23 @@ class Detection:
         return self.feature.added
 
 
-def _has_none_key(node: ast.Dict) -> bool:
+# Containers that PEP 585 made subscriptable in 3.9. Subscripting any
+# of these names is either the new generic syntax or a variable that
+# shadows the builtin, which is why the check needs to know what the
+# module binds.
+PEP_585_GENERICS = frozenset(
+    {"list", "dict", "set", "frozenset", "tuple", "type"},
+)
+
+
+def _has_none_key(node: ast.Dict, _bound: frozenset[str]) -> bool:
     """A `None` key means dict unpacking, as in `{**a}`."""
     return any(key is None for key in node.keys)
 
 
-def _has_starred_element(node: ast.List | ast.Tuple | ast.Set) -> bool:
+def _has_starred_element(
+    node: ast.List | ast.Tuple | ast.Set, _bound: frozenset[str]
+) -> bool:
     """Unpacking into a literal, as in `[*a]`.
 
     Store context is excluded because `a, *b = c` is a different
@@ -39,19 +50,162 @@ def _has_starred_element(node: ast.List | ast.Tuple | ast.Set) -> bool:
     return any(isinstance(element, ast.Starred) for element in node.elts)
 
 
+def _has_starred_target(node: ast.List | ast.Tuple, _bound: frozenset[str]) -> bool:
+    """Extended unpacking, as in `a, *rest = values`."""
+    if isinstance(node.ctx, ast.Load):
+        return False
+    return any(isinstance(element, ast.Starred) for element in node.elts)
+
+
 def _has_async_comprehension(
     node: ast.ListComp | ast.SetComp | ast.DictComp | ast.GeneratorExp,
+    _bound: frozenset[str],
 ) -> bool:
     return any(generator.is_async for generator in node.generators)
+
+
+def _has_multiple_unpackings(node: ast.Call, _bound: frozenset[str]) -> bool:
+    """More than one unpacking in a call, as in `f(*a, *b)`.
+
+    A single `f(*a)` has always been legal, so only the second one
+    dates the call to 3.5.
+    """
+    starred = sum(isinstance(argument, ast.Starred) for argument in node.args)
+    doubled = sum(keyword.arg is None for keyword in node.keywords)
+    return starred > 1 or doubled > 1
+
+
+def _is_async_generator(node: ast.AsyncFunctionDef, _bound: frozenset[str]) -> bool:
+    """An `async def` that yields, which needed 3.6.
+
+    Nested functions are skipped, since a plain generator defined inside
+    a coroutine is not itself an async generator.
+    """
+    return any(
+        isinstance(inner, ast.Yield)
+        for inner in _own_body(node)
+        if not isinstance(inner, ast.Lambda)
+    )
+
+
+def _own_body(node: ast.AST):
+    """Every node inside `node` that is not inside a nested function."""
+    for child in ast.iter_child_nodes(node):
+        if isinstance(child, ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef):
+            continue
+        yield child
+        yield from _own_body(child)
+
+
+def _is_builtin_generic(node: ast.Subscript, bound: frozenset[str]) -> bool:
+    """Subscripting a builtin container, as in `list[int]` (PEP 585)."""
+    return (
+        isinstance(node.value, ast.Name)
+        and node.value.id in PEP_585_GENERICS
+        and node.value.id not in bound
+    )
+
+
+def _is_zero_argument_super(node: ast.Call, bound: frozenset[str]) -> bool:
+    """`super()` with no arguments, which needs the 3.0 compiler help."""
+    return (
+        isinstance(node.func, ast.Name)
+        and node.func.id == "super"
+        and "super" not in bound
+        and not node.args
+        and not node.keywords
+    )
+
+
+def _has_complex_decorator(
+    node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef, _bound: frozenset[str]
+) -> bool:
+    """A decorator that the pre-3.9 grammar would have rejected.
+
+    Until PEP 614 a decorator had to be a dotted name, optionally
+    called. Anything else -- a subscript, a comparison, a lambda -- is
+    3.9 or newer.
+    """
+    return any(
+        not _is_dotted_name(
+            decorator.func if isinstance(decorator, ast.Call) else decorator
+        )
+        for decorator in node.decorator_list
+    )
+
+
+def _is_dotted_name(node: ast.expr) -> bool:
+    while isinstance(node, ast.Attribute):
+        node = node.value
+    return isinstance(node, ast.Name)
+
+
+def _has_except_and_finally(node: ast.Try, _bound: frozenset[str]) -> bool:
+    """One statement with both `except` and `finally`, unified in 2.5."""
+    return bool(node.handlers and node.finalbody)
+
+
+def _has_several_context_managers(
+    node: ast.With | ast.AsyncWith, _bound: frozenset[str]
+) -> bool:
+    """`with a, b:` rather than two nested `with` statements."""
+    return len(node.items) > 1
+
+
+def _has_metaclass_keyword(node: ast.ClassDef, _bound: frozenset[str]) -> bool:
+    """`class C(metaclass=M)`, which replaced `__metaclass__` in 3.0."""
+    return any(keyword.arg == "metaclass" for keyword in node.keywords)
+
+
+def _has_named_handler(node: ast.ExceptHandler, _bound: frozenset[str]) -> bool:
+    """`except E as name`, the spelling that replaced `except E, name`."""
+    return node.name is not None
+
+
+def _has_cause(node: ast.Raise, _bound: frozenset[str]) -> bool:
+    """`raise X from Y`, which is exception chaining."""
+    return node.cause is not None
+
+
+def _is_bytes(node: ast.Constant, _bound: frozenset[str]) -> bool:
+    """A `b"..."` literal."""
+    return isinstance(node.value, bytes)
+
+
+def _has_starred_subscript(node: ast.Subscript, _bound: frozenset[str]) -> bool:
+    """Unpacking inside a subscript, as in `tuple[*Ts]` (PEP 646).
+
+    A starred subscript is always parsed into a tuple, even when it is
+    the only thing in the brackets, so there is no bare `Starred` slice
+    to look for.
+    """
+    return isinstance(node.slice, ast.Tuple) and any(
+        isinstance(element, ast.Starred) for element in node.slice.elts
+    )
 
 
 # Checks are dispatched by name from the dataset, so the node type is
 # only known at runtime. Each predicate still annotates the node types
 # it actually accepts; `Any` here is the dynamic-dispatch boundary.
-CHECKS: dict[str, Callable[[Any], bool]] = {
+# Every check also receives the names the module binds, so that a
+# feature keyed on a builtin can tell a real use from a shadowed one.
+CHECKS: dict[str, Callable[[Any, frozenset[str]], bool]] = {
     "has_none_key": _has_none_key,
     "has_starred_element": _has_starred_element,
+    "has_starred_target": _has_starred_target,
     "has_async_comprehension": _has_async_comprehension,
+    "has_multiple_unpackings": _has_multiple_unpackings,
+    "is_async_generator": _is_async_generator,
+    "is_builtin_generic": _is_builtin_generic,
+    "is_zero_argument_super": _is_zero_argument_super,
+    "has_complex_decorator": _has_complex_decorator,
+    "has_except_and_finally": _has_except_and_finally,
+    "has_several_context_managers": _has_several_context_managers,
+    "has_metaclass_keyword": _has_metaclass_keyword,
+    "has_named_handler": _has_named_handler,
+    "has_cause": _has_cause,
+    "is_bytes": _is_bytes,
+    "has_starred_subscript": _has_starred_subscript,
 }
 
 
@@ -79,7 +233,7 @@ def _index() -> _Index:
     return _Index(load_features())
 
 
-def _bound_names(tree: ast.AST) -> set[str]:
+def _bound_names(tree: ast.AST) -> frozenset[str]:
     """Names the module binds itself.
 
     A module that defines its own `sum` is not using the builtin, so
@@ -104,11 +258,11 @@ def _bound_names(tree: ast.AST) -> set[str]:
                 names.update(found)
             case ast.ExceptHandler(name=str() as name):
                 names.add(name)
-    return names
+    return frozenset(names)
 
 
 class _Detector(ast.NodeVisitor):
-    def __init__(self, index: _Index, bound_names: set[str]):
+    def __init__(self, index: _Index, bound_names: frozenset[str]):
         self.index = index
         self.bound_names = bound_names
         self.detections: list[Detection] = []
@@ -134,7 +288,7 @@ class _Detector(ast.NodeVisitor):
         for feature in self.index.by_node.get(type(node).__name__, ()):
             if feature.requires and not getattr(node, feature.requires, None):
                 continue
-            if feature.check and not CHECKS[feature.check](node):
+            if feature.check and not CHECKS[feature.check](node, self.bound_names):
                 continue
             self._record(feature)
 
@@ -143,11 +297,19 @@ class _Detector(ast.NodeVisitor):
         self.detections.append(Detection(feature, lineno, col_offset))
 
     def _record_module(self, dotted: str) -> None:
+        """Report the most specific module the dataset knows about.
+
+        `import importlib.resources` needs both `importlib` and
+        `importlib.resources`, but only the submodule is worth saying:
+        it is the newer of the two, so it sets the floor on its own, and
+        naming the parent as well would be noise.
+        """
         parts = dotted.split(".")
         for size in range(len(parts), 0, -1):
             feature = self.index.by_module.get(".".join(parts[:size]))
             if feature is not None:
                 self._record(feature)
+                return
 
     def _record_attribute(self, dotted: str) -> None:
         feature = self.index.by_attribute.get(dotted)
@@ -179,9 +341,12 @@ class _Detector(ast.NodeVisitor):
 
     def visit_ImportFrom(self, node: ast.ImportFrom) -> None:
         if node.level == 0 and node.module:
-            self._record_module(node.module)
             for alias in node.names:
                 dotted = f"{node.module}.{alias.name}"
+                # `_record_module` walks back up the dotted path, so
+                # this covers the package too: `from pathlib import
+                # Path` reports `pathlib`, and `from importlib import
+                # resources` reports the submodule instead.
                 self._record_module(dotted)
                 self._record_attribute(dotted)
                 self.aliases[alias.asname or alias.name] = dotted

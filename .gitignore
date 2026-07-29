@@ -17,3 +17,6 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 .ruff_cache/
+
+# Documentation corpus fetched by scripts/fetch_docs.py
+.cache/

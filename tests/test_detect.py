@@ -38,10 +38,72 @@ def test_no_features_detected():
         ("a if b else c", "conditional-expression"),
         ("with open(f) as g:\n    pass", "with-statement"),
         ("a @ b", "matrix-multiplication"),
+        ("def f():\n    yield 1", "generator-function"),
+        (
+            "try:\n    pass\nexcept E:\n    pass\nfinally:\n    pass",
+            "unified-try-except-finally",
+        ),
+        ("from . import thing", "relative-import"),
+        ("try:\n    pass\nexcept E as error:\n    pass", "except-as"),
+        ("x = b'bytes'", "bytes-literal"),
+        ("a, *rest = values", "starred-assignment"),
+        ("[first, *rest] = values", "starred-assignment"),
+        ("class C(metaclass=Meta):\n    pass", "metaclass-keyword"),
+        ("raise ValueError from error", "raise-from"),
+        ("class C:\n    def f(self):\n        super().f()", "zero-argument-super"),
+        ("with open(a) as f, open(b) as g:\n    pass", "several-context-managers"),
+        ("f(*a, *b)", "multiple-unpackings"),
+        ("f(**a, **b)", "multiple-unpackings"),
+        ("async def f():\n    yield 1", "async-generator"),
+        ("x: list[int] = []", "builtin-generic"),
+        ("@registry[name]\ndef f():\n    pass", "relaxed-decorator"),
+        ("x: tuple[*Ts]", "starred-subscript"),
+        ("from __future__ import annotations", "future-annotations"),
     ],
 )
 def test_syntax_features(source, expected):
     assert expected in features(source)
+
+
+@pytest.mark.parametrize(
+    "source, unwanted",
+    [
+        # A single unpacking in a call has always been legal.
+        ("f(*a)", "multiple-unpackings"),
+        ("f(**a)", "multiple-unpackings"),
+        ("f(*a, **b)", "multiple-unpackings"),
+        # `super(C, self)` is the spelling that works everywhere.
+        (
+            "class C:\n    def f(self):\n        super(C, self).f()",
+            "zero-argument-super",
+        ),
+        # Subscripting a local list is not PEP 585.
+        ("list = [1, 2]\nlist[0]", "builtin-generic"),
+        # An ordinary subscript, and an ordinary decorator.
+        ("x = values[0]", "starred-subscript"),
+        ("@decorators.cache\ndef f():\n    pass", "relaxed-decorator"),
+        ("@cache()\ndef f():\n    pass", "relaxed-decorator"),
+        # A coroutine that only awaits is not an async generator, and
+        # neither is one that merely contains a nested generator.
+        ("async def f():\n    await g()", "async-generator"),
+        ("async def f():\n    def inner():\n        yield 1", "async-generator"),
+        # `except E:` with no name predates the `as` spelling.
+        ("try:\n    pass\nexcept E:\n    pass", "except-as"),
+        # One context manager is the 2.5 `with`, not the 3.1 form.
+        ("with open(a) as f:\n    pass", "several-context-managers"),
+        # try/except and try/finally were separate statements until 2.5.
+        ("try:\n    pass\nfinally:\n    pass", "unified-try-except-finally"),
+        ("try:\n    pass\nexcept E:\n    pass", "unified-try-except-finally"),
+    ],
+)
+def test_narrow_syntax_matchers_do_not_over_fire(source, unwanted):
+    assert unwanted not in features(source)
+
+
+def test_generator_function_is_not_a_generator_expression():
+    """`yield` in a nested function still makes that function one."""
+    assert "generator-function" in features("def f():\n    def g():\n        yield 1")
+    assert "generator-function" not in features("x = (i for i in y)")
 
 
 def test_decorators_distinguish_functions_from_classes():
@@ -67,8 +129,14 @@ def test_shadowed_builtins_are_ignored():
 
 
 def test_modules_are_detected():
+    """A member import reports the member and the module it came from.
+
+    Both are real: the import needs the module to exist and the name in
+    it to exist. Deciding which of the two is worth printing is the
+    reporter's job, not the detector's.
+    """
     assert features("import tomllib") == {"tomllib"}
-    assert features("from pathlib import Path") == {"pathlib"}
+    assert features("from pathlib import Path") == {"pathlib", "pathlib-path"}
     assert features("import importlib.resources") == {"importlib-resources"}
     assert features("from importlib import resources") == {"importlib-resources"}
 
@@ -134,9 +202,14 @@ def test_caught_exception_names_shadow_builtins():
 
 
 def test_relative_imports_are_skipped():
-    """A relative import is local code, not a stdlib module."""
-    assert features("from . import tomllib") == set()
-    assert features("from .statistics import fmean") == set()
+    """A relative import is local code, not a stdlib module.
+
+    The `from . import x` syntax is itself dated, so the relative-import
+    feature is expected; what must not appear is a stdlib module named
+    after whatever the local package happens to call its submodules.
+    """
+    assert features("from . import tomllib") == {"relative-import"}
+    assert features("from .statistics import fmean") == {"relative-import"}
 
 
 def test_attribute_on_a_non_name_is_ignored():

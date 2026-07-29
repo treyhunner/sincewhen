@@ -31,30 +31,39 @@ Give `sincewhen` a file to see every dated feature it uses:
 
 ```console
 $ sincewhen example.py
-example.py:1  tomllib module                3.11
-example.py:3  positional-only parameters (/)  3.8
-example.py:4  with statement                2.5
+example.py:1  tomllib module                  3.11  2022-10-24
+example.py:3  positional-only parameters (/)  3.8   2019-10-14
+example.py:4  with statement                  2.5   2006-09-19
 
-Minimum: Python 3.11 (set by tomllib module)
+Minimum: Python 3.11, released 2022-10-24 (set by tomllib module)
 ```
+
+The last column is the day that release shipped, so a version number reads as an age.
 
 Only the first use of each feature is shown by default.
 Pass `--all` to see every occurrence.
+
+The dataset reaches back to Python 0.9.1, which means a file will report things like `str()` and `open()` that have been there since 1991.
+Pass `--since` to hide them:
+
+```console
+$ sincewhen --since 3.0 example.py
+```
 
 Read from standard input with `-`:
 
 ```console
 $ echo 'x: int = 1' | sincewhen -
-<stdin>:1  variable annotation  3.6
+<stdin>:1  variable annotation  3.6  2016-12-23
 
-Minimum: Python 3.6 (set by variable annotation)
+Minimum: Python 3.6, released 2016-12-23 (set by variable annotation)
 ```
 
 Look a single feature up by name instead of analyzing code:
 
 ```console
 $ sincewhen --search walrus
-walrus operator (:=) - Python 3.8
+walrus operator (:=) - Python 3.8 (released 2019-10-14)
   PEP: https://peps.python.org/pep-0572/
   Docs: https://docs.python.org/3/whatsnew/3.8.html
 ```
@@ -81,7 +90,7 @@ Version(major=3, minor=11)
 A Python 3.9 interpreter cannot parse a `match` statement, so it could not report one either.
 Requiring the newest Python is what lets `sincewhen` recognize the newest syntax.
 
-The Python version you *run* `sincewhen` on has nothing to do with the versions it *reports* on, which reach back to Python 2.0.
+The Python version you *run* `sincewhen` on has nothing to do with the versions it *reports* on, which reach back to Python 0.9.1.
 
 
 ## Known limits
@@ -92,9 +101,16 @@ The Python version you *run* `sincewhen` on has nothing to do with the versions 
 - Detection is syntactic.
   `sincewhen` sees that you called something named `math.isclose`, not that you called the real one.
   Shadowed builtins are skipped, but a shadowed module attribute is not.
-- The dataset is hand-curated and incomplete.
+- The dataset is curated and incomplete.
   A feature that isn't in it won't be reported, so the minimum version is a lower bound on the true answer.
-- Python 1.x entries are not in the dataset yet.
+- `added` is the oldest release from which a feature has been available *ever since*, ignoring Python 3.0 and 3.1.
+  Nobody shipped code on those two, so a gap there is not a gap anyone lived through: `argparse` shipped in 2.7 and again in 3.2, and is dated 2.7.
+  A feature missing from 3.2 as well has a real gap and takes the later date.
+- Some features are older than the oldest surviving documentation, and are reported as "1.2 or earlier".
+  Python 0.9.1 is as far back as the archives go.
+- Release dates come from python.org's downloads database back to 2.2, and from CPython's release tags before that.
+  Python 0.9 and 1.6 have no release tag, so they show no date.
+- Searching for a module member that has no entry of its own falls back to the module it lives in, since a member cannot be older than its module.
 
 
 ## Development
@@ -119,7 +135,7 @@ uv run pytest
 ### Adding a feature
 
 Features live in `src/sincewhen/features.toml`, one `[[features]]` table each.
-Give the feature an id, a human-readable name, the version that added it, a category, and exactly one matcher:
+Give the feature an id, a human-readable name, the version that added it, a category, exactly one matcher, and the evidence for the version:
 
 ```toml
 [[features]]
@@ -129,12 +145,43 @@ added = "3.8"
 category = "syntax"
 pep = 572
 nodes = ["NamedExpr"]
+
+[features.evidence]
+method = "pep"
+pep = 572
+python_version = "3.8"
+checked = "2026-07-28"
 ```
 
 The matcher kinds are `nodes` (AST node class names), `builtins`, `modules`, and `attributes` (dotted `module.name` paths).
 Node matchers can be narrowed with `requires` (a node attribute that must be truthy) or `check` (a predicate registered in `detect.py`).
 
 Documentation links are generated from `added` and `pep`, so only set `docs` when you have a better link than the "What's New" page.
+
+Nobody should be typing version numbers from memory.
+For anything in the standard library, let the archived documentation say what the version is:
+
+```console
+$ just fetch-docs                       # one-time, into a gitignored .cache/
+$ just whenadded math.lcm               # what each source says, and whether they agree
+$ just propose math.lcm math.isqrt      # entries with evidence, ready to paste
+$ just verify-dataset                   # re-derive every claim in the dataset
+```
+
+`just verify-dataset` also runs in CI, so a pull request that edits a version without editing its evidence fails.
+
+Evidence has five `method` values, four of which a machine can recheck:
+
+| method | what it means |
+|---|---|
+| `objects.inv` | the symbol is absent from one release's Sphinx inventory and present in the next |
+| `archive` | the same diff over the module lists and built-in function pages in the pre-Sphinx doc builds, back to the 0.9.1 LaTeX |
+| `annotation` | the documentation dates it itself, in an "Added in version" marker quoted in the entry |
+| `grammar` | the token is absent from one release's grammar and present in the next, which is what shipped rather than what a PEP intended |
+| `pep` | the feature's PEP carries a `Python-Version` header |
+| `manual` | a human read the archives and wrote down what they found, and why the other four do not settle it |
+
+`manual` is for the cases where the sources genuinely disagree, and every one of them is printed on every `verify-dataset` run so the override stays visible.
 
 
 ## Releasing

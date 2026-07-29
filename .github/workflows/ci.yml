@@ -32,6 +32,27 @@ jobs:
           enable-cache: true
       - run: uv run pytest -v --cov=sincewhen --cov=tests --cov-report=term-missing
 
+  dataset:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - name: Cache the documentation corpus
+        uses: actions/cache@v4
+        with:
+          path: .cache
+          key: docs-${{ hashFiles('scripts/sources.sha256') }}
+      - name: Fetch anything the cache is missing
+        run: uv run scripts/fetch_docs.py
+      - name: Check the corpus matches the committed hashes
+        run: uv run scripts/fetch_docs.py --check
+      - name: Check the release dates against python.org
+        run: uv run scripts/release_dates.py --check
+      - name: Re-derive every version claim
+        run: uv run scripts/verify_dataset.py
+
   package:
     runs-on: ubuntu-latest
     steps:
