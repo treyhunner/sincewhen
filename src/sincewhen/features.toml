@@ -43,7 +43,7 @@ method = "grammar"
 symbol = "'=='"
 absent_in = "0.9"
 present_in = "1.0"
-note = "0.9.1's comp_op spells equality `=`, which is unambiguous there because assignment is a statement and never an expression. 1.0 added `==` and `!=`, dropped `=` as a comparison, and made `>=`, `<=` and `<>` single tokens."
+note = "0.9.1's comp_op spells equality `=`, which is unambiguous there because assignment is a statement and never an expression: the 0.9.1 interpreter runs `if 1 = 1:` and rejects `if 1 == 1:`, and `x = (1 = 2)` assigns 0. Its token table has no EQEQUAL at all, so `==` could not even be lexed. 1.0 added `==` and `!=`, dropped `=` as a comparison, and made `>=`, `<=` and `<>` single tokens rather than two adjacent ones, so 0.9.1 also accepts `if 1 > = 0:` and 1.0 does not."
 checked = "2026-07-29"
 
 [[features]]
@@ -59,7 +59,7 @@ method = "grammar"
 symbol = "'!='"
 absent_in = "0.9"
 present_in = "1.0"
-note = "Added by the same 1.0 grammar change as `==`, alongside `<>`, which lasted until 3.0 removed it. Only `!=` is detectable, since a 3.14 parser cannot produce a node for `<>` at all."
+note = "Added by the same 1.0 grammar change as `==`, alongside `<>`, which lasted until 3.0 removed it: the 0.9.1 interpreter rejects `if 1 != 2:` and runs `if 1 <> 2:`, and 0.9.1's token table has no NOTEQUAL. Only `!=` is detectable, since a 3.14 parser cannot produce a node for `<>` at all."
 checked = "2026-07-29"
 
 [[features]]
