@@ -18,6 +18,12 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
   The reported phrase is unchanged, since these already read as "0.9 (first public release)", but `or_earlier` is now `false` for them in the dataset and in `--json` output.
   Each one's evidence still records that the name is at least that old and may predate the public record.
 - **Four entries are still bounded**, and all four leave a real question open: `os.path` at "1.2 or earlier", and `copyreg`, `resource` and `zlib` at "1.5 or earlier".
+- **Two more syntax entries, both from before Python 2.**
+  A dict display with items, `{'k': 1}`, is 1.0: 0.9.1's `atom` rule spells a dict `'{' '}'` with nothing allowed between the braces and its grammar has no `dictmaker` rule at all, so only the empty display is as old as Python.
+  Unpacking at a call, `f(*args)` and `f(**kwargs)`, is 1.6, where both spellings arrived in the same `arglist` line.
+  `apply(f, args)` was how it was written before, and the 1.5 interpreter raises `SyntaxError` on either spelling.
+  The call entry carries `manual` evidence rather than `grammar` evidence, because the 1.6 change is inside a rule's body and `grammar.py` indexes token and rule names: `arglist` and `argument` are both 1.3, `'*'` is 0.9 as multiplication and `'**'` is 1.4 as exponentiation, so there is no symbol for the evidence to cite.
+  Collecting is a different feature and an older one: `def f(*args)` is 1.0 and `def f(**kwargs)` is 1.5, and neither fires this entry.
 
 ### Research pipeline
 

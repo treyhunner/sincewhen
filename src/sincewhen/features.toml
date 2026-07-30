@@ -61,6 +61,22 @@ note = "0.9.1's `expr_stmt: (exprlist '=')* exprlist` is what makes a comma-sepa
 checked = "2026-07-29"
 
 [[features]]
+id = "dict-display-items"
+name = "dict display with items ({'k': 1})"
+added = "1.0"
+category = "syntax"
+nodes = ["Dict"]
+check = "has_dict_items"
+
+[features.evidence]
+method = "grammar"
+symbol = "dictmaker"
+absent_in = "0.9"
+present_in = "1.0"
+note = "0.9.1's `atom` spells a dict `'{' '}'` with nothing allowed between the braces and its grammar has no `dictmaker` rule at all, so the empty display is as old as Python and a display with items is not. 1.0 adds `dictmaker: test ':' test (',' test ':' test)* [',']` and makes `atom` read `'{' [dictmaker] '}'`. Only the pairs are claimed here: `{**a}` is a `Dict` with a `None` key and belongs to the 3.5 entry."
+checked = "2026-07-30"
+
+[[features]]
 id = "equality-operator"
 name = "equality operator (==)"
 added = "1.0"
@@ -106,6 +122,19 @@ absent_in = "0.9"
 present_in = "1.0"
 note = "Python 0.9.1 has no lambda: its grammar has no lambdef rule, and the lambda calculus example in its own library builds currying out of classes instead. The 1.0 grammar's changelog records \"added lambdef\"."
 checked = "2026-07-28"
+
+[[features]]
+id = "call-unpacking"
+name = "unpacking at a call (f(*args), f(**kwargs))"
+added = "1.6"
+category = "syntax"
+nodes = ["Call"]
+check = "has_call_unpacking"
+
+[features.evidence]
+method = "manual"
+note = "1.5's `arglist:  argument (',' argument)* [',']` has nowhere to put a star, and 1.6's `arglist: (argument ',')* (argument [',']| '*' test [',' '**' test] | '**' test)` adds both spellings in one line, which is why they are one entry. The 1.5 interpreter raises SyntaxError on `f(*args)` and on `f(**kw)` and the 1.6 one runs both; `apply(f, args)` was the spelling before. This cannot be grammar evidence because `grammar.py` indexes token and rule names and the change is inside a rule body: `arglist` and `argument` are both 1.3, `'*'` is 0.9 as multiplication and `'**'` is 1.4 as exponentiation, and `--version 1.6` reports no new tokens at all. Diffing rule bodies would date the grammar's factoring rather than the language, since 3.5 moved `'*' test` out of `arglist` and into `argument`. Collecting is older and a different node: `def f(*args)` is the 1.0 `varargslist` and `def f(**kwargs)` the 1.5 one."
+checked = "2026-07-30"
 
 [[features]]
 id = "augmented-assignment"

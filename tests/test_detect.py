@@ -66,6 +66,14 @@ def test_no_features_detected():
         ("a <= b != c", "inequality-operator"),
         ("x in y", "containment-check"),
         ("x not in y", "containment-check"),
+        # A dict display is only 0.9 while it is empty.
+        ("{'k': 1}", "dict-display-items"),
+        ("{**a, 'b': 1}", "dict-display-items"),
+        ("{k: v}", "dict-display-items"),
+        # Both spellings of unpacking at a call arrived together in 1.6.
+        ("f(*a)", "call-unpacking"),
+        ("f(**a)", "call-unpacking"),
+        ("f(*a, **b)", "call-unpacking"),
         # Everything that stores into a tuple is unpacking of some kind.
         ("a, b = 1, 2", "tuple-unpacking"),
         ("a, b = b, a", "tuple-unpacking"),
@@ -141,6 +149,23 @@ def test_syntax_features(source, expected):
         # `del a, b` has no tuple node at all, and deletes rather than
         # stores in any case.
         ("del a, b", "tuple-unpacking"),
+        # The empty display really is as old as Python, and a display of
+        # nothing but unpackings is the 3.5 feature on its own.
+        ("{}", "dict-display-items"),
+        ("{**a}", "dict-display-items"),
+        ("{**a, **b}", "dict-display-items"),
+        # A set display and a dict comprehension are not dict displays.
+        ("{1, 2}", "dict-display-items"),
+        ("{k: v for k, v in items}", "dict-display-items"),
+        # Collecting is not unpacking: a starred parameter is 1.0 and a
+        # doubled one 1.5, and neither is a call.
+        ("def f(*args, **kwargs):\n    pass", "call-unpacking"),
+        ("lambda *args, **kwargs: None", "call-unpacking"),
+        # An ordinary call, including one with keyword arguments.
+        ("f(a, b)", "call-unpacking"),
+        ("f(a, b=1)", "call-unpacking"),
+        # `[*a]` is unpacking into a literal, which is the 3.5 entry.
+        ("[*a]", "call-unpacking"),
     ],
 )
 def test_narrow_syntax_matchers_do_not_over_fire(source, unwanted):
@@ -157,6 +182,16 @@ def test_decorators_distinguish_functions_from_classes():
     assert features("@d\ndef f():\n    pass") >= {"decorator"}
     assert "class-decorator" not in features("@d\ndef f():\n    pass")
     assert "class-decorator" in features("@d\nclass C:\n    pass")
+
+
+def test_a_call_can_use_both_unpacking_features():
+    """`f(*a, *b)` unpacks at a call, and does it more than once.
+
+    Reporting both is two true statements rather than a double count:
+    the call needs 1.6 for the star and 3.5 for the second one.
+    """
+    assert features("f(*a, *b)") >= {"call-unpacking", "multiple-unpackings"}
+    assert minimum_version("f(*a, *b)") == Version(3, 5)
 
 
 def test_starred_assignment_is_not_literal_unpacking():
