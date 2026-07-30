@@ -544,11 +544,15 @@ def detect(source: str | ast.AST, *, filename: str = "<string>") -> list[Detecti
 def minimum_version(source: str | ast.AST) -> Version | None:
     """The oldest Python that can run `source`, as far as we can tell.
 
-    Returns `None` when nothing in the dataset was detected, which
-    means no known feature sets a floor rather than that the code runs
-    anywhere.
+    Returns `None` when nothing detected sets a floor, which means no
+    known feature requires a particular release rather than that the
+    code runs anywhere.
+
+    A bounded feature ("1.5 or earlier") sets no floor: its version is
+    a limit on what the sources could read, not a date, so treating it
+    as one could claim a minimum newer than the truth.
     """
-    detections = detect(source)
-    if not detections:
+    floors = [found.added for found in detect(source) if not found.feature.or_earlier]
+    if not floors:
         return None
-    return max(found.added for found in detections)
+    return max(floors)

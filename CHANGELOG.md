@@ -24,6 +24,12 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
   Unpacking at a call, `f(*args)` and `f(**kwargs)`, is 1.6, where both spellings arrived in one `arglist` line; `apply(f, args)` was the spelling before.
   Collecting is older and separate: `def f(*args)` is 1.0, `def f(**kwargs)` is 1.5, and neither fires this entry.
 
+### Tool
+
+- **A bounded feature no longer sets a floor in `minimum_version()`.**
+  "1.5 or earlier" is a limit on what the sources could read, not a date, so treating it as one could claim a minimum newer than the truth.
+  A file whose only detected features are bounded now gets `None` instead of a bound presented as exact.
+
 ### Research pipeline
 
 - **`dating.py` refuses a keyword instead of answering from a documentation anchor.**

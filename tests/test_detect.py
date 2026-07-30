@@ -243,6 +243,16 @@ def test_minimum_version_takes_the_newest_feature():
     assert minimum_version(source) == Version(3, 11)
 
 
+def test_a_bounded_feature_sets_no_floor():
+    """`zlib` is "1.5 or earlier", so it cannot say the code needs 1.5."""
+    assert features("import zlib") == {"zlib"}
+    assert minimum_version("import zlib") is None
+
+
+def test_a_dated_feature_outranks_a_bounded_one():
+    assert minimum_version("import zlib\nimport tomllib") == Version(3, 11)
+
+
 def test_versions_compare_numerically_not_lexically():
     assert minimum_version("import zoneinfo") == Version(3, 9)
     assert Version(3, 9) < Version(3, 10)
