@@ -7,7 +7,7 @@ Dataset changes are listed apart from everything else, because they are the chan
 A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
-## Unreleased
+## 0.4.0 - 2026-07-29
 
 ### Dataset
 
