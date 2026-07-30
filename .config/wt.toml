@@ -1,0 +1,29 @@
+# Worktree automation for sincewhen.
+
+[post-create]
+# The research corpus under .cache/ is large, gitignored, and read-mostly, so
+# every worktree shares the primary's rather than fetching or copying its own.
+# The scripts reach it through `sources.CACHE = ROOT / ".cache"`, which follows
+# a symlink transparently. Skipped when the primary has no cache yet, so a
+# fresh clone gets a working worktree instead of a dangling symlink and a
+# confusing error from the first script that reads it.
+cache = "if [ -d {{ primary_worktree_path }}/.cache ]; then ln -sfn {{ primary_worktree_path }}/.cache .cache; fi"
+
+deps = "uv sync --quiet"
+
+# `just check` split across the two gates, minus its `format` step: formatting
+# rewrites files, and a rewrite during a merge lands after the commit was made
+# and is silently dropped.
+
+[pre-commit]
+lint = "just lint"
+typecheck = "just typecheck"
+
+[pre-merge]
+test = "just test-cov"
+
+# Re-derives every version claim from the archived docs and fails on any
+# mismatch, which is the check worth having when more than one branch has
+# touched the dataset. Skipped without a corpus, so anyone who has not run
+# `just fetch-docs` is not blocked by a check they cannot perform.
+dataset = "if [ -d .cache/inv ]; then just verify-dataset; else echo 'no corpus cached, skipping verify-dataset'; fi"
