@@ -51,6 +51,10 @@ interpreters *args='':
 interpreters-vs-dataset:
     uv run scripts/interpreters.py --compare
 
+# Show what the builtin types' own method tables date (usage: just typemethods --compare)
+typemethods *args='':
+    uv run scripts/typemethods.py {{ args }}
+
 # Re-derive every version claim in the dataset and compare
 verify-dataset *args='':
     uv run scripts/release_dates.py --check

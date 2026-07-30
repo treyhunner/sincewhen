@@ -9,7 +9,7 @@ from .versions import Version
 
 DATA_FILE = "features.toml"
 
-MATCHER_FIELDS = ("nodes", "builtins", "modules", "attributes")
+MATCHER_FIELDS = ("nodes", "builtins", "modules", "attributes", "methods")
 
 # How a version claim was established. Each method says what a reviewer
 # has to do to check it: the first three are machine-checkable against
@@ -20,12 +20,16 @@ MATCHER_FIELDS = ("nodes", "builtins", "modules", "attributes")
 #   archive      the same diff for the era before Sphinx, over the
 #                module lists and built-in function pages in the
 #                archived HTML doc builds
-#   source       the same diff over the builtins table in CPython's own
-#                `bltinmodule.c`, which reaches back to 0.9.1 and so
-#                predates every doc build. Alone among these, its
-#                absences count for as much as its presences, because
-#                the table is the list the interpreter registers its
-#                builtins from rather than a description of one
+#   source       the same diff over the tables CPython registers names
+#                from: `builtin_methods[]` in `bltinmodule.c`, a
+#                module's own method table, and a builtin type's. It
+#                reaches back to 0.9.1 and so predates every doc build.
+#                Alone among these, its absences count for as much as
+#                its presences, because such a table is the list the
+#                interpreter builds a namespace from rather than a
+#                description of one. It is the only thing that dates a
+#                method as old as `dict.setdefault`, which no doc build
+#                ever marked
 #   interpreter  the name was asked of that release's own interpreter,
 #                built from its pinned tarball, and resolved. The only
 #                method that reads Python rather than a description of
@@ -62,7 +66,7 @@ EVIDENCE_REQUIRED = {
     "archive": ("present_in",),
     "source": ("symbol", "file", "present_in"),
     "interpreter": ("symbol", "present_in"),
-    "grammar": ("symbol", "absent_in", "present_in"),
+    "grammar": ("symbol", "present_in"),
     "annotation": ("docs", "quote"),
     "pep": ("pep", "python_version"),
     "manual": ("note",),
@@ -109,6 +113,7 @@ class Feature:
     builtins: frozenset[str] = frozenset()
     modules: frozenset[str] = frozenset()
     attributes: frozenset[str] = frozenset()
+    methods: frozenset[str] = frozenset()
     evidence: Evidence | None = None
 
     @property
@@ -197,6 +202,7 @@ def _build(entry: dict) -> Feature:
         builtins=frozenset(entry.get("builtins", ())),
         modules=frozenset(entry.get("modules", ())),
         attributes=frozenset(entry.get("attributes", ())),
+        methods=frozenset(entry.get("methods", ())),
         evidence=_build_evidence(entry["id"], evidence) if evidence else None,
     )
 
@@ -234,8 +240,24 @@ def _matching(query: str) -> list[Feature]:
         if query in feature.id.casefold()
         or query in feature.name.casefold()
         or any(query == target.casefold() for target in feature.targets)
+        or any(query == _method_name(target) for target in feature.methods)
     ]
     return sorted(matches, key=lambda feature: (feature.added, feature.id))
+
+
+def _method_name(target: str) -> str:
+    """A method's own name, without the type it hangs off.
+
+    A method is looked up by the name it is called by. Nobody searching
+    for `removeprefix` types `str.removeprefix`, because the type is not
+    part of how the method is written at the call site, so both spellings
+    find the entry.
+
+    Module members are deliberately left out: `math.isclose` is written
+    dotted wherever it appears, so a bare `isclose` is a fuzzier kind of
+    search than this, and one that would have to rank its answers.
+    """
+    return target.rpartition(".")[2].casefold()
 
 
 def enclosing_module(query: str) -> list[Feature]:
@@ -264,8 +286,10 @@ def lookup(query: str) -> list[Feature]:
     """Find features matching a search term, oldest first.
 
     This powers search mode: a query is matched against feature ids,
-    human-readable names, and the names each feature detects. A dotted
-    name with no entry falls back to the module it belongs to.
+    human-readable names, and the names each feature detects. A method of
+    a builtin type also answers to its own name, so `removeprefix` finds
+    `str.removeprefix`. A dotted name with no entry falls back to the
+    module it belongs to.
     """
     query = query.casefold().strip()
     return _matching(query) or enclosing_module(query)

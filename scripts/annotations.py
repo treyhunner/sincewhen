@@ -41,9 +41,19 @@ from sources import text_files, text_root
 ANNOTATION = re.compile(r"^(?P<indent>\s*)(New|Added) in version (?P<version>\d+\.\d+)")
 
 # A signature line: a dotted name, optionally followed by a call
-# signature. Also matches `class datetime.date(...)` headings.
+# signature. The leading words are the ones the text build puts in front
+# of a signature: `class datetime.date(...)`, `exception OSError`,
+# `classmethod date.fromisoformat(...)`, `static bytes.maketrans(...)`,
+# `abstractmethod`.
+#
+# They are not decoration. A line whose prefix is not listed here does
+# not match at all, so the marker under it attaches to whatever signature
+# came before instead: leaving out `classmethod` dated `datetime.date`
+# itself to 3.7, and leaving out `static` gave `bytearray.join` the 3.1
+# marker belonging to `bytes.maketrans`.
 SIGNATURE = re.compile(
-    r"^(?P<indent>\s*)(class\s+|exception\s+)?(?P<name>[A-Za-z_][\w.]*)\s*(\(|$|:)"
+    r"^(?P<indent>\s*)(?:(?:class|exception|classmethod|abstractmethod|static)\s+)?"
+    r"(?P<name>[A-Za-z_][\w.]*)\s*(\(|$|:)"
 )
 
 # The C API dates its own additions too, but nothing there is reachable

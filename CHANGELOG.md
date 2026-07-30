@@ -7,6 +7,64 @@ Dataset changes are listed apart from everything else, because they are the chan
 A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
+## 0.4.0 - 2026-07-29
+
+### Dataset
+
+- **105 entries for the methods of the builtin types**, where there were none.
+  `sincewhen --search removeprefix` used to come back empty; it now answers 3.9, and so do `setdefault` (2.0), `split` (1.6), `mro` (2.2), `isdisjoint` (2.6), `bit_count` (3.10) and a hundred more.
+  A method answers to its own name as well as to `type.method`, because nobody searching for `removeprefix` types the type in front of it.
+- **Most of them could not have come from the documentation.**
+  The docs date 58 of the 397 methods they index; a method older than the "New in version" convention never got a marker, so the rest are read from the types' own method tables in CPython's source:
+
+  | release | what the tables show                                                              |
+  |---------|-----------------------------------------------------------------------------------|
+  | 0.9     | `dict.keys`, `list.append`, `list.insert`, `list.sort`, bounded rather than dated    |
+  | 1.0     | `dict.items`, `dict.values`, and `list.count`, `index`, `remove`, `reverse`          |
+  | 1.5     | `dict.clear`, `copy`, `get`, `update`, and `list.extend`, `pop`                      |
+  | 1.6     | the string methods, 29 of them, from `split` to `startswith` to `translate`         |
+  | 2.0     | `dict.setdefault`, `str.encode`, `str.isalnum`, `str.isalpha`                        |
+  | 2.1-2.4 | `dict.popitem`, `type.mro`, `slice.indices`, then every `set` and `frozenset` method |
+
+  So Python's dictionary had `keys()` and `has_key()` and nothing else in 1991, and could not be copied or updated until 1.5.
+- **A pre-2.6 method entry is a claim about instances.**
+  `"x".split()` is 1.6; `str.split` written as an unbound call needs 2.2, because `str` was a builtin function and not a class until then.
+- **Five entries swapped a doc marker for the method table that outranks it** and all five kept their version, which is the cross-check worth having: nine of the names the tables date carry a marker too, and nine of nine agree.
+- **`==`, `!=`, `in`, `not in` and tuple unpacking have entries now**, all settled by CPython's own grammar rather than by a PEP or a doc.
+  `==` and `!=` are 1.0: 0.9.1 spelled equality `=`, and could without ambiguity, because assignment is a statement there and never an expression.
+  `in`, `not in` and `a, b = 1, 2` are all in the 0.9.1 grammar, so they report as "0.9 or earlier".
+  These fire on almost every file ever written, which costs one line each in a report, since the default shows the first use of a feature rather than every use.
+- **Anything Python 3 removed stays out**, for the reason the Python 2 builtins do: `added` has no way to say "and then it was taken away".
+  So `str.decode`, `dict.iteritems` and `<>` have no entries even though the sources date all three.
+
+### Tool
+
+- **A new `methods` matcher kind**, for the methods of builtin types.
+  These are searchable everywhere and detected only where the receiver's type is certain: a literal, as in `"Mr. Smith".removeprefix("Mr. ")`, or the type's own unshadowed name, as in `dict.fromkeys(keys)`.
+  `value.removeprefix(...)` is not reported, because `value` could be anything with that method and a wrong version is worse than a missing one.
+- **Python 1.6 has a release date**, 2000-09-05, so the 29 entries that land on it read like every other release instead of printing a bare version.
+  It is the one hand-entered row: 1.6 was cut by BeOpen and CPython has no `v1.6` tag, so neither machine-readable source can reach it.
+  `UNTAGGED` in `scripts/release_dates.py` records why that fills a hole rather than becoming a second opinion on the rows the tags already answer for.
+
+### Research pipeline
+
+- **A new oracle, `scripts/typemethods.py`**, reads the method tables of the builtin types out of every CPython tarball from 0.9.1 to 2.5, which is `source.py`'s argument one level down: a method table is the list a type registers its methods from, so a name missing from it is a name that release did not have.
+  86 names, 80 dated outright.
+  Four rules decide whether that can be believed, and AGENTS.md explains each: a type is a *family* (2.x `str` is `stringobject.c` and `unicodeobject.c`, which disagree), a dunder is a slot rather than a table row, the getset and member tables are never read, and a row inside an `#if` proves nothing either way.
+- **Two markers the docs never meant were caught by comparing the tables against them.**
+  `dict.values` is 1.0 and read as 3.9, off a marker belonging to `d | other` two signatures away; `str.translate` is 1.6 and read as 2.6, off one that dates an argument.
+  Both resolve correctly now, and a type method's evidence note says "the nearest marker" rather than "the docs date it".
+- **An inventory entry for a member of a builtin type bounds rather than dates.**
+  `stdtypes` documents a family of types in one table and Sphinx grew per-name markup release by release, so the release that first indexes one is the age of the markup: `list.copy` arrived in 3.3 and was first indexed in 3.13.
+  The inventory used to date 213 of those 397 names and now dates none, so 179 confident answers are refused instead.
+  The 2.6-to-2.7 step looked safe and was the worst of them, dating 20 `frozenset` methods to 2.7 where `frozenset` is 2.4, `frozenset.add` among them, which no `frozenset` has ever had.
+- **`annotations.py` reads `classmethod`, `static` and `abstractmethod` signatures**, which it skipped before, so their markers no longer attach to whatever came earlier.
+  That dated 35 names the markers were stranded on and dropped 15 they were wrongly attached to, `datetime.date`'s false 3.7 among them.
+- **`grammar` evidence can express a bound**, which it could not before, so a token already in the 0.9.1 grammar can be recorded as "0.9 or earlier" rather than failing its own check.
+- `just typemethods` reports what the tables date, with `--tables`, `--partial` and `--compare`.
+  `just propose` writes `methods` entries and names a group the way the dataset already names one.
+
+
 ## 0.3.0 - 2026-07-29
 
 ### Dataset

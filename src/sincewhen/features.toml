@@ -9,6 +9,9 @@
 #   builtins    builtin names whose use signals the feature
 #   modules     stdlib modules whose import signals the feature
 #   attributes  dotted names (module.attr) whose use signals the feature
+#   methods     methods of builtin types (type.method), which are always
+#               searchable and are only detected on a receiver whose type
+#               is certain: a literal, or the type's own name
 #
 # Every entry needs exactly one matcher kind. Documentation links are
 # generated from `added` and `pep`, so only set `docs` to override.
@@ -26,6 +29,70 @@
 # --------------------------------------------------------------------
 # Syntax
 # --------------------------------------------------------------------
+
+[[features]]
+id = "containment-check"
+name = "containment check (in, not in)"
+added = "0.9"
+category = "syntax"
+or_earlier = true
+nodes = ["Compare"]
+check = "has_containment"
+
+[features.evidence]
+method = "grammar"
+symbol = "'in'"
+present_in = "0.9"
+note = "`comp_op` in the 0.9.1 grammar is '<'|'>'|'='|'>' '='|'<' '='|'<' '>'|'in'|'not' 'in'|'is'|'is' 'not', so both spellings are in the first public release and nothing can date them further back. `not in` has no token of its own to check, being `'not' 'in'` in that same rule. Only the operator is this old: `key in some_dict` is a TypeError until 2.2, and `'ab' in 'abc'` until 2.3, neither of which an AST can see."
+checked = "2026-07-29"
+
+[[features]]
+id = "tuple-unpacking"
+name = "tuple unpacking (a, b = 1, 2)"
+added = "0.9"
+category = "syntax"
+or_earlier = true
+nodes = ["Tuple", "List"]
+check = "has_tuple_target"
+
+[features.evidence]
+method = "grammar"
+symbol = "exprlist"
+present_in = "0.9"
+note = "0.9.1's `expr_stmt: (exprlist '=')* exprlist` is what makes a comma-separated target legal, and `exprlist` is in the first public release, so this cannot be dated. There is no token named for the feature, so the rule is what gets checked. The 0.9.1 interpreter runs `a, b = 1, 2`, the `a, b = b, a` swap, a nested `a, (b, c) = 1, (2, 3)` and `for a, b in pairs`."
+checked = "2026-07-29"
+
+[[features]]
+id = "equality-operator"
+name = "equality operator (==)"
+added = "1.0"
+category = "syntax"
+nodes = ["Compare"]
+check = "has_equality"
+
+[features.evidence]
+method = "grammar"
+symbol = "'=='"
+absent_in = "0.9"
+present_in = "1.0"
+note = "0.9.1's comp_op spells equality `=`, which is unambiguous there because assignment is a statement and never an expression: the 0.9.1 interpreter runs `if 1 = 1:` and rejects `if 1 == 1:`, and `x = (1 = 2)` assigns 0. Its token table has no EQEQUAL at all, so `==` could not even be lexed. 1.0 added `==` and `!=`, dropped `=` as a comparison, and made `>=`, `<=` and `<>` single tokens rather than two adjacent ones, so 0.9.1 also accepts `if 1 > = 0:` and 1.0 does not."
+checked = "2026-07-29"
+
+[[features]]
+id = "inequality-operator"
+name = "inequality operator (!=)"
+added = "1.0"
+category = "syntax"
+nodes = ["Compare"]
+check = "has_inequality"
+
+[features.evidence]
+method = "grammar"
+symbol = "'!='"
+absent_in = "0.9"
+present_in = "1.0"
+note = "Added by the same 1.0 grammar change as `==`, alongside `<>`, which lasted until 3.0 removed it: the 0.9.1 interpreter rejects `if 1 != 2:` and runs `if 1 <> 2:`, and 0.9.1's token table has no NOTEQUAL. Only `!=` is detectable, since a 3.14 parser cannot produce a node for `<>` at all."
+checked = "2026-07-29"
 
 [[features]]
 id = "lambda"
@@ -1458,6 +1525,1597 @@ symbol = "py:exception configparser.UnnamedSectionDisabledError"
 absent_in = "3.13"
 present_in = "3.14"
 checked = "2026-07-28"
+
+
+# --------------------------------------------------------------------
+# Methods on builtin types
+# --------------------------------------------------------------------
+#
+# Two methods date these and neither is an inventory diff, because
+# `stdtypes` documents a whole family of types in one table and Sphinx
+# grew per-name markup for those tables release by release. The release
+# that first indexes `list.copy` is 3.13; the method arrived in 3.3. See
+# the note on `BUILTIN_TYPES` in scripts/dating.py.
+#
+# The 3.x era is dated by the docs' own markers. The ancient methods
+# never got one, because they predate the convention, so those come from
+# the type's own method table in CPython's source, which is the list the
+# type registers its methods from. See scripts/typemethods.py.
+#
+# A pre-2.6 entry is a claim about instances rather than about the type.
+# `str` was a builtin function and not a class until 2.2, so `"x".split()`
+# is 1.6 and `str.split` as an unbound attribute is 2.2.
+#
+# Most of these are searchable rather than detectable. `x.removeprefix()`
+# says nothing about `x`, so only a receiver whose type is certain
+# reports one: a literal, or the type's own name.
+#
+# Anything Python 3 removed is left out, for the reason the Python 2
+# builtins are: `added` cannot say "and then taken away again". So
+# `str.decode`, `dict.iteritems` and `dict.viewkeys` have no entries.
+
+[[features]]
+id = "dict-keys"
+name = "dict.keys()"
+added = "0.9"
+category = "method"
+or_earlier = true
+methods = ["dict.keys"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.keys"
+file = "src/dictobject.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
+
+[[features]]
+id = "list-append"
+name = "list.append()"
+added = "0.9"
+category = "method"
+or_earlier = true
+methods = ["list.append"]
+
+[features.evidence]
+method = "source"
+symbol = "list.append"
+file = "src/listobject.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
+
+[[features]]
+id = "list-insert"
+name = "list.insert()"
+added = "0.9"
+category = "method"
+or_earlier = true
+methods = ["list.insert"]
+
+[features.evidence]
+method = "source"
+symbol = "list.insert"
+file = "src/listobject.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
+
+[[features]]
+id = "list-sort"
+name = "list.sort()"
+added = "0.9"
+category = "method"
+or_earlier = true
+methods = ["list.sort"]
+
+[features.evidence]
+method = "source"
+symbol = "list.sort"
+file = "src/listobject.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-07-29"
+
+[[features]]
+id = "dict-items"
+name = "dict.items()"
+added = "1.0"
+category = "method"
+methods = ["dict.items"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.items"
+file = "Objects/mappingobject.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
+
+[[features]]
+id = "dict-values"
+name = "dict.values()"
+added = "1.0"
+category = "method"
+methods = ["dict.values"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.values"
+file = "Objects/mappingobject.c"
+absent_in = "0.9"
+present_in = "1.0"
+note = "The 3.14 docs' nearest marker to this name says 3.9, which the method table contradicts: 0.9 does not carry the row and 1.0 does."
+checked = "2026-07-29"
+
+[[features]]
+id = "list-count"
+name = "list.count()"
+added = "1.0"
+category = "method"
+methods = ["list.count"]
+
+[features.evidence]
+method = "source"
+symbol = "list.count"
+file = "Objects/listobject.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
+
+[[features]]
+id = "list-index"
+name = "list.index()"
+added = "1.0"
+category = "method"
+methods = ["list.index"]
+
+[features.evidence]
+method = "source"
+symbol = "list.index"
+file = "Objects/listobject.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
+
+[[features]]
+id = "list-remove"
+name = "list.remove()"
+added = "1.0"
+category = "method"
+methods = ["list.remove"]
+
+[features.evidence]
+method = "source"
+symbol = "list.remove"
+file = "Objects/listobject.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
+
+[[features]]
+id = "list-reverse"
+name = "list.reverse()"
+added = "1.0"
+category = "method"
+methods = ["list.reverse"]
+
+[features.evidence]
+method = "source"
+symbol = "list.reverse"
+file = "Objects/listobject.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-07-29"
+
+[[features]]
+id = "dict-clear"
+name = "dict.clear()"
+added = "1.5"
+category = "method"
+methods = ["dict.clear"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.clear"
+file = "Objects/dictobject.c"
+absent_in = "1.4"
+present_in = "1.5"
+checked = "2026-07-29"
+
+[[features]]
+id = "dict-copy"
+name = "dict.copy()"
+added = "1.5"
+category = "method"
+methods = ["dict.copy"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.copy"
+file = "Objects/dictobject.c"
+absent_in = "1.4"
+present_in = "1.5"
+checked = "2026-07-29"
+
+[[features]]
+id = "dict-get"
+name = "dict.get()"
+added = "1.5"
+category = "method"
+methods = ["dict.get"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.get"
+file = "Objects/dictobject.c"
+absent_in = "1.4"
+present_in = "1.5"
+checked = "2026-07-29"
+
+[[features]]
+id = "dict-update"
+name = "dict.update()"
+added = "1.5"
+category = "method"
+methods = ["dict.update"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.update"
+file = "Objects/dictobject.c"
+absent_in = "1.4"
+present_in = "1.5"
+checked = "2026-07-29"
+
+[[features]]
+id = "list-extend"
+name = "list.extend()"
+added = "1.5"
+category = "method"
+methods = ["list.extend"]
+
+[features.evidence]
+method = "source"
+symbol = "list.extend"
+file = "Objects/listobject.c"
+absent_in = "1.4"
+present_in = "1.5"
+note = "1.5.2 exactly: the corpus reads the 1.5.2 tarball, and `Misc/NEWS` lists this under \"From 1.5.2a1 to 1.5.2a2\". A micro release is still 1.5 at this dataset's granularity."
+checked = "2026-07-29"
+
+[[features]]
+id = "list-pop"
+name = "list.pop()"
+added = "1.5"
+category = "method"
+methods = ["list.pop"]
+
+[features.evidence]
+method = "source"
+symbol = "list.pop"
+file = "Objects/listobject.c"
+absent_in = "1.4"
+present_in = "1.5"
+note = "1.5.2 exactly: the corpus reads the 1.5.2 tarball, and `Misc/NEWS` calls it \"an experimental pop() method\" under \"From 1.5.1 to 1.5.2a1\". A micro release is still 1.5 at this dataset's granularity."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-capitalize"
+name = "str.capitalize()"
+added = "1.6"
+category = "method"
+methods = ["str.capitalize"]
+
+[features.evidence]
+method = "source"
+symbol = "str.capitalize"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-center"
+name = "str.center()"
+added = "1.6"
+category = "method"
+methods = ["str.center"]
+
+[features.evidence]
+method = "source"
+symbol = "str.center"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-count"
+name = "str.count()"
+added = "1.6"
+category = "method"
+methods = ["str.count"]
+
+[features.evidence]
+method = "source"
+symbol = "str.count"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-endswith"
+name = "str.endswith()"
+added = "1.6"
+category = "method"
+methods = ["str.endswith"]
+
+[features.evidence]
+method = "source"
+symbol = "str.endswith"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-expandtabs"
+name = "str.expandtabs()"
+added = "1.6"
+category = "method"
+methods = ["str.expandtabs"]
+
+[features.evidence]
+method = "source"
+symbol = "str.expandtabs"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-find"
+name = "str.find()"
+added = "1.6"
+category = "method"
+methods = ["str.find"]
+
+[features.evidence]
+method = "source"
+symbol = "str.find"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-index"
+name = "str.index()"
+added = "1.6"
+category = "method"
+methods = ["str.index"]
+
+[features.evidence]
+method = "source"
+symbol = "str.index"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-isdigit"
+name = "str.isdigit()"
+added = "1.6"
+category = "method"
+methods = ["str.isdigit"]
+
+[features.evidence]
+method = "source"
+symbol = "str.isdigit"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-islower"
+name = "str.islower()"
+added = "1.6"
+category = "method"
+methods = ["str.islower"]
+
+[features.evidence]
+method = "source"
+symbol = "str.islower"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-isspace"
+name = "str.isspace()"
+added = "1.6"
+category = "method"
+methods = ["str.isspace"]
+
+[features.evidence]
+method = "source"
+symbol = "str.isspace"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-istitle"
+name = "str.istitle()"
+added = "1.6"
+category = "method"
+methods = ["str.istitle"]
+
+[features.evidence]
+method = "source"
+symbol = "str.istitle"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-isupper"
+name = "str.isupper()"
+added = "1.6"
+category = "method"
+methods = ["str.isupper"]
+
+[features.evidence]
+method = "source"
+symbol = "str.isupper"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-join"
+name = "str.join()"
+added = "1.6"
+category = "method"
+methods = ["str.join"]
+
+[features.evidence]
+method = "source"
+symbol = "str.join"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-ljust"
+name = "str.ljust()"
+added = "1.6"
+category = "method"
+methods = ["str.ljust"]
+
+[features.evidence]
+method = "source"
+symbol = "str.ljust"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-lower"
+name = "str.lower()"
+added = "1.6"
+category = "method"
+methods = ["str.lower"]
+
+[features.evidence]
+method = "source"
+symbol = "str.lower"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-lstrip"
+name = "str.lstrip()"
+added = "1.6"
+category = "method"
+methods = ["str.lstrip"]
+
+[features.evidence]
+method = "source"
+symbol = "str.lstrip"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-replace"
+name = "str.replace()"
+added = "1.6"
+category = "method"
+methods = ["str.replace"]
+
+[features.evidence]
+method = "source"
+symbol = "str.replace"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-rfind"
+name = "str.rfind()"
+added = "1.6"
+category = "method"
+methods = ["str.rfind"]
+
+[features.evidence]
+method = "source"
+symbol = "str.rfind"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-rindex"
+name = "str.rindex()"
+added = "1.6"
+category = "method"
+methods = ["str.rindex"]
+
+[features.evidence]
+method = "source"
+symbol = "str.rindex"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-rjust"
+name = "str.rjust()"
+added = "1.6"
+category = "method"
+methods = ["str.rjust"]
+
+[features.evidence]
+method = "source"
+symbol = "str.rjust"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-rstrip"
+name = "str.rstrip()"
+added = "1.6"
+category = "method"
+methods = ["str.rstrip"]
+
+[features.evidence]
+method = "source"
+symbol = "str.rstrip"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-split"
+name = "str.split()"
+added = "1.6"
+category = "method"
+methods = ["str.split"]
+
+[features.evidence]
+method = "source"
+symbol = "str.split"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-splitlines"
+name = "str.splitlines()"
+added = "1.6"
+category = "method"
+methods = ["str.splitlines"]
+
+[features.evidence]
+method = "source"
+symbol = "str.splitlines"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-startswith"
+name = "str.startswith()"
+added = "1.6"
+category = "method"
+methods = ["str.startswith"]
+
+[features.evidence]
+method = "source"
+symbol = "str.startswith"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-strip"
+name = "str.strip()"
+added = "1.6"
+category = "method"
+methods = ["str.strip"]
+
+[features.evidence]
+method = "source"
+symbol = "str.strip"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-swapcase"
+name = "str.swapcase()"
+added = "1.6"
+category = "method"
+methods = ["str.swapcase"]
+
+[features.evidence]
+method = "source"
+symbol = "str.swapcase"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-title"
+name = "str.title()"
+added = "1.6"
+category = "method"
+methods = ["str.title"]
+
+[features.evidence]
+method = "source"
+symbol = "str.title"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-translate"
+name = "str.translate()"
+added = "1.6"
+category = "method"
+methods = ["str.translate"]
+
+[features.evidence]
+method = "source"
+symbol = "str.translate"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "The 2.7 docs' nearest marker to this name says 2.6, which the method table contradicts: 1.5 does not carry the row and 1.6 does. str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-upper"
+name = "str.upper()"
+added = "1.6"
+category = "method"
+methods = ["str.upper"]
+
+[features.evidence]
+method = "source"
+symbol = "str.upper"
+file = "Objects/stringobject.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "str is string and unicode in 1.6, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "dict-setdefault"
+name = "dict.setdefault()"
+added = "2.0"
+category = "method"
+methods = ["dict.setdefault"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.setdefault"
+file = "Objects/dictobject.c"
+absent_in = "1.6"
+present_in = "2.0"
+checked = "2026-07-29"
+
+[[features]]
+id = "str-encode"
+name = "str.encode()"
+added = "2.0"
+category = "method"
+methods = ["str.encode"]
+
+[features.evidence]
+method = "source"
+symbol = "str.encode"
+file = "Objects/stringobject.c"
+absent_in = "1.6"
+present_in = "2.0"
+note = "str is string and unicode in 2.0, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-isalnum"
+name = "str.isalnum()"
+added = "2.0"
+category = "method"
+methods = ["str.isalnum"]
+
+[features.evidence]
+method = "source"
+symbol = "str.isalnum"
+file = "Objects/stringobject.c"
+absent_in = "1.6"
+present_in = "2.0"
+note = "str is string and unicode in 2.0, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-isalpha"
+name = "str.isalpha()"
+added = "2.0"
+category = "method"
+methods = ["str.isalpha"]
+
+[features.evidence]
+method = "source"
+symbol = "str.isalpha"
+file = "Objects/stringobject.c"
+absent_in = "1.6"
+present_in = "2.0"
+note = "str is string and unicode in 2.0, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "dict-popitem"
+name = "dict.popitem()"
+added = "2.1"
+category = "method"
+methods = ["dict.popitem"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.popitem"
+file = "Objects/dictobject.c"
+absent_in = "2.0"
+present_in = "2.1"
+checked = "2026-07-29"
+
+[[features]]
+id = "object-rich-comparison"
+name = "rich comparison methods (__lt__, __eq__ and friends)"
+added = "2.1"
+category = "method"
+pep = 207
+methods = [
+    "object.__lt__",
+    "object.__le__",
+    "object.__eq__",
+    "object.__ne__",
+    "object.__gt__",
+    "object.__ge__",
+]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:reference/datamodel.txt"
+quote = "New in version 2.1."
+note = "The six signatures are stacked above one marker in the data model, so it dates all six. Only the innermost of them, `object.__ge__`, is the name the marker is recorded against."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-zfill"
+name = "str.zfill()"
+added = "2.2"
+category = "method"
+methods = ["str.zfill"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:library/stdtypes.txt"
+quote = "New in version 2.2.2."
+note = "A micro release, so 2.2 at this dataset's granularity. The method tables agree and say why they can only bound it: 1.6 through 2.2 carry `{\"zfill\", ...}` inside an `#if 0`, so the source floors it at 2.3 and yields to the marker."
+checked = "2026-07-29"
+
+[[features]]
+id = "type-mro"
+name = "type.mro()"
+added = "2.2"
+category = "method"
+methods = ["type.mro"]
+
+[features.evidence]
+method = "source"
+symbol = "type.mro"
+file = "Objects/typeobject.c"
+absent_in = "2.1"
+present_in = "2.2"
+checked = "2026-07-29"
+
+[[features]]
+id = "dict-fromkeys"
+name = "dict.fromkeys()"
+added = "2.3"
+category = "method"
+methods = ["dict.fromkeys"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.fromkeys"
+file = "Objects/dictobject.c"
+absent_in = "2.2"
+present_in = "2.3"
+checked = "2026-07-29"
+
+[[features]]
+id = "dict-pop"
+name = "dict.pop()"
+added = "2.3"
+category = "method"
+methods = ["dict.pop"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.pop"
+file = "Objects/dictobject.c"
+absent_in = "2.2"
+present_in = "2.3"
+checked = "2026-07-29"
+
+[[features]]
+id = "slice-indices"
+name = "slice.indices()"
+added = "2.3"
+category = "method"
+methods = ["slice.indices"]
+
+[features.evidence]
+method = "source"
+symbol = "slice.indices"
+file = "Objects/sliceobject.c"
+absent_in = "2.2"
+present_in = "2.3"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-add"
+name = "set.add()"
+added = "2.4"
+category = "method"
+methods = ["set.add"]
+
+[features.evidence]
+method = "source"
+symbol = "set.add"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-clear"
+name = "set.clear()"
+added = "2.4"
+category = "method"
+methods = ["set.clear"]
+
+[features.evidence]
+method = "source"
+symbol = "set.clear"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-copy"
+name = "set.copy() and frozenset.copy()"
+added = "2.4"
+category = "method"
+methods = ["set.copy", "frozenset.copy"]
+
+[features.evidence]
+method = "source"
+symbol = "set.copy"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-difference"
+name = "set.difference() and frozenset.difference()"
+added = "2.4"
+category = "method"
+methods = ["set.difference", "frozenset.difference"]
+
+[features.evidence]
+method = "source"
+symbol = "set.difference"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-difference-update"
+name = "set.difference_update()"
+added = "2.4"
+category = "method"
+methods = ["set.difference_update"]
+
+[features.evidence]
+method = "source"
+symbol = "set.difference_update"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-discard"
+name = "set.discard()"
+added = "2.4"
+category = "method"
+methods = ["set.discard"]
+
+[features.evidence]
+method = "source"
+symbol = "set.discard"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-intersection"
+name = "set.intersection() and frozenset.intersection()"
+added = "2.4"
+category = "method"
+methods = ["set.intersection", "frozenset.intersection"]
+
+[features.evidence]
+method = "source"
+symbol = "set.intersection"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-intersection-update"
+name = "set.intersection_update()"
+added = "2.4"
+category = "method"
+methods = ["set.intersection_update"]
+
+[features.evidence]
+method = "source"
+symbol = "set.intersection_update"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-issubset"
+name = "set.issubset() and frozenset.issubset()"
+added = "2.4"
+category = "method"
+methods = ["set.issubset", "frozenset.issubset"]
+
+[features.evidence]
+method = "source"
+symbol = "set.issubset"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-issuperset"
+name = "set.issuperset() and frozenset.issuperset()"
+added = "2.4"
+category = "method"
+methods = ["set.issuperset", "frozenset.issuperset"]
+
+[features.evidence]
+method = "source"
+symbol = "set.issuperset"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-pop"
+name = "set.pop()"
+added = "2.4"
+category = "method"
+methods = ["set.pop"]
+
+[features.evidence]
+method = "source"
+symbol = "set.pop"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-remove"
+name = "set.remove()"
+added = "2.4"
+category = "method"
+methods = ["set.remove"]
+
+[features.evidence]
+method = "source"
+symbol = "set.remove"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-symmetric-difference"
+name = "set.symmetric_difference() and frozenset.symmetric_difference()"
+added = "2.4"
+category = "method"
+methods = ["set.symmetric_difference", "frozenset.symmetric_difference"]
+
+[features.evidence]
+method = "source"
+symbol = "set.symmetric_difference"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-symmetric-difference-update"
+name = "set.symmetric_difference_update()"
+added = "2.4"
+category = "method"
+methods = ["set.symmetric_difference_update"]
+
+[features.evidence]
+method = "source"
+symbol = "set.symmetric_difference_update"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-union"
+name = "set.union() and frozenset.union()"
+added = "2.4"
+category = "method"
+methods = ["set.union", "frozenset.union"]
+
+[features.evidence]
+method = "source"
+symbol = "set.union"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "set-update"
+name = "set.update()"
+added = "2.4"
+category = "method"
+methods = ["set.update"]
+
+[features.evidence]
+method = "source"
+symbol = "set.update"
+file = "Objects/setobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+checked = "2026-07-29"
+
+[[features]]
+id = "str-rsplit"
+name = "str.rsplit()"
+added = "2.4"
+category = "method"
+methods = ["str.rsplit"]
+
+[features.evidence]
+method = "source"
+symbol = "str.rsplit"
+file = "Objects/stringobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+note = "str is str and unicode in 2.4, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "object-index"
+name = "object.__index__()"
+added = "2.5"
+category = "method"
+pep = 357
+methods = ["object.__index__"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:reference/datamodel.txt"
+quote = "New in version 2.5."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-partition"
+name = "str.partition() and str.rpartition()"
+added = "2.5"
+category = "method"
+methods = ["str.partition", "str.rpartition"]
+
+[features.evidence]
+method = "source"
+symbol = "str.partition"
+file = "Objects/stringobject.c"
+absent_in = "2.4"
+present_in = "2.5"
+note = "str is str and unicode in 2.5, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-07-29"
+
+[[features]]
+id = "float-as-integer-ratio"
+name = "float.as_integer_ratio()"
+added = "2.6"
+category = "method"
+methods = ["float.as_integer_ratio"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:library/stdtypes.txt"
+quote = "New in version 2.6."
+checked = "2026-07-29"
+
+[[features]]
+id = "float-hex"
+name = "float.hex() and float.fromhex()"
+added = "2.6"
+category = "method"
+methods = ["float.hex", "float.fromhex"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:library/stdtypes.txt"
+quote = "New in version 2.6."
+checked = "2026-07-29"
+
+[[features]]
+id = "float-is-integer"
+name = "float.is_integer()"
+added = "2.6"
+category = "method"
+methods = ["float.is_integer"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:library/stdtypes.txt"
+quote = "New in version 2.6."
+checked = "2026-07-29"
+
+[[features]]
+id = "object-reversed"
+name = "object.__reversed__()"
+added = "2.6"
+category = "method"
+methods = ["object.__reversed__"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:reference/datamodel.txt"
+quote = "New in version 2.6."
+checked = "2026-07-29"
+
+[[features]]
+id = "set-isdisjoint"
+name = "set.isdisjoint() and frozenset.isdisjoint()"
+added = "2.6"
+category = "method"
+methods = ["set.isdisjoint", "frozenset.isdisjoint"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:library/stdtypes.txt"
+quote = "New in version 2.6."
+note = "The 3.5 inventory is the first to give `frozenset.isdisjoint` an entry of its own, which is the age of the markup rather than of the method."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-format"
+name = "str.format()"
+added = "2.6"
+category = "method"
+methods = ["str.format"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:library/stdtypes.txt"
+quote = "New in version 2.6."
+checked = "2026-07-29"
+
+[[features]]
+id = "int-bit-length"
+name = "int.bit_length()"
+added = "2.7"
+category = "method"
+methods = ["int.bit_length"]
+
+[features.evidence]
+method = "manual"
+note = "Added in 2.7 and again in 3.1: the 2.7 inventory lists it and the 3.14 docs mark it \"Added in version 3.1\". Python 3.0 is the only release in between that lacks it, and a gap there does not count against continuity, so 2.7 is the oldest release it has been available in ever since."
+checked = "2026-07-29"
+
+[[features]]
+id = "bytes-maketrans"
+name = "bytes.maketrans() and bytearray.maketrans()"
+added = "3.1"
+category = "method"
+methods = ["bytes.maketrans", "bytearray.maketrans"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.1."
+checked = "2026-07-29"
+
+[[features]]
+id = "int-to-bytes"
+name = "int.to_bytes() and int.from_bytes()"
+added = "3.2"
+category = "method"
+methods = ["int.to_bytes", "int.from_bytes"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.2."
+checked = "2026-07-29"
+
+[[features]]
+id = "memoryview-release"
+name = "memoryview.release()"
+added = "3.2"
+category = "method"
+methods = ["memoryview.release"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.2."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-format-map"
+name = "str.format_map()"
+added = "3.2"
+category = "method"
+methods = ["str.format_map"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.2."
+checked = "2026-07-29"
+
+[[features]]
+id = "list-copy-clear"
+name = "copy() and clear() on list and bytearray"
+added = "3.3"
+category = "method"
+methods = ["list.copy", "list.clear", "bytearray.copy", "bytearray.clear"]
+
+[features.evidence]
+method = "manual"
+note = "The 3.3 whatsnew says \"New methods have been added to list and bytearray: copy() and clear() (bpo-10516)\". No per-name marker dates them, because the docs describe both as `sequence.copy` and `sequence.clear` in the mutable sequence table, and the inventory does not index `list.copy` until 3.13."
+checked = "2026-07-29"
+
+[[features]]
+id = "memoryview-cast"
+name = "memoryview.cast()"
+added = "3.3"
+category = "method"
+methods = ["memoryview.cast"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.3."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-casefold"
+name = "str.casefold()"
+added = "3.3"
+category = "method"
+methods = ["str.casefold"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.3."
+checked = "2026-07-29"
+
+[[features]]
+id = "object-length-hint"
+name = "object.__length_hint__()"
+added = "3.4"
+category = "method"
+methods = ["object.__length_hint__"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:reference/datamodel.txt"
+quote = "Added in version 3.4."
+note = "This dates the documented protocol, which the docs describe as what implements `operator.length_hint()`, and that function is 3.4 as well. Anything CPython did with the name before it was written down is not something code could rely on."
+checked = "2026-07-29"
+
+[[features]]
+id = "bytes-hex"
+name = "hex() on bytes, bytearray and memoryview"
+added = "3.5"
+category = "method"
+methods = ["bytes.hex", "bytearray.hex", "memoryview.hex"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.5."
+checked = "2026-07-29"
+
+[[features]]
+id = "object-init-subclass"
+name = "object.__init_subclass__()"
+added = "3.6"
+category = "method"
+pep = 487
+methods = ["object.__init_subclass__"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:reference/datamodel.txt"
+quote = "Added in version 3.6."
+checked = "2026-07-29"
+
+[[features]]
+id = "object-set-name"
+name = "object.__set_name__()"
+added = "3.6"
+category = "method"
+pep = 487
+methods = ["object.__set_name__"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:reference/datamodel.txt"
+quote = "Added in version 3.6."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-isascii"
+name = "isascii() on str, bytes and bytearray"
+added = "3.7"
+category = "method"
+methods = ["str.isascii", "bytes.isascii", "bytearray.isascii"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.7."
+checked = "2026-07-29"
+
+[[features]]
+id = "int-as-integer-ratio"
+name = "int.as_integer_ratio()"
+added = "3.8"
+category = "method"
+methods = ["int.as_integer_ratio"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.8."
+checked = "2026-07-29"
+
+[[features]]
+id = "memoryview-toreadonly"
+name = "memoryview.toreadonly()"
+added = "3.8"
+category = "method"
+methods = ["memoryview.toreadonly"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.8."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-removeprefix"
+name = "removeprefix() on str, bytes and bytearray"
+added = "3.9"
+category = "method"
+methods = ["str.removeprefix", "bytes.removeprefix", "bytearray.removeprefix"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.9."
+checked = "2026-07-29"
+
+[[features]]
+id = "str-removesuffix"
+name = "removesuffix() on str, bytes and bytearray"
+added = "3.9"
+category = "method"
+methods = ["str.removesuffix", "bytes.removesuffix", "bytearray.removesuffix"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.9."
+checked = "2026-07-29"
+
+[[features]]
+id = "int-bit-count"
+name = "int.bit_count()"
+added = "3.10"
+category = "method"
+methods = ["int.bit_count"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.10."
+checked = "2026-07-29"
+
+[[features]]
+id = "int-is-integer"
+name = "int.is_integer()"
+added = "3.12"
+category = "method"
+methods = ["int.is_integer"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.12."
+checked = "2026-07-29"
+
+[[features]]
+id = "object-replace"
+name = "object.__replace__()"
+added = "3.13"
+category = "method"
+methods = ["object.__replace__"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/copy.txt"
+quote = "Added in version 3.13."
+checked = "2026-07-29"
+
+[[features]]
+id = "bytearray-resize"
+name = "bytearray.resize()"
+added = "3.14"
+category = "method"
+methods = ["bytearray.resize"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.14."
+checked = "2026-07-29"
+
+[[features]]
+id = "float-from-number"
+name = "float.from_number() and complex.from_number()"
+added = "3.14"
+category = "method"
+methods = ["float.from_number", "complex.from_number"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.14."
+checked = "2026-07-29"
+
+[[features]]
+id = "memoryview-count"
+name = "memoryview.count() and memoryview.index()"
+added = "3.14"
+category = "method"
+methods = ["memoryview.count", "memoryview.index"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/stdtypes.txt"
+quote = "Added in version 3.14."
+checked = "2026-07-29"
+
+[[features]]
+id = "object-annotate"
+name = "object.__annotate__()"
+added = "3.14"
+category = "method"
+methods = ["object.__annotate__"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:reference/datamodel.txt"
+quote = "Added in version 3.14."
+checked = "2026-07-29"
 
 
 # --------------------------------------------------------------------

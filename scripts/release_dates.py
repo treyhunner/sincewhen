@@ -17,8 +17,11 @@ CPython's own release tags: the commit each tag points at is the release
 being cut. Where the two overlap they agree, which is the reason to
 trust the tags where they are all there is.
 
-1.0 and 1.6 have no tag of their own and 0.9 has none at all, so 1.0 is
-dated from 1.0.1 and the other two go undated.
+1.0 and 1.6 have no tag of their own and 0.9 has none at all. 1.0 is
+dated from its 1.0.1 tag, 1.6 is the one hand-entered row and says why
+below, and 0.9 stays undated because it reports as "the first public
+release" instead and because the date anyone cites for it is 0.9.0's,
+while this corpus is 0.9.1.
 
 Usage:
 
@@ -39,6 +42,29 @@ VERSIONS = ROOT / "src" / "sincewhen" / "versions.py"
 RELEASE_NAME = re.compile(r"Python (?P<major>\d+)\.(?P<minor>\d+)(\.0)?$")
 
 
+# The one release neither source can reach, and where its date comes
+# from instead: <https://en.wikipedia.org/wiki/History_of_Python>.
+#
+# 1.6 was cut by BeOpen rather than by CNRI, and the modern CPython
+# repository carries no `v1.6` tag of any kind, so the tags cannot date
+# it and python.org's downloads database starts eleven releases later.
+# The corpus cannot either: the 1.6 doc build says "September 18, 2000"
+# in its front matter, but that archive is `html-1.6p1`, a rebuilt doc
+# set, and the doc date is only a reliable proxy where it is not.
+#
+# It fills a hole rather than offering a second opinion, which matters
+# because Wikipedia's table and CPython's tags do not agree everywhere
+# they overlap: it dates 1.0 to 1994-01-26 against the 1.0.1 tag's
+# 1994-02-15, 1.5 to 1998-01-03 against 1997-12-31, and 2.1 to
+# 2001-04-15 against 2001-04-16. Those are announcement dates against
+# the commit each release was cut from, and the tags keep the rows they
+# already answer for. So this is added under the derived table rather
+# than over it, and would become dead the day a 1.6 tag appears.
+UNTAGGED = {
+    (1, 6): "2000-09-05",
+}
+
+
 def dated_releases() -> dict[tuple[int, int], str]:
     """The release date of every feature release this can date."""
     dates = {
@@ -51,7 +77,7 @@ def dated_releases() -> dict[tuple[int, int], str]:
             continue
         key = (int(match["major"]), int(match["minor"]))
         dates[key] = release["release_date"][:10]
-    return dict(sorted(dates.items()))
+    return dict(sorted((UNTAGGED | dates).items()))
 
 
 def render() -> str:
@@ -76,13 +102,13 @@ def shipped() -> dict[tuple[int, int], str]:
 def check() -> int:
     derived, current = dated_releases(), shipped()
     if derived == current:
-        print(f"{len(derived)} release dates match python.org.")
+        print(f"{len(derived)} release dates match their sources.")
         return 0
     for key in sorted(derived.keys() | current.keys()):
         if derived.get(key) != current.get(key):
             version = f"{key[0]}.{key[1]}"
             print(
-                f"{version}: shipped {current.get(key)}, python.org says "
+                f"{version}: shipped {current.get(key)}, the sources say "
                 f"{derived.get(key)}",
                 file=sys.stderr,
             )

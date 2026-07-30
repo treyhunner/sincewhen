@@ -31,6 +31,32 @@ PEP_585_GENERICS = frozenset(
     {"list", "dict", "set", "frozenset", "tuple", "type"},
 )
 
+# Literal syntax that pins its own type. A display says what it builds,
+# so `[]` is a list and `{}` is a dict no matter what surrounds it, and
+# an f-string is a `str` however it is spelled.
+LITERAL_TYPES: dict[type[ast.AST], str] = {
+    ast.List: "list",
+    ast.ListComp: "list",
+    ast.Dict: "dict",
+    ast.DictComp: "dict",
+    ast.Set: "set",
+    ast.SetComp: "set",
+    ast.Tuple: "tuple",
+    ast.JoinedStr: "str",
+}
+
+# The same for a constant, whose type is the type of its value. A `bool`
+# answers as an `int`, because it defines no methods of its own: every
+# method `True.bit_count()` can reach is `int.bit_count`.
+CONSTANT_TYPES: dict[type, str] = {
+    str: "str",
+    bytes: "bytes",
+    bool: "int",
+    int: "int",
+    float: "float",
+    complex: "complex",
+}
+
 
 def _has_none_key(node: ast.Dict, _bound: frozenset[str]) -> bool:
     """A `None` key means dict unpacking, as in `{**a}`."""
@@ -73,6 +99,63 @@ def _has_multiple_unpackings(node: ast.Call, _bound: frozenset[str]) -> bool:
     starred = sum(isinstance(argument, ast.Starred) for argument in node.args)
     doubled = sum(keyword.arg is None for keyword in node.keywords)
     return starred > 1 or doubled > 1
+
+
+def _has_equality(node: ast.Compare, _bound: frozenset[str]) -> bool:
+    """`a == b`, which is younger than Python rather than as old as it.
+
+    0.9.1 spelled equality `=`, and could without ambiguity, because
+    assignment is a statement there and never an expression. 1.0 added
+    `==`, dropped `=` as a comparison, and made `>=`, `<=` and `<>` into
+    single tokens rather than two adjacent ones.
+
+    Only one operator of a chain has to be this one: `0 <= x == y` uses
+    both `<=` and `==`, and each is its own claim about the version.
+    """
+    return any(isinstance(operator, ast.Eq) for operator in node.ops)
+
+
+def _has_containment(node: ast.Compare, _bound: frozenset[str]) -> bool:
+    """`x in y` or `x not in y`, both in the 0.9.1 grammar.
+
+    The operator is all this can see, and the operator is the only part
+    of containment that is as old as Python. What a release will accept
+    on the right of it moved twice, and neither move is visible in an
+    AST: `key in some_dict` is a `TypeError` until 2.2, where `has_key`
+    was the spelling, and `'ab' in 'abc'` is one until 2.3, which is when
+    a string's `in` stopped requiring a single character on the left. So
+    this reports the operator and says nothing about its operands, which
+    is the honest limit of a syntactic tool.
+    """
+    return any(isinstance(operator, ast.In | ast.NotIn) for operator in node.ops)
+
+
+def _has_tuple_target(node: ast.Tuple | ast.List, _bound: frozenset[str]) -> bool:
+    """A comma-separated assignment target, as in `a, b = 1, 2`.
+
+    Store context is what makes this unpacking rather than a display:
+    `except (A, B)` and `x = (1, 2)` are both loads. Everything that
+    stores into a tuple is unpacking of some kind, including `for a, b in
+    pairs`, `with open(p) as (a, b)`, the `a, b = b, a` swap, and a
+    nested `a, (b, c) = 1, (2, 3)`, all of which run under 0.9.1.
+
+    A starred target is deliberately not excluded. `a, *rest = values` is
+    tuple unpacking too, and reporting both it and the 3.0 feature is two
+    true statements rather than a double count: the newer one sets the
+    floor.
+    """
+    return isinstance(node.ctx, ast.Store)
+
+
+def _has_inequality(node: ast.Compare, _bound: frozenset[str]) -> bool:
+    """`a != b`, which arrived in 1.0 alongside `<>`.
+
+    Only `!=` is detectable, and not because it is the survivor: `<>`
+    lasted until 3.0 removed it, so a 3.14 parser cannot produce a node
+    for it at all. Reporting `!=` says nothing either way about `<>`,
+    which is a question for a `removed_in` field rather than this one.
+    """
+    return any(isinstance(operator, ast.NotEq) for operator in node.ops)
 
 
 def _is_async_generator(node: ast.AsyncFunctionDef, _bound: frozenset[str]) -> bool:
@@ -195,6 +278,10 @@ CHECKS: dict[str, Callable[[Any, frozenset[str]], bool]] = {
     "has_starred_target": _has_starred_target,
     "has_async_comprehension": _has_async_comprehension,
     "has_multiple_unpackings": _has_multiple_unpackings,
+    "has_equality": _has_equality,
+    "has_inequality": _has_inequality,
+    "has_containment": _has_containment,
+    "has_tuple_target": _has_tuple_target,
     "is_async_generator": _is_async_generator,
     "is_builtin_generic": _is_builtin_generic,
     "is_zero_argument_super": _is_zero_argument_super,
@@ -217,6 +304,7 @@ class _Index:
         self.by_builtin: dict[str, Feature] = {}
         self.by_module: dict[str, Feature] = {}
         self.by_attribute: dict[str, Feature] = {}
+        self.by_method: dict[str, Feature] = {}
         for feature in features:
             for name in feature.nodes:
                 self.by_node.setdefault(name, []).append(feature)
@@ -226,6 +314,11 @@ class _Index:
                 self.by_module[name] = feature
             for name in feature.attributes:
                 self.by_attribute[name] = feature
+            for name in feature.methods:
+                self.by_method[name] = feature
+        # The types those methods hang off, taken from the dataset rather
+        # than listed again here, so the two cannot drift apart.
+        self.method_types = frozenset(name.partition(".")[0] for name in self.by_method)
 
 
 @cache
@@ -316,6 +409,41 @@ class _Detector(ast.NodeVisitor):
         if feature is not None:
             self._record(feature)
 
+    def _record_method(self, node: ast.Attribute) -> None:
+        """Report a method of a builtin type, where the type is certain.
+
+        `x.removeprefix(...)` says nothing about `x`: it could be a
+        `str`, a `pathlib.PurePath`, or a class written this morning, and
+        the AST cannot tell. Two receivers do say, and only those two are
+        read:
+
+        - a literal, whose type is its own syntax
+        - the type's own name, as in `dict.fromkeys(keys)`, unless the
+          module has bound that name to something else
+
+        Everything else is left alone, because a wrong version number is
+        worse than a missing one. Those entries stay searchable, which is
+        the question this dataset mostly answers.
+        """
+        receiver = self._receiver_type(node.value)
+        if receiver is None:
+            return
+        feature = self.index.by_method.get(f"{receiver}.{node.attr}")
+        if feature is not None:
+            self._record(feature)
+
+    def _receiver_type(self, node: ast.expr) -> str | None:
+        """The builtin type `node` certainly is, if there is one."""
+        match node:
+            case ast.Constant(value=value):
+                return CONSTANT_TYPES.get(type(value))
+            case ast.Name(id=name):
+                if name in self.index.method_types and name not in self.bound_names:
+                    return name
+                return None
+            case _:
+                return LITERAL_TYPES.get(type(node))
+
     def visit_Name(self, node: ast.Name) -> None:
         if isinstance(node.ctx, ast.Load):
             if node.id not in self.bound_names:
@@ -330,6 +458,7 @@ class _Detector(ast.NodeVisitor):
         dotted = self._dotted_name(node)
         if dotted is not None:
             self._record_attribute(dotted)
+        self._record_method(node)
         self.generic_visit(node)
 
     def visit_Import(self, node: ast.Import) -> None:

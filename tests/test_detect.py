@@ -59,6 +59,26 @@ def test_no_features_detected():
         ("@registry[name]\ndef f():\n    pass", "relaxed-decorator"),
         ("x: tuple[*Ts]", "starred-subscript"),
         ("from __future__ import annotations", "future-annotations"),
+        ("a == b", "equality-operator"),
+        ("a != b", "inequality-operator"),
+        # One operator of a chain is enough, and each is its own claim.
+        ("0 <= x == y", "equality-operator"),
+        ("a <= b != c", "inequality-operator"),
+        ("x in y", "containment-check"),
+        ("x not in y", "containment-check"),
+        # Everything that stores into a tuple is unpacking of some kind.
+        ("a, b = 1, 2", "tuple-unpacking"),
+        ("a, b = b, a", "tuple-unpacking"),
+        ("(a, b) = pair", "tuple-unpacking"),
+        ("[a, b] = pair", "tuple-unpacking"),
+        ("a, (b, c) = 1, (2, 3)", "tuple-unpacking"),
+        ("for a, b in pairs:\n    pass", "tuple-unpacking"),
+        ("with open(p) as (a, b):\n    pass", "tuple-unpacking"),
+        ("[x for a, b in pairs]", "tuple-unpacking"),
+        # Extended unpacking is both features at once, and the newer one
+        # sets the floor.
+        ("a, *rest = values", "tuple-unpacking"),
+        ("a, *rest = values", "starred-assignment"),
     ],
 )
 def test_syntax_features(source, expected):
@@ -94,6 +114,33 @@ def test_syntax_features(source, expected):
         # try/except and try/finally were separate statements until 2.5.
         ("try:\n    pass\nfinally:\n    pass", "unified-try-except-finally"),
         ("try:\n    pass\nexcept E:\n    pass", "unified-try-except-finally"),
+        # Every other comparison is as old as Python: `<`, `>`, `is` and
+        # `in` are all in the 0.9.1 grammar, and only `==` and `!=` are
+        # the 1.0 additions.
+        ("a < b", "equality-operator"),
+        ("a > b", "inequality-operator"),
+        ("a is b", "equality-operator"),
+        ("a is not b", "inequality-operator"),
+        ("x in y", "equality-operator"),
+        ("x not in y", "inequality-operator"),
+        ("a == b", "inequality-operator"),
+        ("a != b", "equality-operator"),
+        # An assignment is not a comparison, which is the whole reason
+        # 0.9.1 could spell equality `=`.
+        ("a = b", "equality-operator"),
+        # `for ... in` and `import ... in`-free syntax use the keyword
+        # without comparing anything, so there is no Compare node.
+        ("for i in items:\n    pass", "containment-check"),
+        ("[x for x in items]", "containment-check"),
+        # A tuple that is read rather than assigned into is a display,
+        # not unpacking. `except (A, B)` is the case that would hurt.
+        ("x = (1, 2)", "tuple-unpacking"),
+        ("try:\n    pass\nexcept (A, B):\n    pass", "tuple-unpacking"),
+        ("f(a, b)", "tuple-unpacking"),
+        ("def f(a, b):\n    pass", "tuple-unpacking"),
+        # `del a, b` has no tuple node at all, and deletes rather than
+        # stores in any case.
+        ("del a, b", "tuple-unpacking"),
     ],
 )
 def test_narrow_syntax_matchers_do_not_over_fire(source, unwanted):
@@ -216,3 +263,81 @@ def test_attribute_on_a_non_name_is_ignored():
     """`f().isclose` has no resolvable dotted path."""
     assert features("f().isclose(a, b)") == set()
     assert features("'x'.isclose(a)") == set()
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    [
+        ('"Mr. Smith".removeprefix("Mr. ")', "str-removeprefix"),
+        ('f"{name}".removesuffix("!")', "str-removesuffix"),
+        ('b"abc".hex()', "bytes-hex"),
+        ("[].copy()", "list-copy-clear"),
+        ("[x for x in y].clear()", "list-copy-clear"),
+        ("(255).bit_count()", "int-bit-count"),
+        ("(2.0).is_integer()", "float-is-integer"),
+        ("True.bit_count()", "int-bit-count"),
+        # The ancient methods, which only the type's own method table
+        # dates: no doc build says when any of these arrived.
+        ('"abc".split()', "str-split"),
+        ('"abc".startswith("a")', "str-startswith"),
+        ("[].append(x)", "list-append"),
+        ("[].extend(x)", "list-extend"),
+        ("{}.setdefault(k, v)", "dict-setdefault"),
+        ("{}.keys()", "dict-keys"),
+        ("{1, 2}.add(3)", "set-add"),
+        # The type's own name is as certain as a literal is.
+        ('dict.fromkeys("abc")', "dict-fromkeys"),
+        ('str.casefold("HI")', "str-casefold"),
+        ("type.mro(int)", "type-mro"),
+    ],
+)
+def test_methods_are_detected_where_the_receiver_pins_the_type(source, expected):
+    assert expected in features(source)
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    [
+        ("[].copy()", "list-copy-clear"),
+        ("{}.copy()", "dict-copy"),
+        ("{1, 2}.copy()", "set-copy"),
+        ('"a".index("a")', "str-index"),
+        ("[].index(x)", "list-index"),
+    ],
+)
+def test_one_method_name_is_a_different_age_on_each_type(source, expected):
+    """A dict is not a list, and a set is not a dict.
+
+    `copy()` is 1.5 on a dict, 2.4 on a set and 3.3 on a list, so a
+    receiver whose type is certain has to pick exactly one of them.
+    """
+    assert {found.feature.id for found in detect(source) if found.feature.methods} == {
+        expected
+    }
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        # Anything at all can define these, so a bare name proves nothing.
+        'value.removeprefix("x")',
+        "self.rows.copy()",
+        "get_row().copy()",
+        "rows[0].clear()",
+        # A shadowed type name is not the type.
+        'dict = {"a": 1}\ndict.fromkeys("abc")',
+    ],
+)
+def test_methods_are_not_detected_on_an_uncertain_receiver(source):
+    assert not {found.feature.id for found in detect(source) if found.feature.methods}
+
+
+def test_a_method_and_its_type_are_both_reported():
+    """Two true statements about one expression, at two ages.
+
+    `dict.fromkeys(keys)` needs the `dict` type, which arrived in 2.2,
+    and the method, which arrived in 2.3. The newer one sets the floor
+    and the older one is still worth saying.
+    """
+    assert features('dict.fromkeys("abc")') == {"dict", "dict-fromkeys"}
+    assert minimum_version('dict.fromkeys("abc")') == Version(2, 3)

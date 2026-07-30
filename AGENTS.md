@@ -32,13 +32,14 @@ Things the code cannot tell you:
 
 ## The research pipeline
 
-Six independent methods date things, and they cross-check each other.
+Seven independent methods date things, and they cross-check each other.
 Where they disagree, the disagreement is the finding, and `dating.py` reports it rather than picking a winner.
 
-- `inventory.py` diffs Sphinx `objects.inv` files from 2.6 to 3.14. Deterministic for anything added in 3.1 or later.
+- `inventory.py` diffs Sphinx `objects.inv` files from 2.6 to 3.14. Deterministic for anything added in 3.1 or later, with one exception: the members of the builtin types, where it can only ever bound. See below.
 - `modindex.py` diffs the module lists and built-in function pages in the doc builds from 0.9.1 to 2.5, reading LaTeX for the three source-only releases and HTML for the rest. This is the only method that reaches the pre-Sphinx era.
+- `typemethods.py` diffs the method tables of the builtin types across the same tarballs, which is `source.py`'s argument one level down and the only thing that reaches these names: the docs index 397 members of the builtin types and date 58, because a method older than the "New in version" convention never got a marker. It found that `dict` had `keys` and `has_key` and nothing else in 0.9.1, that `str.split` and 28 more string methods are 1.6, that `dict.setdefault` is 2.0 and `type.mro` is 2.2. Its claim is about instances rather than about the type: see below.
 - `source.py` diffs what CPython's own tarballs contain across every release from 0.9.1 to 2.5: the `builtin_methods[]` table in `bltinmodule.c`, the `.py` files in the library directory, and the members of both kinds of module. It outranks every other method for anything it can account for. It found that `map` is 1.0 and `bisect` is 1.0 where the archives could only say "1.2 or earlier" and "1.5 or earlier", that `globals` and `locals` arrived in 1.3, and that `calendar.day_abbr` has been there since 0.9.1 and was merely written down in 2.5. C extension *modules* are deliberately excluded: `Modules/Setup` decides which get compiled, so the tarball cannot say what a release could import.
-- `annotations.py` greps the docs' own "Added in version" markers out of the 2.7 and 3.14 text builds. Covers what the other two cannot, and is the least trustworthy of the three.
+- `annotations.py` greps the docs' own "Added in version" markers out of the 2.7 and 3.14 text builds. Covers what the diffs cannot, and is the least trustworthy of them: a marker belongs to whatever signature the extractor last saw, which is not always the one it was written under.
 - `grammar.py` diffs CPython's grammar at every release tag, from 0.9.1 to 3.14. This is the only source that settles *syntax*, and it is ground truth where a PEP header is intent: PEP 3129 says class decorators are 3.0 and the 2.6 grammar already has them. It found that `lambda` is 1.0, not "1.2 or earlier" as the docs suggested.
 - `interpreters.py` builds all fourteen releases from 0.9.1 to 2.5 out of the tarballs already in the corpus and asks each one whether a name resolves. Every other method reads a description of Python; this one reads Python. It is the only method that can speak for a C extension module, and the only one that sees through a star-import, an `#ifdef` or a name bound at runtime. It found that `operator` is 1.4, closing the whole cluster of members the archives could only call "1.5 or earlier". Its claim is narrower than the others': see below.
 
@@ -48,6 +49,8 @@ Two failure modes to keep in mind, both of which the dataset already has example
 - A doc-derived floor reports the age of the archive, not the age of the feature. Every builtin used to bottom out at "1.2 or earlier" because 1.2 is the oldest HTML build with a built-in functions page, and reading the interpreter's source dated 16 of the 31 outright.
 - A source-derived floor can do the same at the *newest* end. Every member the docs date to 2.5 would report as "2.5 or earlier" purely because 2.5 is where the tarballs stop, which is why a floor never outranks an annotation of the same version.
 - The inventory and the module index date *documentation*, not shipping. `platform` shipped in 2.3 and was documented in 2.4, and `hashlib.sha3_256` shipped in 3.6 and was given its own inventory entry in 3.11.
+- A member of a builtin type is the worst case of that, and gets its own rule: along the 3.x line the inventory bounds it and never dates it. `stdtypes` describes a whole family of types in one table and Sphinx grew per-name markup for those tables release by release, so the release that first indexes one is the age of the markup. `list.copy` arrived in 3.3 and was first indexed in 3.13, `range.start` in 3.3 and first indexed in 3.5, `bytearray.capitalize` shipped with `bytearray` in 2.6 and was first indexed in 3.4, and `type.mro` predates Python 3 entirely and was first indexed in 3.12. What dates these is the docs' own markers, and for the ones older than the marker convention, the type's own method table: `type.mro` is 2.2. The 2.6-to-2.7 step is exempt, because it is one release of the same era's docs and every type member those two inventories disagree about is a real 2.7 addition.
+- A marker attaches to the signature above it, so a signature the extractor cannot see steals one. `classmethod date.fromisoformat(...)` and `static bytes.maketrans(...)` did not match the signature pattern, so their markers landed on whatever came before: `datetime.date` read as 3.7 and `bytearray.join` as 3.1. Both were wrong and both looked like evidence.
 - Prose is not a heading. Matching "standard module" anywhere in a doc collects words out of sentences like "standard modules that ...", and a stray comment in the 0.9.1 C source ("this should become a built-in module 'io'") once dated `io` to 1991. Anchor on the section heading.
 
 Presence is strong evidence and absence is weak.
@@ -77,6 +80,37 @@ The exhaustive-list argument is decided per module, not per language, and gettin
 - **A source floor is not an absence claim**, only a limit on what could be read, so it never outranks a doc that shows the name earlier. `gc.collect` is in a table this cannot follow until 2.3 and the 2.0 docs list it; `random.randrange` reaches `random` by a re-export from `whrandom` until 2.1.
 - **A source date newer than an archive is a real disagreement.** Both sides claim proof, so `dating.py` refuses to answer and `verify-dataset` asks for manual evidence rather than picking one.
 - **A dated module closes a member's bound.** A member cannot predate its module, so a member bounded at exactly the release its module arrived in is not bounded at all: `weakref` is 2.1, so `weakref.ref` is 2.1 and not "2.1 or earlier". This only follows when the module is dated; a bounded module passes its bound along, which is why `operator.add` stays "1.5 or earlier". Do not generalise it to "a member is as old as its module", which is wrong 79% of the time against the members this dataset has actually dated.
+
+### What a type's method table can and cannot settle
+
+A type's method table is the list the type registers its methods from, so it is exhaustive in the way `builtin_methods[]` is and absence is proof.
+Four things had to be decided before any of that can be believed, and each one produces a wrong version number if it is guessed at.
+
+- **A type is a family, and 2.x `str` is not 3.x `str`.** `stringobject.c` is the bytes-ish string, `unicodeobject.c` is what became `str`, and their tables disagree: `encode` is in the unicode table from 1.6 and in the string table from 2.0. So a member is present only where every type in the family binds it, and absent as soon as one of them provably lacks it, which makes `str.encode` 2.0 and agrees with the marker the docs already carry. A member one of the family never has, like `isdecimal`, is reported by `--partial` rather than dated: what makes that a string method is 3.0 renaming unicode to `str`, which this method cannot see.
+- **The claim is about instances, not about the type.** `str` was a builtin function and not a class until 2.2, so `"x".encode()` is 2.0 and `str.encode` as an unbound attribute is 2.2. This is why the head of a dotted name is deliberately not consulted here: `dict` the builtin is 2.2 and the `dict` type is in 0.9.1, so using the head as a floor would date `dict.keys` to 2.2 and using it as a ceiling would throw the 0.9.1 evidence away. `_date_the_module` skips type members for that reason.
+- **A special method is a slot, not a table row**, so `__lt__` and `__index__` stay with the docs. A dunder can be both, which is worse: `list.__getitem__` has been a slot since 0.9.1 and gained a table row in 2.4 so a list could be pickled, so the row is the age of the row. Every dunder is left out, which costs a few table-only ones like `type.__subclasses__` and buys never dating a slot by its row.
+- **Only the method tables, never the getset or member tables.** Those exist from 2.2, and before then an attribute was a `strcmp` inside `tp_getattr`: 1.5 answers `complex.real` that way with no table at all. Reading them would date every attribute to the release that unified the type system, and `float.real` and `int.numerator` are 2.6 and past this corpus anyway.
+
+Four modern types are deliberately outside `LINEAGE`, because no release in this corpus has instances anyone would call by their name.
+`bytes` and `bytearray` are 2.6, and the 2.x string type became `bytes` by being renamed, so mapping `bytes` onto it would date `bytes.capitalize` to 1.6, five releases before anything could be spelled `b"..."`.
+`range` is 2.x `xrange`, while 2.x `range` returns a list, so `range(3).index` in this era is `list.index`.
+`memoryview` is 2.7 and 2.x `buffer` is a different interface.
+Those four are what the docs' markers and their types' own dates have to answer for, and `type_is_covered` is what keeps the omission from being silent.
+
+The rest of the era's churn is not load bearing.
+`struct methodlist` becomes `PyMethodDef`, which does not matter because the table is found by the identifier the type points at.
+Resolution moves from a `tp_getattr` function calling `findmethod()` to a `tp_methods` slot in 2.2, so both are read.
+What ties a table to a type is the `tp_name` string in the type structure, which is the only place the Python-visible name is written down, and it moves too: `dict` is `Mappingtype` spelled `"dictionary"` until 2.2, and `long` is `"long int"`.
+
+Presence is strict and absence generous, exactly as for a module member.
+`str.zfill` is the case that earns it: the 1.6 table carries `{"zfill", ...}` inside an `#if 0` and so does 2.2's, because the method really arrived in 2.2.2.
+So the source floors it at "2.3 or earlier" and the docs' own 2.2.2 marker outranks the floor, which is the rule that already exists for module members.
+
+`--compare` is the check worth keeping, because comparing a source date against what the docs say for the same name is what caught every mistake the module-member extractor made.
+Nine of these agree with a marker exactly, which is the cross-validation, and three disagree.
+Two of the three are the stolen-marker failure again: the nearest marker to `dict.values` is the 3.9 one under `d | other`, which is not a signature `annotations.py` can see, and the nearest one to `str.translate` says "New in version 2.6: Support for a `None` *table* argument", which dates an argument.
+Neither is a claim about when the method arrived, so the evidence note for a type method says "the nearest marker" rather than "the docs date it".
+The third is `str.decode`, present in the string table from 2.2 and the unicode table from 2.4, which is the family rule working and a name Python 3 removed anyway.
 
 ### What a built interpreter can and cannot settle
 
@@ -122,6 +156,9 @@ Getting a version wrong is the worst bug this project can have, because the whol
 - **Prefer unambiguous node matches.** `{**a}` (a `Dict` with a `None` key) is safe. A bare `Starred` node is not, because it means different things in different contexts.
 - **The minimum version is a lower bound.** The dataset is incomplete by nature, so `minimum_version()` can only ever say "at least this new." Do not phrase it as a guarantee in docs or output.
 - **Detection is syntactic, not semantic.** `sincewhen` sees a call to something named `math.isclose`, not the real function. Shadowed builtins are handled; shadowed module attributes are not.
+- **A method of a builtin type is searchable first and detectable second.** Search can answer "how long has `str.removeprefix` been in Python" exactly, and detection cannot: `x.removeprefix(...)` is a `str`, a `PurePath`, or a class written this morning, and the AST cannot tell. So the `methods` matcher fires only where the receiver's type is certain, meaning a literal or the type's own unshadowed name, and the entry stays searchable everywhere else. That is what the question this tool asks needs, and it is the only subset a syntactic tool can claim.
+- **A method Python 3 removed has no entry**, for the same reason the Python 2 builtins have none: `added` cannot say "and then it was taken away". `str.decode`, `dict.iteritems` and `dict.viewkeys` are all dated by the 2.7 docs and all stay out, and `test_every_dated_method_is_still_there` enforces it by asking the running interpreter. `typemethods.py` dates several of these because the tables carry them, so a name it dates is a candidate for an entry rather than an entry.
+- **A method entry from before 2.6 is a claim about instances.** `"x".split()` is 1.6 and `str.split` written as an unbound call needs 2.2, because `str` was a builtin function until then. Detection understates that one spelling, which is the right direction: the alternative claims 2.2 for a method that has worked on strings since 1.6. The same reading is why a type member never inherits a floor or a ceiling from the name in front of the dot.
 - **Record it in the changelog.** A new entry, or a corrected version on an existing one, gets a line under `Unreleased` in `CHANGELOG.md`. Dataset changes get their own heading there, apart from tool changes, because they are the ones that alter what `sincewhen` reports about code that did not change. A correction says what the version was, what it is now, and which source settled it.
 
 ## Testing

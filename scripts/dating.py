@@ -14,13 +14,22 @@ later, because a symbol absent from one release's `objects.inv` and
 present in the next was added in that release. For anything older it can
 only give a *floor*: "already documented in 3.0", which rules out later
 versions without picking one. The annotation grep fills that in, since
-the Python 2.7 docs still carry markers going back to 1.3.
+the Python 2.7 docs still carry markers going back to 1.3. The members of
+the builtin types are a floor either way: see `BUILTIN_TYPES` below.
 
 Below all of those sits the interpreter's own source, which is the only
 witness that predates the HTML doc builds and the only one whose absence
-means anything. It speaks for builtins, modules and module members, and
-only for names it actually finds and can account for, so everything else
-falls through to the doc-derived methods exactly as before.
+means anything. It speaks for builtins, modules, module members and the
+methods of the builtin types, and only for names it actually finds and
+can account for, so everything else falls through to the doc-derived
+methods exactly as before.
+
+For a method of a builtin type it is the only witness at all. The docs
+index 397 of those and date 58, because a method older than the "Added
+in version" convention never got a marker, so `dict.setdefault` and
+`str.split` are answered by the type's own method table and by nothing
+else. Note that the head of such a name is deliberately never consulted:
+see `_date_the_module`.
 
 Usage:
 
@@ -39,6 +48,7 @@ from source import dated_builtins as source_builtins
 from source import dated_members as source_members
 from source import dated_modules as source_modules
 from sources import load_inventories
+from typemethods import dated_type_methods
 
 # The 3.x line, in release order: a single linear history.
 SPINE = (
@@ -81,6 +91,60 @@ def version_key(version: str) -> tuple[int, int]:
 # it but present in the 2.6 inventory can only have arrived in 2.6.
 NEWEST_HTML = list(HTML_BUILDS)[-1]
 
+# The builtin types, whose members the inventory can only ever bound.
+#
+# Every other kind of name gets a hard date out of an inventory diff: a
+# module or a function absent from one release's `objects.inv` and
+# present in the next was documented in that release, and documentation
+# follows shipping closely enough to date it. A method of a builtin type
+# does not work that way, because `stdtypes.rst` describes these in
+# family tables rather than one entry per name, and Sphinx grew per-name
+# markup for those tables release by release. So the release that first
+# indexes one of these is the age of the markup and not of the method:
+# `list.copy` arrived in 3.3 and was first indexed in 3.13, `range.start`
+# in 3.3 and first indexed in 3.5, `type.mro` predates Python 3 entirely
+# and was first indexed in 3.12, and `bytearray.capitalize` shipped with
+# `bytearray` in 2.6 and was first indexed in 3.4.
+#
+# What does date these is the docs' own "Added in version" markers, which
+# sit on the family table's own signature lines. So an inventory entry
+# for one of these contributes a floor, exactly as an inventory that
+# starts with the name already in it does, and the annotation answers.
+#
+# The 2.6-to-2.7 step is one release apart and looks safer, and is not.
+# It dates 20 `frozenset` methods to 2.7 where `frozenset` itself is 2.4,
+# and `frozenset.add`, which no `frozenset` has ever had: the 2.7 docs
+# describe the whole set family on one page, so the markup covers names
+# the type does not even have. So this holds for both lines.
+BUILTIN_TYPES = frozenset(
+    {
+        "bool",
+        "bytearray",
+        "bytes",
+        "complex",
+        "dict",
+        "float",
+        "frozenset",
+        "int",
+        "list",
+        "memoryview",
+        "object",
+        "range",
+        "set",
+        "slice",
+        "str",
+        "tuple",
+        "type",
+    }
+)
+
+
+def is_type_member(name: str) -> bool:
+    """Whether `name` is a method or attribute of a builtin type."""
+    head, _, member = name.partition(".")
+    return head in BUILTIN_TYPES and bool(member)
+
+
 # Python 3.0 and 3.1 do not count against continuity. Plenty of features
 # shipped in 2.7 and then reappeared in 3.2, and calling those 3.2
 # additions would be pedantically true and practically wrong: nobody
@@ -103,6 +167,7 @@ class Verdict:
     source_absent_in: str | None = None
     source_is_floor: bool = False
     source_path: str | None = None
+    source_note: str | None = None
     archive: str | None = None
     archive_absent_in: str | None = None
     archive_is_floor: bool = False
@@ -424,6 +489,30 @@ class Verdict:
             ),
         }
 
+    def _overridden_docs_note(self) -> str:
+        """What to say when the source outranks a version marker.
+
+        A method of a builtin type gets its own wording, because the
+        marker nearest one of those is often not about it. `stdtypes`
+        describes a whole family per page, so the nearest marker to
+        `dict.values` is the 3.9 one under `d | other`, which the
+        extractor cannot see as a signature, and the nearest one to
+        `str.translate` says "New in version 2.6: Support for a `None`
+        *table* argument", which dates an argument. Neither is a claim
+        about when the method arrived, so neither is reported as one.
+        """
+        if is_type_member(self.name):
+            return (
+                f"The {self.annotation_build} docs' nearest marker to this "
+                f"name says {self.annotation}, which the method table "
+                f"contradicts: {self.source_absent_in} does not carry the row "
+                f"and {self.source} does."
+            )
+        return (
+            f"The {self.annotation_build} docs date it to {self.annotation}, "
+            f"but the {self.source_absent_in} interpreter does not register it."
+        )
+
     def evidence(self, checked: str) -> dict:
         """The provenance table this verdict justifies, ready for TOML."""
         if self.status in {"interpreter", "interpreter-overrides-docs"}:
@@ -456,8 +545,9 @@ class Verdict:
                 "absent_in": self.source_absent_in,
                 "present_in": self.source,
             } | self._closed_by_module()
+            notes = []
             if self.or_earlier and self.source == OLDEST_SOURCE:
-                evidence["note"] = (
+                notes.append(
                     f"Registered in {self.source}, the oldest source release "
                     "there is, so it is at least that old and may be older."
                 )
@@ -466,16 +556,16 @@ class Verdict:
                 # source neither binds the name nor rules it out: a
                 # method table row inside an `#if`, or a module whose
                 # own file is not the whole of its namespace.
-                evidence["note"] = (
+                notes.append(
                     f"Bound in {self.source}, so it is at least that old. "
                     "No earlier source release can be shown to lack it."
                 )
             elif self.status == "source-overrides-docs":
-                evidence["note"] = (
-                    f"The {self.annotation_build} docs date it to "
-                    f"{self.annotation}, but the {self.source_absent_in} "
-                    "interpreter does not register it."
-                )
+                notes.append(self._overridden_docs_note())
+            if self.source_note:
+                notes.append(self.source_note)
+            if notes:
+                evidence["note"] = " ".join(notes)
             return evidence | {"checked": checked}
         if self.status in {"archive", "docs-overstate"}:
             evidence = {
@@ -617,8 +707,16 @@ def _date_from_source(verdict: Verdict) -> None:
     A dotted name is a module member, which is read from whatever
     implements the module: the method table and insert calls of a C
     module, or the top-level bindings of a Python one.
+
+    A method of a builtin type is read from that type's own method
+    table, which is the same argument one level down and the only thing
+    that reaches these names at all: the docs date 58 of the 397 they
+    index, because a method older than the "Added in version" convention
+    never got a marker.
     """
-    if verdict.module is not None:
+    if is_type_member(verdict.name):
+        record = dated_type_methods().get(verdict.name)
+    elif verdict.module is not None:
         record = source_members().get(verdict.name)
     elif verdict.name in source_modules() or verdict.name in dated_modules():
         record = source_modules().get(verdict.name)
@@ -634,6 +732,7 @@ def _date_from_source(verdict: Verdict) -> None:
     verdict.source_absent_in = record.get("absent_in")
     verdict.source_is_floor = "added" not in record
     verdict.source_path = record["file"]
+    verdict.source_note = record.get("note")
 
 
 def _date_the_module(verdict: Verdict) -> None:
@@ -643,9 +742,18 @@ def _date_the_module(verdict: Verdict) -> None:
     module is a floor under it, and where the module is dated the module
     is a ceiling too. Both need the module's own verdict, so it is taken
     once here rather than recomputed by each rule that wants it.
+
+    A method of a builtin type gets neither, because the head of the name
+    is not a module and answers a different question. `dict` the builtin
+    arrived in 2.2 and the `dict` type is in 0.9.1, so treating the head
+    as a floor would date `dict.keys` to 2.2, and treating it as a
+    ceiling would throw the 0.9.1 evidence away. What a method table
+    dates is availability on instances, which is what the dataset's
+    pre-2.6 method entries have always claimed: `"x".encode()` is 2.0
+    and `str.encode` as an unbound attribute is 2.2.
     """
     module, _, member = verdict.name.rpartition(".")
-    if not (module and member):
+    if not (module and member) or is_type_member(verdict.name):
         return
     found = date_symbol(module)
     verdict.module = module
@@ -714,9 +822,15 @@ def date_symbol(name: str) -> Verdict:
             if not available:
                 continue
             first = available[0]
-            if first == line[0]:
-                # Already there when this line starts: a floor, not a date.
-                if verdict.floor is None:
+            if first == line[0] or is_type_member(verdict.name):
+                # Already there when this line starts, or indexed later
+                # than it shipped: a floor, not a date. The oldest such
+                # release wins, since it is the stronger bound: a name in
+                # the 2.7 inventory is no newer than 2.7 whatever the 3.x
+                # builds did with it later.
+                if verdict.floor is None or version_key(first) < version_key(
+                    verdict.floor
+                ):
                     verdict.floor = first
             else:
                 verdict.inventory = first

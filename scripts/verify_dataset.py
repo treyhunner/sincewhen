@@ -12,8 +12,8 @@ that changes both, correctly, passes.
 Each matcher kind is checked against the source that can actually settle
 it:
 
-    modules, attributes, builtins   the cached documentation, via
-                                    scripts/dating.py
+    modules, attributes, builtins,  the cached documentation, via
+    methods                         scripts/dating.py
     nodes                           the feature's PEP, whose
                                     Python-Version header has to agree
 
@@ -133,16 +133,30 @@ def check_pep(entry: dict) -> tuple[str, str]:
 
 
 def check_grammar(entry: dict) -> tuple[str, str]:
-    """Compare `added` against CPython's own grammar."""
+    """Compare `added` against CPython's own grammar.
+
+    A token already in the oldest cached grammar can only be bounded, the
+    same way a builtin already in the oldest tarball can. `in` and
+    `exprlist` are both in the 0.9.1 grammar, so nothing can date them
+    and the entry has to say "or earlier" rather than "0.9". Checking the
+    flag as well as the version is the point: they are different claims
+    and only one of them is right.
+    """
     token = entry["evidence"]["symbol"]
     record = dated_syntax().get(token)
     if record is None:
         return MISMATCH, f"{token} is in no cached grammar"
-    found = record.get("added")
+    bounded = entry.get("or_earlier", False)
+    found = record.get("added") or record["floor"]
     if found != entry["added"]:
-        where = found or f"{record['floor']} or earlier"
+        where = record.get("added") or f"{record['floor']} or earlier"
         return MISMATCH, f"claims {entry['added']}, but {token} appears in {where}"
-    return OK, f"{entry['added']} confirmed by the grammar"
+    if bounded != ("added" not in record):
+        claimed = "or earlier" if bounded else "exactly"
+        actual = "a bound" if "added" not in record else "a date"
+        return MISMATCH, f"claims {found} {claimed}, but {token} is {actual}"
+    phrase = f"{found} or earlier" if bounded else found
+    return OK, f"{phrase} confirmed by the grammar"
 
 
 def check(entry: dict) -> tuple[str, str]:
@@ -169,7 +183,7 @@ def check(entry: dict) -> tuple[str, str]:
             return check_pep(entry)
         case "grammar":
             return check_grammar(entry)
-    for field in ("modules", "attributes", "builtins"):
+    for field in ("modules", "attributes", "builtins", "methods"):
         if entry.get(field):
             return check_symbols(entry, entry[field])
     if entry.get("pep"):
