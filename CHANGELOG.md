@@ -7,6 +7,36 @@ Dataset changes are listed apart from everything else, because they are the chan
 A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
+## Unreleased
+
+### Dataset
+
+- **37 new entries for the methods of the builtin types**, which is a gap you could previously only find by searching for one.
+  `sincewhen --search removeprefix` came back empty; it now answers "Python 3.9", and so do `is_integer`, `isascii`, `casefold`, `format_map`, `bit_count`, `to_bytes`, `fromkeys`, `__set_name__` and the rest.
+  A method answers to its own name as well as to `type.method`, because nobody searching for `removeprefix` types the type in front of it.
+- Two of those needed a human, and the reason is worth reading:
+  - **`copy()` and `clear()` on `list` and `bytearray` are 3.3.** The docs describe them once for the whole mutable-sequence family, as `sequence.copy`, so no per-name marker dates them, and the inventory does not index `list.copy` until 3.13. The 3.3 whatsnew names both types outright.
+  - **`int.bit_length()` is 2.7**, which the 2.7 inventory shows and the 3.14 docs contradict with a 3.1 marker. Both are true: it shipped in 2.7 and again in 3.1, and 3.0 is the only release in between that lacks it.
+- **Methods Python 3 removed are deliberately absent**, for the same reason the Python 2 builtins are: `added` has no way to say "and then it was taken away". `str.decode`, `dict.iteritems` and `dict.viewkeys` are all dated by the 2.7 docs and all stay out.
+- **`datetime.date` no longer carries a 3.7 marker it never earned.** A version marker attaches to the signature above it, and `classmethod date.fromisoformat(...)` did not match the signature pattern, so its 3.7 marker landed on the class instead. This was invisible in the shipped dataset because the source method outranked it, and it is the kind of thing that stops being invisible later.
+
+### Tool
+
+- **A new `methods` matcher kind**, for the methods of builtin types.
+  These are searchable everywhere and detected only where the receiver's type is certain: a literal, as in `"Mr. Smith".removeprefix("Mr. ")`, or the type's own unshadowed name, as in `dict.fromkeys(keys)`.
+  `value.removeprefix(...)` is not reported, because `value` could be anything with that method, and a wrong version number is worse than a missing one.
+
+### Research pipeline
+
+- **An inventory entry for a member of a builtin type now bounds rather than dates.**
+  `stdtypes` documents a whole family of types in one table and Sphinx grew per-name markup for those tables release by release, so the release that first indexes one of these is the age of the markup: `list.copy` arrived in 3.3 and was first indexed in 3.13, and `type.mro` predates Python 3 entirely and was first indexed in 3.12.
+  The inventory used to date 213 of the 397 such names it indexes and now dates none of them, so 179 questions it answered confidently are refused instead.
+  The 2.6-to-2.7 step looked safe and was not: it dated 20 `frozenset` methods to 2.7 where `frozenset` itself is 2.4, and among them `frozenset.add`, which no `frozenset` has ever had.
+- **`annotations.py` reads `classmethod`, `static` and `abstractmethod` signatures**, which it previously skipped, so their markers no longer attach to whatever signature came before them.
+  That fixed the false `datetime.date` and `bytearray.join` dates above, dated 35 names the markers were stranded on, `date.fromisoformat` among them, and dropped 15 they were wrongly attached to.
+- `just propose` writes `methods` entries, groups one method across sibling types from a single marker, and stops producing ids like `object---set-name--`.
+
+
 ## 0.3.0 - 2026-07-29
 
 ### Dataset

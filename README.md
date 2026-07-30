@@ -66,6 +66,14 @@ walrus operator (:=) - Python 3.8 (released 2019-10-14)
   Docs: https://docs.python.org/3/whatsnew/3.8.html
 ```
 
+A method of a builtin type answers to its own name, without the type in front of it:
+
+```console
+$ sincewhen --search removeprefix
+removeprefix() on str, bytes and bytearray - Python 3.9 (released 2020-10-05)
+  Docs: https://docs.python.org/3/whatsnew/3.9.html
+```
+
 Pass `--json` to either mode for machine-readable output.
 
 
@@ -111,6 +119,8 @@ The Python version you *run* `sincewhen` on has nothing to do with the versions 
 - Release dates come from python.org's downloads database back to 2.2, and from CPython's release tags before that.
   Python 0.9 and 1.6 have no release tag, so they show no date.
 - Searching for a module member that has no entry of its own falls back to the module it lives in, since a member cannot be older than its module.
+- A method of a builtin type is dated for searching but is mostly not detected, because `value.removeprefix(...)` says nothing about what `value` is.
+  Only a receiver whose type is certain reports one: a literal, as in `"Mr. Smith".removeprefix("Mr. ")`, or the type's own name, as in `dict.fromkeys(keys)`.
 
 
 ## Development
@@ -153,7 +163,7 @@ python_version = "3.8"
 checked = "2026-07-28"
 ```
 
-The matcher kinds are `nodes` (AST node class names), `builtins`, `modules`, and `attributes` (dotted `module.name` paths).
+The matcher kinds are `nodes` (AST node class names), `builtins`, `modules`, `attributes` (dotted `module.name` paths), and `methods` (dotted `type.method` paths for the builtin types).
 Node matchers can be narrowed with `requires` (a node attribute that must be truthy) or `check` (a predicate registered in `detect.py`).
 
 Documentation links are generated from `added` and `pep`, so only set `docs` when you have a better link than the "What's New" page.

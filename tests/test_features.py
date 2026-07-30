@@ -1,5 +1,7 @@
 """Tests for the feature dataset itself."""
 
+import builtins
+
 import pytest
 
 from sincewhen import Version, load_features, lookup
@@ -56,6 +58,7 @@ def test_categories_are_known():
         "module",
         "class",
         "function",
+        "method",
         "constant",
     }
     for feature in load_features():
@@ -101,6 +104,53 @@ def test_no_attribute_is_bounded_below_a_dated_module():
         if module.or_earlier or module.added != feature.added:
             continue
         assert not feature.or_earlier, (feature.id, module.id)
+
+
+def test_methods_hang_off_a_builtin_type():
+    """A `methods` target is `type.method`, and the type is a builtin.
+
+    The matcher exists for methods of the builtin types, and detection
+    reads the receiver's type to decide whether to fire. A module member
+    that found its way in here would simply never match anything.
+    """
+    for feature in load_features():
+        for name in feature.methods:
+            type_name, _, method = name.partition(".")
+            assert method and "." not in method, name
+            assert isinstance(getattr(builtins, type_name, None), type), name
+
+
+def test_every_dated_method_is_still_there():
+    """`added` claims a method has been available ever since.
+
+    So a method the running Python does not have is either a typo or a
+    Python 2 name that 3.0 removed, and neither belongs in the dataset:
+    the schema has no way to say "and then it was taken away".
+
+    The special methods are exempt, because `object` documents most of
+    them as a protocol rather than implementing them. Nothing has
+    `__length_hint__` until a class opts into it.
+    """
+    for feature in load_features():
+        for name in feature.methods:
+            type_name, _, method = name.partition(".")
+            if method.startswith("__"):
+                continue
+            assert hasattr(getattr(builtins, type_name), method), name
+
+
+def test_lookup_finds_a_method_by_its_own_name():
+    """Nobody searching for a method types the type in front of it."""
+    assert [f.id for f in lookup("removeprefix")] == ["str-removeprefix"]
+    assert lookup("str.removeprefix") == lookup("removeprefix")
+    assert [f.id for f in lookup("is_integer")] == [
+        "float-is-integer",
+        "int-is-integer",
+    ]
+
+
+def test_lookup_finds_a_special_method_by_its_dunder_name():
+    assert [f.id for f in lookup("__set_name__")] == ["object-set-name"]
 
 
 def test_versions_are_plausible():

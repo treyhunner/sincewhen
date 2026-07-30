@@ -31,6 +31,32 @@ PEP_585_GENERICS = frozenset(
     {"list", "dict", "set", "frozenset", "tuple", "type"},
 )
 
+# Literal syntax that pins its own type. A display says what it builds,
+# so `[]` is a list and `{}` is a dict no matter what surrounds it, and
+# an f-string is a `str` however it is spelled.
+LITERAL_TYPES: dict[type[ast.AST], str] = {
+    ast.List: "list",
+    ast.ListComp: "list",
+    ast.Dict: "dict",
+    ast.DictComp: "dict",
+    ast.Set: "set",
+    ast.SetComp: "set",
+    ast.Tuple: "tuple",
+    ast.JoinedStr: "str",
+}
+
+# The same for a constant, whose type is the type of its value. A `bool`
+# answers as an `int`, because it defines no methods of its own: every
+# method `True.bit_count()` can reach is `int.bit_count`.
+CONSTANT_TYPES: dict[type, str] = {
+    str: "str",
+    bytes: "bytes",
+    bool: "int",
+    int: "int",
+    float: "float",
+    complex: "complex",
+}
+
 
 def _has_none_key(node: ast.Dict, _bound: frozenset[str]) -> bool:
     """A `None` key means dict unpacking, as in `{**a}`."""
@@ -217,6 +243,7 @@ class _Index:
         self.by_builtin: dict[str, Feature] = {}
         self.by_module: dict[str, Feature] = {}
         self.by_attribute: dict[str, Feature] = {}
+        self.by_method: dict[str, Feature] = {}
         for feature in features:
             for name in feature.nodes:
                 self.by_node.setdefault(name, []).append(feature)
@@ -226,6 +253,11 @@ class _Index:
                 self.by_module[name] = feature
             for name in feature.attributes:
                 self.by_attribute[name] = feature
+            for name in feature.methods:
+                self.by_method[name] = feature
+        # The types those methods hang off, taken from the dataset rather
+        # than listed again here, so the two cannot drift apart.
+        self.method_types = frozenset(name.partition(".")[0] for name in self.by_method)
 
 
 @cache
@@ -316,6 +348,41 @@ class _Detector(ast.NodeVisitor):
         if feature is not None:
             self._record(feature)
 
+    def _record_method(self, node: ast.Attribute) -> None:
+        """Report a method of a builtin type, where the type is certain.
+
+        `x.removeprefix(...)` says nothing about `x`: it could be a
+        `str`, a `pathlib.PurePath`, or a class written this morning, and
+        the AST cannot tell. Two receivers do say, and only those two are
+        read:
+
+        - a literal, whose type is its own syntax
+        - the type's own name, as in `dict.fromkeys(keys)`, unless the
+          module has bound that name to something else
+
+        Everything else is left alone, because a wrong version number is
+        worse than a missing one. Those entries stay searchable, which is
+        the question this dataset mostly answers.
+        """
+        receiver = self._receiver_type(node.value)
+        if receiver is None:
+            return
+        feature = self.index.by_method.get(f"{receiver}.{node.attr}")
+        if feature is not None:
+            self._record(feature)
+
+    def _receiver_type(self, node: ast.expr) -> str | None:
+        """The builtin type `node` certainly is, if there is one."""
+        match node:
+            case ast.Constant(value=value):
+                return CONSTANT_TYPES.get(type(value))
+            case ast.Name(id=name):
+                if name in self.index.method_types and name not in self.bound_names:
+                    return name
+                return None
+            case _:
+                return LITERAL_TYPES.get(type(node))
+
     def visit_Name(self, node: ast.Name) -> None:
         if isinstance(node.ctx, ast.Load):
             if node.id not in self.bound_names:
@@ -330,6 +397,7 @@ class _Detector(ast.NodeVisitor):
         dotted = self._dotted_name(node)
         if dotted is not None:
             self._record_attribute(dotted)
+        self._record_method(node)
         self.generic_visit(node)
 
     def visit_Import(self, node: ast.Import) -> None:

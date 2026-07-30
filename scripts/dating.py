@@ -14,7 +14,8 @@ later, because a symbol absent from one release's `objects.inv` and
 present in the next was added in that release. For anything older it can
 only give a *floor*: "already documented in 3.0", which rules out later
 versions without picking one. The annotation grep fills that in, since
-the Python 2.7 docs still carry markers going back to 1.3.
+the Python 2.7 docs still carry markers going back to 1.3. The members of
+the builtin types are a floor either way: see `BUILTIN_TYPES` below.
 
 Below all of those sits the interpreter's own source, which is the only
 witness that predates the HTML doc builds and the only one whose absence
@@ -80,6 +81,60 @@ def version_key(version: str) -> tuple[int, int]:
 # The newest release with an HTML module index. A module missing from
 # it but present in the 2.6 inventory can only have arrived in 2.6.
 NEWEST_HTML = list(HTML_BUILDS)[-1]
+
+# The builtin types, whose members the inventory can only ever bound.
+#
+# Every other kind of name gets a hard date out of an inventory diff: a
+# module or a function absent from one release's `objects.inv` and
+# present in the next was documented in that release, and documentation
+# follows shipping closely enough to date it. A method of a builtin type
+# does not work that way, because `stdtypes.rst` describes these in
+# family tables rather than one entry per name, and Sphinx grew per-name
+# markup for those tables release by release. So the release that first
+# indexes one of these is the age of the markup and not of the method:
+# `list.copy` arrived in 3.3 and was first indexed in 3.13, `range.start`
+# in 3.3 and first indexed in 3.5, `type.mro` predates Python 3 entirely
+# and was first indexed in 3.12, and `bytearray.capitalize` shipped with
+# `bytearray` in 2.6 and was first indexed in 3.4.
+#
+# What does date these is the docs' own "Added in version" markers, which
+# sit on the family table's own signature lines. So an inventory entry
+# for one of these contributes a floor, exactly as an inventory that
+# starts with the name already in it does, and the annotation answers.
+#
+# The 2.6-to-2.7 step is one release apart and looks safer, and is not.
+# It dates 20 `frozenset` methods to 2.7 where `frozenset` itself is 2.4,
+# and `frozenset.add`, which no `frozenset` has ever had: the 2.7 docs
+# describe the whole set family on one page, so the markup covers names
+# the type does not even have. So this holds for both lines.
+BUILTIN_TYPES = frozenset(
+    {
+        "bool",
+        "bytearray",
+        "bytes",
+        "complex",
+        "dict",
+        "float",
+        "frozenset",
+        "int",
+        "list",
+        "memoryview",
+        "object",
+        "range",
+        "set",
+        "slice",
+        "str",
+        "tuple",
+        "type",
+    }
+)
+
+
+def is_type_member(name: str) -> bool:
+    """Whether `name` is a method or attribute of a builtin type."""
+    head, _, member = name.partition(".")
+    return head in BUILTIN_TYPES and bool(member)
+
 
 # Python 3.0 and 3.1 do not count against continuity. Plenty of features
 # shipped in 2.7 and then reappeared in 3.2, and calling those 3.2
@@ -714,9 +769,15 @@ def date_symbol(name: str) -> Verdict:
             if not available:
                 continue
             first = available[0]
-            if first == line[0]:
-                # Already there when this line starts: a floor, not a date.
-                if verdict.floor is None:
+            if first == line[0] or is_type_member(verdict.name):
+                # Already there when this line starts, or indexed later
+                # than it shipped: a floor, not a date. The oldest such
+                # release wins, since it is the stronger bound: a name in
+                # the 2.7 inventory is no newer than 2.7 whatever the 3.x
+                # builds did with it later.
+                if verdict.floor is None or version_key(first) < version_key(
+                    verdict.floor
+                ):
                     verdict.floor = first
             else:
                 verdict.inventory = first

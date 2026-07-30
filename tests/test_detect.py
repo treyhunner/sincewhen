@@ -216,3 +216,53 @@ def test_attribute_on_a_non_name_is_ignored():
     """`f().isclose` has no resolvable dotted path."""
     assert features("f().isclose(a, b)") == set()
     assert features("'x'.isclose(a)") == set()
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    [
+        ('"Mr. Smith".removeprefix("Mr. ")', "str-removeprefix"),
+        ('f"{name}".removesuffix("!")', "str-removesuffix"),
+        ('b"abc".hex()', "bytes-hex"),
+        ("[].copy()", "list-copy-clear"),
+        ("[x for x in y].clear()", "list-copy-clear"),
+        ("(255).bit_count()", "int-bit-count"),
+        ("(2.0).is_integer()", "float-is-integer"),
+        ("True.bit_count()", "int-bit-count"),
+        # The type's own name is as certain as a literal is.
+        ('dict.fromkeys("abc")', "dict-fromkeys"),
+        ('str.casefold("HI")', "str-casefold"),
+    ],
+)
+def test_methods_are_detected_where_the_receiver_pins_the_type(source, expected):
+    assert expected in features(source)
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        # Anything at all can define these, so a bare name proves nothing.
+        'value.removeprefix("x")',
+        "self.rows.copy()",
+        "get_row().copy()",
+        "rows[0].clear()",
+        # A dict is not a list, and a set is not a dict.
+        "{}.clear()",
+        "{1, 2}.copy()",
+        # A shadowed type name is not the type.
+        'dict = {"a": 1}\ndict.fromkeys("abc")',
+    ],
+)
+def test_methods_are_not_detected_on_an_uncertain_receiver(source):
+    assert not {found.feature.id for found in detect(source) if found.feature.methods}
+
+
+def test_a_method_and_its_type_are_both_reported():
+    """Two true statements about one expression, at two ages.
+
+    `dict.fromkeys(keys)` needs the `dict` type, which arrived in 2.2,
+    and the method, which arrived in 2.3. The newer one sets the floor
+    and the older one is still worth saying.
+    """
+    assert features('dict.fromkeys("abc")') == {"dict", "dict-fromkeys"}
+    assert minimum_version('dict.fromkeys("abc")') == Version(2, 3)

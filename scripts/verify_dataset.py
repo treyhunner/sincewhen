@@ -12,8 +12,8 @@ that changes both, correctly, passes.
 Each matcher kind is checked against the source that can actually settle
 it:
 
-    modules, attributes, builtins   the cached documentation, via
-                                    scripts/dating.py
+    modules, attributes, builtins,  the cached documentation, via
+    methods                         scripts/dating.py
     nodes                           the feature's PEP, whose
                                     Python-Version header has to agree
 
@@ -169,7 +169,7 @@ def check(entry: dict) -> tuple[str, str]:
             return check_pep(entry)
         case "grammar":
             return check_grammar(entry)
-    for field in ("modules", "attributes", "builtins"):
+    for field in ("modules", "attributes", "builtins", "methods"):
         if entry.get(field):
             return check_symbols(entry, entry[field])
     if entry.get("pep"):
