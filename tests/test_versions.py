@@ -38,10 +38,25 @@ def test_release_date_from_a_cpython_tag():
     assert Version(1, 5).released == date(1997, 12, 31)
 
 
-def test_no_release_date_for_a_release_with_no_tag():
-    """0.9 and 1.6 have no release tag, so there is no date to cite."""
+def test_release_date_for_the_one_release_with_no_tag():
+    """1.6 was cut by BeOpen and has no tag in the CPython repository.
+
+    It matters more than one row usually would: 29 of the dataset's
+    method entries are 1.6, since that is the release the string methods
+    arrived in.
+    """
+    assert Version(1, 6).released == date(2000, 9, 5)
+
+
+def test_no_release_date_for_the_first_public_release():
+    """0.9 has no tag either, and reports as the first release instead.
+
+    The date anyone cites for it belongs to 0.9.0, and everything here is
+    checked against 0.9.1.
+    """
     assert Version(0, 9).released is None
     assert Version(0, 9).age() is None
+    assert Version(0, 9).is_first_public_release
 
 
 def test_age_is_measured_in_years():

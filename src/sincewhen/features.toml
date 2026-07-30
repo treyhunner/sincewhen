@@ -31,6 +31,38 @@
 # --------------------------------------------------------------------
 
 [[features]]
+id = "equality-operator"
+name = "equality operator (==)"
+added = "1.0"
+category = "syntax"
+nodes = ["Compare"]
+check = "has_equality"
+
+[features.evidence]
+method = "grammar"
+symbol = "'=='"
+absent_in = "0.9"
+present_in = "1.0"
+note = "0.9.1's comp_op spells equality `=`, which is unambiguous there because assignment is a statement and never an expression. 1.0 added `==` and `!=`, dropped `=` as a comparison, and made `>=`, `<=` and `<>` single tokens."
+checked = "2026-07-29"
+
+[[features]]
+id = "inequality-operator"
+name = "inequality operator (!=)"
+added = "1.0"
+category = "syntax"
+nodes = ["Compare"]
+check = "has_inequality"
+
+[features.evidence]
+method = "grammar"
+symbol = "'!='"
+absent_in = "0.9"
+present_in = "1.0"
+note = "Added by the same 1.0 grammar change as `==`, alongside `<>`, which lasted until 3.0 removed it. Only `!=` is detectable, since a 3.14 parser cannot produce a node for `<>` at all."
+checked = "2026-07-29"
+
+[[features]]
 id = "lambda"
 name = "lambda expression"
 added = "1.0"

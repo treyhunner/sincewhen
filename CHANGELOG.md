@@ -38,11 +38,20 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 - **Five entries had their evidence re-derived**, from a doc marker to the method table that outranks it: `str.encode`, `dict.fromkeys`, `dict.pop`, `str.rsplit` and `str.partition`. All five keep the version they had, which is the cross-check: nine of the names the tables date have a marker too, and nine of nine agree.
 - **`str.zfill()` stays 2.2 and now says why.** The 1.6 through 2.2 tables carry its row inside an `#if 0`, because it really arrived in 2.2.2, so the source can only bound it at "2.3 or earlier" and the docs' own marker wins.
 - **`list.extend()` and `list.pop()` are 1.5.2, recorded as 1.5**, which is the corpus's 1.5 slot: it reads the 1.5.2 tarball, and both are in that release's own `Misc/NEWS`. A micro release is still 1.5 at this dataset's granularity, the same reading that keeps `str.zfill` at 2.2, and the evidence on both entries says so. `dict.clear()`, `dict.copy()`, `dict.get()` and `dict.update()` are in the 1.5.2 `HISTORY` instead, so those four are 1.5 proper.
+- **`==` and `!=` are Python 1.0**, and had no entry at all until now.
+  0.9.1 spelled equality `=`, and could without ambiguity, because assignment is a statement there and never an expression; 1.0 added `==` and `!=`, dropped `=` as a comparison, and made `>=`, `<=` and `<>` single tokens rather than two adjacent ones.
+  The grammar settles both, so no new research was needed, and `Compare` with an `Eq` op is unambiguous in a way that `a | b` is not.
+  They fire on almost every file ever written: expect one extra line each in a report, since the default shows the first use of a feature and not every use.
+  `<>` has no entry, and cannot: it lasted until 3.0 removed it, so a 3.14 parser cannot produce a node for it, and `added` has no way to say "and then it was taken away".
 - **Methods Python 3 removed are deliberately absent**, for the same reason the Python 2 builtins are: `added` has no way to say "and then it was taken away". `str.decode`, `dict.iteritems` and `dict.viewkeys` are all dated by the 2.7 docs and all stay out.
 - **`datetime.date` no longer carries a 3.7 marker it never earned.** A version marker attaches to the signature above it, and `classmethod date.fromisoformat(...)` did not match the signature pattern, so its 3.7 marker landed on the class instead. This was invisible in the shipped dataset because the source method outranked it, and it is the kind of thing that stops being invisible later.
 
 ### Tool
 
+- **Python 1.6 has a release date now**, 2000-09-05, so the 29 method entries that land on it read like every other release instead of printing a bare version.
+  It is the one hand-entered row in the table: 1.6 was cut by BeOpen and the CPython repository has no `v1.6` tag, so neither of the two machine-readable sources can reach it, and the 1.6 doc build's own "September 18, 2000" is the date of a rebuilt doc set rather than of the release.
+  Wikipedia's table of versions is the citation, and `UNTAGGED` in `scripts/release_dates.py` records that it fills a hole rather than offering a second opinion: it disagrees with CPython's tags on 1.0, 1.5 and 2.1 by a few days each, and those rows keep the tags they already had.
+  0.9 stays undated, since it reports as "the first public release" and the date anyone cites for it belongs to 0.9.0 while this corpus is 0.9.1.
 - **A new `methods` matcher kind**, for the methods of builtin types.
   These are searchable everywhere and detected only where the receiver's type is certain: a literal, as in `"Mr. Smith".removeprefix("Mr. ")`, or the type's own unshadowed name, as in `dict.fromkeys(keys)`.
   `value.removeprefix(...)` is not reported, because `value` could be anything with that method, and a wrong version number is worse than a missing one.

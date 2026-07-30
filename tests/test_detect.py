@@ -59,6 +59,11 @@ def test_no_features_detected():
         ("@registry[name]\ndef f():\n    pass", "relaxed-decorator"),
         ("x: tuple[*Ts]", "starred-subscript"),
         ("from __future__ import annotations", "future-annotations"),
+        ("a == b", "equality-operator"),
+        ("a != b", "inequality-operator"),
+        # One operator of a chain is enough, and each is its own claim.
+        ("0 <= x == y", "equality-operator"),
+        ("a <= b != c", "inequality-operator"),
     ],
 )
 def test_syntax_features(source, expected):
@@ -94,6 +99,20 @@ def test_syntax_features(source, expected):
         # try/except and try/finally were separate statements until 2.5.
         ("try:\n    pass\nfinally:\n    pass", "unified-try-except-finally"),
         ("try:\n    pass\nexcept E:\n    pass", "unified-try-except-finally"),
+        # Every other comparison is as old as Python: `<`, `>`, `is` and
+        # `in` are all in the 0.9.1 grammar, and only `==` and `!=` are
+        # the 1.0 additions.
+        ("a < b", "equality-operator"),
+        ("a > b", "inequality-operator"),
+        ("a is b", "equality-operator"),
+        ("a is not b", "inequality-operator"),
+        ("x in y", "equality-operator"),
+        ("x not in y", "inequality-operator"),
+        ("a == b", "inequality-operator"),
+        ("a != b", "equality-operator"),
+        # An assignment is not a comparison, which is the whole reason
+        # 0.9.1 could spell equality `=`.
+        ("a = b", "equality-operator"),
     ],
 )
 def test_narrow_syntax_matchers_do_not_over_fire(source, unwanted):

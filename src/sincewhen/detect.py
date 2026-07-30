@@ -101,6 +101,31 @@ def _has_multiple_unpackings(node: ast.Call, _bound: frozenset[str]) -> bool:
     return starred > 1 or doubled > 1
 
 
+def _has_equality(node: ast.Compare, _bound: frozenset[str]) -> bool:
+    """`a == b`, which is younger than Python rather than as old as it.
+
+    0.9.1 spelled equality `=`, and could without ambiguity, because
+    assignment is a statement there and never an expression. 1.0 added
+    `==`, dropped `=` as a comparison, and made `>=`, `<=` and `<>` into
+    single tokens rather than two adjacent ones.
+
+    Only one operator of a chain has to be this one: `0 <= x == y` uses
+    both `<=` and `==`, and each is its own claim about the version.
+    """
+    return any(isinstance(operator, ast.Eq) for operator in node.ops)
+
+
+def _has_inequality(node: ast.Compare, _bound: frozenset[str]) -> bool:
+    """`a != b`, which arrived in 1.0 alongside `<>`.
+
+    Only `!=` is detectable, and not because it is the survivor: `<>`
+    lasted until 3.0 removed it, so a 3.14 parser cannot produce a node
+    for it at all. Reporting `!=` says nothing either way about `<>`,
+    which is a question for a `removed_in` field rather than this one.
+    """
+    return any(isinstance(operator, ast.NotEq) for operator in node.ops)
+
+
 def _is_async_generator(node: ast.AsyncFunctionDef, _bound: frozenset[str]) -> bool:
     """An `async def` that yields, which needed 3.6.
 
@@ -221,6 +246,8 @@ CHECKS: dict[str, Callable[[Any, frozenset[str]], bool]] = {
     "has_starred_target": _has_starred_target,
     "has_async_comprehension": _has_async_comprehension,
     "has_multiple_unpackings": _has_multiple_unpackings,
+    "has_equality": _has_equality,
+    "has_inequality": _has_inequality,
     "is_async_generator": _is_async_generator,
     "is_builtin_generic": _is_builtin_generic,
     "is_zero_argument_super": _is_zero_argument_super,
