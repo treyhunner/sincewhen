@@ -31,10 +31,10 @@ Give `sincewhen` a file to see every dated feature it uses:
 
 ```console
 $ sincewhen example.py
-example.py:1  tomllib module                  3.11            2022-10-24
-example.py:3  positional-only parameters (/)  3.8             2019-10-14
-example.py:5  with statement                  2.5             2006-09-19
-example.py:5  open()                          0.9 or earlier
+example.py:1  tomllib module                  3.11                        2022-10-24
+example.py:3  positional-only parameters (/)  3.8                         2019-10-14
+example.py:5  with statement                  2.5                         2006-09-19
+example.py:5  open()                          0.9 (first public release)
 ```
 
 The last column is the day that release shipped, so a version number reads as an age.
@@ -53,8 +53,8 @@ Read from standard input with `-`:
 
 ```console
 $ echo 'x: int = 1' | sincewhen -
-<stdin>:1  variable annotation  3.6             2016-12-23
-<stdin>:1  int()                0.9 or earlier
+<stdin>:1  variable annotation  3.6                         2016-12-23
+<stdin>:1  int()                0.9 (first public release)
 ```
 
 Look a single feature up by name instead of analyzing code:
@@ -104,8 +104,10 @@ The Python version you *run* `sincewhen` on has nothing to do with the versions 
 - `added` is the oldest release from which a feature has been available *ever since*, ignoring Python 3.0 and 3.1.
   Nobody shipped code on those two, so a gap there is not a gap anyone lived through: `argparse` shipped in 2.7 and again in 3.2, and is dated 2.7.
   A feature missing from 3.2 as well has a real gap and takes the later date.
-- Some features are older than the oldest surviving record, and are reported as "0.9 or earlier".
-  Python 0.9.1, from 1991, is as far back as anything goes.
+- Some features cannot be dated, only bounded, and those are reported as "1.5 or earlier".
+  There are four of them, each a module needing something the oldest interpreters could not be built with.
+- Anything present in Python 0.9.1 reads as "0.9 (first public release)" rather than "0.9 or earlier".
+  Python began before it was published, so a few of those are genuinely older, but there is no earlier release to reach for: nothing has been in Python longer than Python has been public.
 - Release dates come from python.org's downloads database back to 2.2, and from CPython's release tags before that.
   Python 0.9 and 1.6 have no release tag, so they show no date.
 - Searching for a module member that has no entry of its own falls back to the module it lives in, since a member cannot be older than its module.
@@ -168,17 +170,28 @@ $ just verify-dataset                   # re-derive every claim in the dataset
 
 `just verify-dataset` also runs in CI, so a pull request that edits a version without editing its evidence fails.
 
-Evidence has seven `method` values, six of which a machine can recheck:
+Evidence has eight `method` values, seven of which a machine can recheck:
 
-| method | what it means |
-|---|---|
-| `objects.inv` | the symbol is absent from one release's Sphinx inventory and present in the next |
-| `archive` | the same diff over the module lists and built-in function pages in the pre-Sphinx doc builds, back to the 0.9.1 LaTeX |
-| `source` | the name is absent from one release's own C or Python implementation and present in the next, which reaches back further than any doc build |
-| `annotation` | the documentation dates it itself, in an "Added in version" marker quoted in the entry |
-| `grammar` | the token is absent from one release's grammar and present in the next, which is what shipped rather than what a PEP intended |
-| `pep` | the feature's PEP carries a `Python-Version` header |
-| `manual` | a human read the archives and wrote down what they found, and why the other six do not settle it |
+| method        | what it means                                                                                                                               |
+|---------------|---------------------------------------------------------------------------------------------------------------------------------------------|
+| `objects.inv` | the symbol is absent from one release's Sphinx inventory and present in the next                                                            |
+| `archive`     | the same diff over the module lists and built-in function pages in the pre-Sphinx doc builds, back to the 0.9.1 LaTeX                       |
+| `source`      | the name is absent from one release's own C or Python implementation and present in the next, which reaches back further than any doc build |
+| `interpreter` | that release's own interpreter, built from its tarball, was asked whether the name resolves                                                 |
+| `annotation`  | the documentation dates it itself, in an "Added in version" marker quoted in the entry                                                      |
+| `grammar`     | the token is absent from one release's grammar and present in the next, which is what shipped rather than what a PEP intended               |
+| `pep`         | the feature's PEP carries a `Python-Version` header                                                                                         |
+| `manual`      | a human read the archives and wrote down what they found, and why the other seven do not settle it                                          |
+
+`interpreter` is the only method that reads Python rather than a description of it, and it outranks the rest for the era it covers, 0.9.1 to 2.5.
+It is what settles a name no text can account for: `re.finditer` is defined in Python 2.2's `sre.py` and left out of its `__all__`, so `from sre import *` never bound it and the answer is 2.3, not the 2.2 the docs claim.
+Building the interpreters needs Docker and about ten minutes, so the result is committed as `scripts/interpreters.json` and nothing downstream needs a compiler:
+
+```console
+$ just build-pythons                    # build 0.9.1 through 2.5 (slow)
+$ just probe-pythons                    # ask them all, and record it
+$ just interpreters-vs-dataset          # where they disagree with the dataset
+```
 
 `manual` is for the cases where the sources genuinely disagree, and every one of them is printed on every `verify-dataset` run so the override stays visible.
 

@@ -51,6 +51,11 @@ RELEASE_DATES = {
 
 DAYS_PER_YEAR = 365.2425
 
+# Python 0.9.1, from February 1991, is the oldest release anything in this
+# dataset can be checked against: it is the first public release and the
+# oldest one whose source survives.
+FIRST_PUBLIC_RELEASE = (0, 9)
+
 
 class Version(NamedTuple):
     """A Python feature-release version, such as 3.14.
@@ -69,6 +74,11 @@ class Version(NamedTuple):
 
     def __str__(self) -> str:
         return f"{self.major}.{self.minor}"
+
+    @property
+    def is_first_public_release(self) -> bool:
+        """Whether nothing older than this exists to compare against."""
+        return tuple(self) == FIRST_PUBLIC_RELEASE
 
     @property
     def whatsnew_url(self) -> str | None:

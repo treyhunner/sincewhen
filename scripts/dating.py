@@ -32,6 +32,7 @@ from dataclasses import dataclass, field
 from functools import cache
 
 from annotations import collect as collect_annotations
+from interpreters import dated as interpreter_dated
 from modindex import HTML_BUILDS, dated_builtins, dated_members, dated_modules
 from source import SOURCE_ORDER
 from source import dated_builtins as source_builtins
@@ -94,6 +95,10 @@ class Verdict:
     """What each method says about one name, and whether they agree."""
 
     name: str
+    interpreter: str | None = None
+    interpreter_absent_in: str | None = None
+    interpreter_is_floor: bool = False
+    interpreter_note: str | None = None
     source: str | None = None
     source_absent_in: str | None = None
     source_is_floor: bool = False
@@ -120,6 +125,8 @@ class Verdict:
     def _is_floor(self) -> bool:
         """Whether the winning method could only bound the answer."""
         match self.status:
+            case "interpreter" | "interpreter-overrides-docs":
+                return self.interpreter_is_floor
             case "source" | "source-overrides-docs":
                 return self.source_is_floor
             case "archive" | "docs-overstate":
@@ -162,6 +169,8 @@ class Verdict:
         that happens to be filled in.
         """
         match self.status:
+            case "interpreter" | "interpreter-overrides-docs":
+                return self.interpreter_absent_in
             case "source" | "source-overrides-docs":
                 return self.source_absent_in
             case "archive" | "docs-overstate":
@@ -186,8 +195,15 @@ class Verdict:
         """The version to believe, or `None` if the methods disagree."""
         inventory, annotation = self.inventory, self.annotation
         match self.status:
-            case "conflict" | "source-contradicts-archive":
+            case (
+                "conflict"
+                | "source-contradicts-archive"
+                | "interpreter-contradicts-source"
+                | "interpreter-contradicts-docs"
+            ):
                 return None
+            case "interpreter" | "interpreter-overrides-docs":
+                return self.interpreter
             case "source" | "source-overrides-docs":
                 return self.source
             case "archive" | "docs-overstate":
@@ -283,6 +299,73 @@ class Verdict:
         # the method. One that is newer is a real disagreement: both
         # sides claim proof and they cannot both be right, so it is left
         # standing rather than resolved.
+        # A built interpreter outranks everything that reads a
+        # *description* of Python, because availability is precisely what
+        # it measures and every other method infers it. It sees what no
+        # text can: `re.finditer` is defined in 2.2's `sre.py` and left
+        # out of its `__all__`, so `from sre import *` never binds it and
+        # `re.finditer` is 2.3; `token` ships in 1.2 and raises on import.
+        #
+        # Its absences are already guarded where they are derived, so a
+        # release that merely failed to build a module reports a floor
+        # here rather than a date. A floor claims nothing the other
+        # methods cannot, so it falls through to them.
+        #
+        # Against the source it is a real disagreement rather than a
+        # ranking: both claim proof, one about what the text binds and one
+        # about what the interpreter bound, and they cannot both be right.
+        if self.interpreter and not readded:
+            if not self.interpreter_is_floor:
+                if (
+                    self.source
+                    and not self.source_is_floor
+                    and self.source != self.interpreter
+                ):
+                    return "interpreter-contradicts-source"
+                if self.annotation and self.annotation != self.interpreter:
+                    if version_key(self.interpreter) > version_key(self.annotation):
+                        # The interpreter says it arrived *later* than the
+                        # docs claim, and this method cannot tell that from
+                        # a micro release having fixed it. The corpus builds
+                        # each release's `.0`, so an absence here is an
+                        # absence in 2.2.0 rather than in 2.2.
+                        #
+                        # `re.finditer` is exactly this: unreachable in
+                        # 2.2.0 and 2.2.1 because `sre.__all__` left the
+                        # name out, and reachable from 2.2.2, which added
+                        # `__all__.append("finditer")`. The docs saying
+                        # "New in version 2.2" are right about the release
+                        # even though the release's own `.0` could not do
+                        # it. So this needs a human rather than a winner.
+                        return "interpreter-contradicts-docs"
+                    return "interpreter-overrides-docs"
+                return "interpreter"
+
+            # A floor is still worth having when it is tighter than the
+            # other floors, for the reason every doc-derived floor is
+            # suspect: "1.5 or earlier" for `os.path` is the age of the
+            # oldest doc build that lists it, and 1.2 is the age of the
+            # feature. It never beats an actual date, from any method.
+            dated_elsewhere = (
+                (self.source and not self.source_is_floor)
+                or (self.archive and not self.archive_is_floor)
+                or self.annotation is not None
+            )
+            others = [
+                version
+                for version in (self.source, self.archive)
+                if version is not None
+            ]
+            if (
+                not dated_elsewhere
+                and others
+                and all(
+                    version_key(self.interpreter) < version_key(other)
+                    for other in others
+                )
+            ):
+                return "interpreter"
+
         if self.source and not readded:
             outranked = self.archive and version_key(self.archive) < version_key(
                 self.source
@@ -343,6 +426,28 @@ class Verdict:
 
     def evidence(self, checked: str) -> dict:
         """The provenance table this verdict justifies, ready for TOML."""
+        if self.status in {"interpreter", "interpreter-overrides-docs"}:
+            evidence = {
+                "method": "interpreter",
+                "symbol": self.name,
+                "absent_in": self.interpreter_absent_in,
+                "present_in": self.interpreter,
+            } | self._closed_by_module()
+            if self.or_earlier:
+                evidence["note"] = (
+                    f"Resolves in {self.interpreter}, and no earlier release "
+                    "can be shown to lack it. " + (self.interpreter_note or "")
+                ).strip()
+            elif self.interpreter_note:
+                evidence["note"] = self.interpreter_note
+            elif self.status == "interpreter-overrides-docs":
+                evidence["note"] = (
+                    f"The {self.annotation_build} docs date it to "
+                    f"{self.annotation}, but the {self.interpreter_absent_in} "
+                    "interpreter does not resolve it and "
+                    f"{self.interpreter} does."
+                )
+            return evidence | {"checked": checked}
         if self.status in {"source", "source-overrides-docs"}:
             evidence = {
                 "method": "source",
@@ -448,6 +553,50 @@ def _annotation_index() -> dict[str, dict]:
             ):
                 index[record["name"]] = record | {"build": build}
     return index
+
+
+def _date_from_interpreters(verdict: Verdict) -> None:
+    """Fill in what the built interpreters say about a name.
+
+    The table records a name per kind, because how you ask differs: a
+    module is imported, a builtin is referenced, a member is reached
+    through its module. Which one a name is here is decided the same way
+    the source method decides it, so that `repr` the module and `repr` the
+    builtin do not answer for each other.
+
+    A gap is left alone deliberately. `token` is importable in 1.0 and
+    1.1, raises in 1.2 and 1.3, and works again from 1.4, and no single
+    version can say that. The schema has no way to record it, so the
+    entry keeps whatever the other methods make of it and the gap is
+    reported by `interpreters.py --report` for a human.
+    """
+    if verdict.module is not None:
+        # A dotted name is usually a member and sometimes a submodule, and
+        # the table is keyed by how the dataset asks about it. `os.path`
+        # is listed as a module, so looking only for a member finds
+        # nothing and the answer falls back to the doc builds.
+        kinds = ("attribute", "module")
+    elif verdict.name in source_modules() or verdict.name in dated_modules():
+        kinds = ("module",)
+    else:
+        kinds = ("builtin", "module")
+    for kind in kinds:
+        found = interpreter_dated(f"{kind} {verdict.name}")
+        if found is None or "gap" in found or "removed_after" in found:
+            continue
+        version = found.get("added") or found["floor"]
+        if verdict.module is not None and _predates_module(verdict, version):
+            return
+        verdict.interpreter = version
+        verdict.interpreter_absent_in = found.get("absent_in")
+        verdict.interpreter_is_floor = "added" not in found
+        if found.get("unbuilt_in"):
+            verdict.interpreter_note = (
+                f"Resolves from {version}. Python {found['unbuilt_in']} ships "
+                "it too, so its absence there is this build's and not that "
+                "release's."
+            )
+        return
 
 
 def _date_from_source(verdict: Verdict) -> None:
@@ -556,6 +705,7 @@ def date_symbol(name: str) -> Verdict:
     _date_the_module(verdict)
 
     presence = _inventory_index().get(name, {})
+    _date_from_interpreters(verdict)
     _date_from_source(verdict)
     _date_from_archive(verdict, presence)
     if presence:

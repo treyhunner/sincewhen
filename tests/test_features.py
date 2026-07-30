@@ -304,14 +304,30 @@ def test_or_earlier_features_say_so():
     oldest Python that survives, so nothing can date it further back.
     `map` used to sit here, and stopped qualifying once the source
     could be read: it is absent from 0.9.1 and present in 1.0.1.
+
+    At the oldest release the bound is not phrased as one. "0.9 or
+    earlier" is true and reads as an evasion, because there is no earlier
+    release to reach for. The flag itself is unchanged, so anything
+    reading the dataset still sees a bound.
     """
     (feature,) = [f for f in load_features() if f.id == "max"]
     assert feature.or_earlier
-    assert feature.since == f"{feature.added} or earlier"
+    assert feature.since == "0.9 (first public release)"
 
     (dated,) = [f for f in load_features() if f.id == "map"]
     assert not dated.or_earlier
     assert dated.since == "1.0"
+
+
+def test_a_bound_above_the_oldest_release_still_reads_as_a_bound():
+    """Only the floor gets the different phrasing.
+
+    `zlib` needs a library the interpreter builds could not link before
+    2.5, so the sources can only say it is no newer than 1.5.
+    """
+    (feature,) = [f for f in load_features() if f.id == "zlib"]
+    assert feature.or_earlier
+    assert feature.since == "1.5 or earlier"
 
 
 def test_unknown_evidence_field_is_rejected():

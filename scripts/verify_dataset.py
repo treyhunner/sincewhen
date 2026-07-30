@@ -75,6 +75,14 @@ def check_symbols(entry: dict, names: list[str]) -> tuple[str, str]:
                 f"{name}: inventory says {verdict.inventory}, "
                 f"docs say {verdict.annotation}; settle it with manual evidence",
             )
+        if verdict.status == "interpreter-contradicts-docs":
+            return (
+                MISMATCH,
+                f"{name}: the {verdict.interpreter_absent_in} interpreter does "
+                f"not resolve it and the docs date it {verdict.annotation}; a "
+                "micro release may have fixed it, so settle it with manual "
+                "evidence",
+            )
         if verdict.status == "source-contradicts-archive":
             return (
                 MISMATCH,

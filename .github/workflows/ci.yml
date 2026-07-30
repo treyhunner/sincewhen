@@ -50,6 +50,11 @@ jobs:
         run: uv run scripts/fetch_docs.py --check
       - name: Check the release dates against python.org
         run: uv run scripts/release_dates.py --check
+      # Reads the committed interpreter table, so this needs no compiler
+      # and no Docker: it fails if the dataset has drifted from what the
+      # built interpreters last reported.
+      - name: Check the dataset against the built interpreters
+        run: uv run scripts/interpreters.py --check
       - name: Re-derive every version claim
         run: uv run scripts/verify_dataset.py
 

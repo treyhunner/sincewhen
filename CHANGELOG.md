@@ -7,7 +7,44 @@ Dataset changes are listed apart from everything else, because they are the chan
 A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
-## Unreleased
+## 0.3.0 - 2026-07-29
+
+### Dataset
+
+- **254 features have a better answer, because the version now comes from that release's own interpreter.**
+  All fourteen releases from 0.9.1 to 2.5 are built from their pinned tarballs and asked whether a name resolves.
+  Every other method in the pipeline reads a description of Python; this one reads Python, so it sees what no text can.
+
+  | what changed                                 | count | example                                             |
+  |----------------------------------------------|-------|-----------------------------------------------------|
+  | an older, exact version replaces a newer one | 183   | `operator` was 1.5, is 1.4                          |
+  | a bound became an exact version              | 71    | `math.fmod` was "1.0 or earlier", is 1.0            |
+  | a bound stayed a bound, but a tighter one    | 1     | `os.path` was "1.5 or earlier", is "1.2 or earlier" |
+  | anything moved to a newer version            | 0     |                                                     |
+  | anything got vaguer                          | 0     |                                                     |
+
+  No file can report a higher minimum version than it did in 0.2.0.
+
+- **Bounded features drop from 346 to 113.**
+  109 of those sit at Python 0.9.1, the first public release, and are bounded because nothing older survives to be asked.
+  Only four remain above that floor: `os.path`, `resource`, `zlib` and `copyreg`, each because a module needed something the interpreter build could not provide.
+  The "or earlier" problem is now almost entirely the floor itself.
+- **A feature at that floor no longer reports as "0.9 or earlier".**
+  It reads `0.9 (first public release)` instead, because "or earlier" is an evasion when there is no earlier release to reach for: nothing has been in Python longer than Python has been public.
+  The `or_earlier` flag is unchanged for anything reading the dataset, since the claim itself has not changed.
+- **`re.finditer` stays 2.2, and now says why.**
+  Python 2.2.0 defines `finditer` in `Lib/sre.py` behind a `sys.hexversion` guard that passes, but `sre.__all__` does not list it and `re.py` is `from sre import *`, so `re.finditer` does not exist in 2.2.0 or 2.2.1.
+  2.2.2 added `__all__.append("finditer")` and fixed it.
+  The interpreters this dataset is checked against are feature releases, so the 2.2 they build is 2.2.0 and it reports the name as absent.
+  The docs are right about the release and the interpreter is right about 2.2.0, so the entry records both rather than picking one.
+  A version derived from an interpreter is no longer allowed to be *newer* than a documented one without a human agreeing: that is precisely where a micro release may have fixed something the `.0` could not do.
+- Notable answers that got older, all of them modules or members the archives could only bound because a C extension's availability is a build-time choice:
+  - `operator` is 1.4, not 1.5, which dates its 31 members with it.
+  - `signal` is 1.1 and `fcntl` is 1.0, where the tarball alone could not say whether `Modules/Setup` would compile them.
+  - `cmath` is 1.4, `os.path` is 1.2, and `mmap` and `unicodedata` are 1.6 rather than 2.0.
+  - `itertools.chain` is 2.3, not 2.6, where 2.6 was only the oldest inventory that indexed it.
+  - `re.UNICODE` is 1.6, not 3.11.
+- Every claim is still re-derived by `just verify-dataset`, which now has the interpreters to check them against as well.
 
 ### Tool
 
@@ -23,13 +60,13 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
   Mostly this makes a vague answer exact rather than swapping one exact answer for another.
   Nothing became vaguer, and nothing moved to a *newer* version, so no file can report a higher minimum than it did before:
 
-  | what changed | count | example |
-  |---|---|---|
-  | a bound became an exact version | 209 | `socket.error` was "1.0 or earlier", is 1.0 |
-  | a bound became an exact, older version | 100 | `bisect` was "1.5 or earlier", is 1.0 |
-  | a bound stayed a bound, but an older and truer one | 109 | `calendar` was "1.5 or earlier", is "0.9 or earlier" |
-  | an exact version was wrong and is now an older exact version | 23 | `turtle` was 2.2, is 1.5 |
-  | anything got vaguer | 0 | |
+  | what changed                                                 | count | example                                              |
+  |--------------------------------------------------------------|-------|------------------------------------------------------|
+  | a bound became an exact version                              | 209   | `socket.error` was "1.0 or earlier", is 1.0          |
+  | a bound became an exact, older version                       | 100   | `bisect` was "1.5 or earlier", is 1.0                |
+  | a bound stayed a bound, but an older and truer one           | 109   | `calendar` was "1.5 or earlier", is "0.9 or earlier" |
+  | an exact version was wrong and is now an older exact version | 23    | `turtle` was 2.2, is 1.5                             |
+  | anything got vaguer                                          | 0     |                                                      |
 
 - **Bounded features drop from 655 to 346.**
   A feature reported as "1.5 or earlier" was usually not that old: it was as old as the first doc build that wrote it down, which is a fact about the archive rather than about the feature.
