@@ -15,14 +15,13 @@ from typing import NamedTuple, Self
 # the commit each CPython release tag points at. The two agree wherever
 # they overlap.
 #
-# 1.6 is the one row neither can reach, because it was cut by BeOpen and
-# has no tag in the CPython repository, and it is taken from Wikipedia's
-# table of versions. See `UNTAGGED` in scripts/release_dates.py, which
-# records why that is a hole being filled rather than a second opinion.
-#
-# Missing: 0.9, which has no tag either, and which reports as "the first
-# public release" instead. 1.0 is dated from its 1.0.1 tag.
+# 0.9 and 1.6 are the two rows neither can reach: 0.9 predates the
+# repository, and 1.6 was cut by BeOpen and has no tag in it. Both are
+# taken from Wikipedia's table of versions. See `UNTAGGED` in
+# scripts/release_dates.py, which records why those are holes being
+# filled rather than a second opinion. 1.0 is dated from its 1.0.1 tag.
 RELEASE_DATES = {
+    (0, 9): "1991-02-20",
     (1, 0): "1994-02-15",
     (1, 1): "1994-10-11",
     (1, 2): "1995-04-10",

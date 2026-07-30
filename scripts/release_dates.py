@@ -18,10 +18,8 @@ being cut. Where the two overlap they agree, which is the reason to
 trust the tags where they are all there is.
 
 1.0 and 1.6 have no tag of their own and 0.9 has none at all. 1.0 is
-dated from its 1.0.1 tag, 1.6 is the one hand-entered row and says why
-below, and 0.9 stays undated because it reports as "the first public
-release" instead and because the date anyone cites for it is 0.9.0's,
-while this corpus is 0.9.1.
+dated from its 1.0.1 tag, and 1.6 and 0.9 are the two hand-entered rows,
+which say why below.
 
 Usage:
 
@@ -42,8 +40,19 @@ VERSIONS = ROOT / "src" / "sincewhen" / "versions.py"
 RELEASE_NAME = re.compile(r"Python (?P<major>\d+)\.(?P<minor>\d+)(\.0)?$")
 
 
-# The one release neither source can reach, and where its date comes
+# The two releases neither source can reach, and where their dates come
 # from instead: <https://en.wikipedia.org/wiki/History_of_Python>.
+#
+# 0.9 is older than the repository. CPython's history begins at 1.0.1,
+# so there is no tag to point at, and python.org's downloads database
+# does not start until 2.2. Wikipedia's table gives the whole 0.9 line
+# one row, 1991-02-20, which is the release this project calls the first
+# public release. The corpus reads the 0.9.1 tarball, cut within days of
+# it and never separately dated, so this is a `.0` date in exactly the
+# sense every other row is one. It being an approximation of 0.9.1 by a
+# few days is the smallest error in the table by some margin, and a
+# blank column claimed the release had no date at all, which is wrong in
+# a way a reader cannot see past.
 #
 # 1.6 was cut by BeOpen rather than by CNRI, and the modern CPython
 # repository carries no `v1.6` tag of any kind, so the tags cannot date
@@ -52,15 +61,16 @@ RELEASE_NAME = re.compile(r"Python (?P<major>\d+)\.(?P<minor>\d+)(\.0)?$")
 # in its front matter, but that archive is `html-1.6p1`, a rebuilt doc
 # set, and the doc date is only a reliable proxy where it is not.
 #
-# It fills a hole rather than offering a second opinion, which matters
+# Both fill a hole rather than offering a second opinion, which matters
 # because Wikipedia's table and CPython's tags do not agree everywhere
 # they overlap: it dates 1.0 to 1994-01-26 against the 1.0.1 tag's
 # 1994-02-15, 1.5 to 1998-01-03 against 1997-12-31, and 2.1 to
 # 2001-04-15 against 2001-04-16. Those are announcement dates against
 # the commit each release was cut from, and the tags keep the rows they
-# already answer for. So this is added under the derived table rather
-# than over it, and would become dead the day a 1.6 tag appears.
+# already answer for. So these are added under the derived table rather
+# than over it, and each would become dead the day its tag appears.
 UNTAGGED = {
+    (0, 9): "1991-02-20",
     (1, 6): "2000-09-05",
 }
 

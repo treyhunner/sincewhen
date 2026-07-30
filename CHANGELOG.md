@@ -7,6 +7,18 @@ Dataset changes are listed apart from everything else, because they are the chan
 A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
+## Unreleased
+
+### Tool
+
+- **Python 0.9 has a release date, 1991-02-20, so the 115 entries at the first public release report an age like every other row.**
+  They read as a plain `0.9` now instead of `0.9 (first public release)`, and the release column, which was blank for them, carries the date.
+  0.9 is the second row neither python.org's downloads database nor CPython's tags can reach, and it comes from the same Wikipedia table of versions that already dates 1.6.
+  The date is the 0.9 line's, while this project's corpus is the 0.9.1 tarball, cut within days of it and never separately dated.
+  Leaving the row out was the larger error: a blank column says the release has no date at all, which no source claims.
+  Every version the dataset can name now has a release date.
+
+
 ## 0.5.0 - 2026-07-30
 
 ### Dataset

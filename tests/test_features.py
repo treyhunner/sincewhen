@@ -355,7 +355,7 @@ def test_evidence_missing_a_required_field_is_rejected():
 
 
 def test_the_first_public_release_is_a_date_and_not_a_bound():
-    """Nothing at the floor is flagged, and the release is named.
+    """Nothing at the floor is flagged, and it reads as a plain version.
 
     `max` is the exemplar because it is in the builtins table of the
     oldest Python that survives, so nothing can date it further back.
@@ -366,7 +366,7 @@ def test_the_first_public_release_is_a_date_and_not_a_bound():
     """
     (feature,) = [f for f in load_features() if f.id == "max"]
     assert not feature.or_earlier
-    assert feature.since == "0.9 (first public release)"
+    assert feature.since == "0.9"
 
     (dated,) = [f for f in load_features() if f.id == "map"]
     assert not dated.or_earlier

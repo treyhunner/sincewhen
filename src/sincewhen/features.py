@@ -124,17 +124,16 @@ class Feature:
         `zlib` is "1.5 or earlier", which leaves a real question open,
         since 1.0 through 1.4 all exist and one of them is the answer.
 
-        The first public release is the exception, and it is a claim
-        about the world rather than a way of phrasing one. `max()` is in
-        the builtins table of Python 0.9.1 and may well be older, but
-        there is no earlier Python to have been added in: nothing has
-        been in the language longer than the language has been public.
-        So those entries are dated rather than bounded, and the release
-        is named for what it is. Their evidence still records that the
-        name is at least that old and may predate the public record.
+        The first public release needs no such hedge and gets no such
+        phrase. `max()` is in the builtins table of Python 0.9.1 and may
+        well be older, but there is no earlier Python to have been added
+        in: nothing has been in the language longer than the language
+        has been public. So those entries are dated rather than bounded,
+        and 0.9 reads like any other version, with 1991-02-20 in the
+        released column saying how long ago that was. Their evidence
+        still records that the name is at least that old and may predate
+        the public record.
         """
-        if self.added.is_first_public_release:
-            return f"{self.added} (first public release)"
         return f"{self.added} or earlier" if self.or_earlier else str(self.added)
 
     @property

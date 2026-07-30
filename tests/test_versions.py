@@ -48,15 +48,29 @@ def test_release_date_for_the_one_release_with_no_tag():
     assert Version(1, 6).released == date(2000, 9, 5)
 
 
-def test_no_release_date_for_the_first_public_release():
-    """0.9 has no tag either, and reports as the first release instead.
+def test_release_date_for_the_first_public_release():
+    """0.9 has no tag either, because CPython's history starts after it.
 
-    The date anyone cites for it belongs to 0.9.0, and everything here is
-    checked against 0.9.1.
+    Wikipedia's table of versions is the only source that reaches it, the
+    same one 1.6 comes from. It gives the whole 0.9 line one date, and
+    the corpus reads the 0.9.1 tarball, cut within days of it and never
+    separately dated. Leaving the row out said 0.9 had no date at all,
+    which is a stronger claim than the sources support and the one a
+    reader is least able to see past.
     """
-    assert Version(0, 9).released is None
-    assert Version(0, 9).age() is None
+    assert Version(0, 9).released == date(1991, 2, 20)
     assert Version(0, 9).is_first_public_release
+
+
+def test_a_version_the_table_does_not_carry_has_no_date():
+    """Every feature release Python has shipped is in the table.
+
+    So this stands in for one that is not, and pins the behaviour the
+    report depends on: a missing row reads as "no date known" rather
+    than raising or inventing one.
+    """
+    assert Version(9, 9).released is None
+    assert Version(9, 9).age() is None
 
 
 def test_age_is_measured_in_years():

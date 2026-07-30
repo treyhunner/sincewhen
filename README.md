@@ -29,17 +29,30 @@ You can also install `sincewhen` globally with `pip`, but I usually recommend in
 
 Give `sincewhen` a file to see every dated feature it uses:
 
+```python
+# example.py
+import tomllib
+
+
+def load(path, /):
+    with open(path, "rb") as config:
+        return tomllib.load(config)
+```
+
 ```console
 $ sincewhen example.py
-example.py:1  tomllib module                  3.11                        2022-10-24
-example.py:3  positional-only parameters (/)  3.8                         2019-10-14
-example.py:5  with statement                  2.5                         2006-09-19
-example.py:5  open()                          0.9 (first public release)
+example.py:1  tomllib module                  3.11  2022-10-24
+example.py:4  positional-only parameters (/)  3.8   2019-10-14
+example.py:5  with statement                  2.5   2006-09-19
+example.py:5  open()                          0.9   1991-02-20
+example.py:6  tomllib.load()                  3.11  2022-10-24
 ```
 
 The last column is the day that release shipped, so a version number reads as an age.
+Every release the dataset can name has one, back to 1991-02-20.
 
-Only the first use of each feature is shown by default.
+Pass as many files as you like to see them all in one report.
+Only the first use of each feature is shown by default, so a feature used a hundred times costs one line.
 Pass `--all` to see every occurrence.
 
 The dataset reaches back to Python 0.9.1, so a file will report things like `str()` and `open()` that have been there since 1991.
@@ -47,14 +60,17 @@ That is usually the point, but pass `--since` when you only want the recent arri
 
 ```console
 $ sincewhen --since 3.0 example.py
+example.py:1  tomllib module                  3.11  2022-10-24
+example.py:4  positional-only parameters (/)  3.8   2019-10-14
+example.py:6  tomllib.load()                  3.11  2022-10-24
 ```
 
 Read from standard input with `-`:
 
 ```console
 $ echo 'x: int = 1' | sincewhen -
-<stdin>:1  variable annotation  3.6                         2016-12-23
-<stdin>:1  int()                0.9 (first public release)
+<stdin>:1  variable annotation  3.6  2016-12-23
+<stdin>:1  int()                0.9  1991-02-20
 ```
 
 Look a single feature up by name instead of analyzing code:
@@ -87,7 +103,12 @@ Version(major=3, minor=11)
 ['walrus operator (:=)']
 >>> sincewhen.lookup("tomllib")[0].added
 Version(major=3, minor=11)
+>>> sincewhen.minimum_version("x = 1") is None
+True
 ```
+
+`minimum_version()` returns `None` when nothing detected sets a floor, which means no known feature requires a particular release rather than that the code runs anywhere.
+A bounded feature sets no floor either: "1.5 or earlier" is a limit on what the sources could read rather than a date, so `import zlib` on its own also gives `None`.
 
 
 ## Why it needs Python 3.14
@@ -107,18 +128,22 @@ The Python version you *run* `sincewhen` on has nothing to do with the versions 
 - Detection is syntactic.
   `sincewhen` sees that you called something named `math.isclose`, not that you called the real one.
   Shadowed builtins are skipped, but a shadowed module attribute is not.
-- The dataset is curated and incomplete.
+- The dataset is curated and incomplete, at about 1,800 entries today.
   A feature that isn't in it won't be reported, so the minimum version is a lower bound on the true answer.
 - `added` is the oldest release from which a feature has been available *ever since*, ignoring Python 3.0 and 3.1.
   Nobody shipped code on those two, so a gap there is not a gap anyone lived through: `argparse` shipped in 2.7 and again in 3.2, and is dated 2.7.
   A feature missing from 3.2 as well has a real gap and takes the later date.
-- Some features cannot be dated, only bounded, and those are reported as "1.5 or earlier".
-  There are four of them, each a module needing something the oldest interpreters could not be built with.
-- Anything present in Python 0.9.1 is dated 0.9 and reads as "0.9 (first public release)".
+- Some features cannot be dated, only bounded, and those say so: `zlib` reads as "1.5 or earlier" rather than as 1.5.
+  Three entries are bounded today.
+  `resource` and `zlib` are already in Python 1.5, the oldest archived documentation build, so they are at least that old and may be older.
+  `os.path` reads "1.2 or earlier" for a different reason: Python 1.1 ships it, but the 1.1 interpreter built from that release's own tarball cannot import it, so that absence belongs to the build rather than to the release and cannot date anything.
+  A bound is a limit on what the sources could read rather than a date, so a bounded feature is left out of the minimum version entirely.
+- Anything present in Python 0.9.1 is dated 0.9, the first public release, and reads like any other version.
   Python began before it was published, so a few of those are genuinely older, but there is no earlier release for them to have been added in: nothing has been in Python longer than Python has been public.
   Those entries are dated rather than bounded for that reason, and each one's evidence still records that it may predate the public record.
 - Release dates come from python.org's downloads database back to 2.2, and from CPython's release tags before that.
-  Python 0.9 and 1.6 have no release tag, so they show no date.
+  Python 0.9 and 1.6 are the two rows neither source reaches, 0.9 because CPython's history begins after it and 1.6 because it was cut by BeOpen and has no tag, so both are taken from Wikipedia's table of versions.
+  The 0.9 date is that table's date for the whole 0.9 line, while the corpus reads the 0.9.1 tarball, which was cut within days of it and which no source dates on its own.
 - Searching for a module member that has no entry of its own falls back to the module it lives in, since a member cannot be older than its module.
 - A method of a builtin type is dated for searching but is mostly not detected, because `value.removeprefix(...)` says nothing about what `value` is.
   Only a receiver whose type is certain reports one: a literal, as in `"Mr. Smith".removeprefix("Mr. ")`, or the type's own name, as in `dict.fromkeys(keys)`.
