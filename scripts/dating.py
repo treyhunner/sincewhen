@@ -199,6 +199,7 @@ class Verdict:
                 "conflict"
                 | "source-contradicts-archive"
                 | "interpreter-contradicts-source"
+                | "interpreter-contradicts-docs"
             ):
                 return None
             case "interpreter" | "interpreter-overrides-docs":
@@ -322,6 +323,21 @@ class Verdict:
                 ):
                     return "interpreter-contradicts-source"
                 if self.annotation and self.annotation != self.interpreter:
+                    if version_key(self.interpreter) > version_key(self.annotation):
+                        # The interpreter says it arrived *later* than the
+                        # docs claim, and this method cannot tell that from
+                        # a micro release having fixed it. The corpus builds
+                        # each release's `.0`, so an absence here is an
+                        # absence in 2.2.0 rather than in 2.2.
+                        #
+                        # `re.finditer` is exactly this: unreachable in
+                        # 2.2.0 and 2.2.1 because `sre.__all__` left the
+                        # name out, and reachable from 2.2.2, which added
+                        # `__all__.append("finditer")`. The docs saying
+                        # "New in version 2.2" are right about the release
+                        # even though the release's own `.0` could not do
+                        # it. So this needs a human rather than a winner.
+                        return "interpreter-contradicts-docs"
                     return "interpreter-overrides-docs"
                 return "interpreter"
 

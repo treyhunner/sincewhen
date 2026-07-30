@@ -253,6 +253,10 @@ HEALTH = (
 # dataset is syntax, which the grammar already settles.
 KINDS = {"modules": "module", "builtins": "builtin", "attributes": "attribute"}
 
+# Evidence methods that record a human's decision rather than a derived
+# one, so this table has no business overruling them.
+OVERRIDES = frozenset({"manual", "pep", "grammar"})
+
 # How many names to ask about in one interpreter run. Small enough that a
 # crash costs little and large enough that the per-run overhead of
 # `docker run` stays amortised.
@@ -985,6 +989,12 @@ def compare() -> dict[str, list[str]]:
     entries = tomllib.loads(DATASET.read_text(encoding="utf-8"))["features"]
     findings: dict[str, list[str]] = {}
     for entry in entries:
+        if entry.get("evidence", {}).get("method") in OVERRIDES:
+            # A deliberate override of what the automated methods say, and
+            # the note is where the reason lives. `re.finditer` is dated
+            # 2.2 against this table's 2.3 because 2.2.2 fixed it, and
+            # this corpus builds 2.2.0.
+            continue
         claimed = entry["added"]
         bounded = entry.get("or_earlier", False)
         for field, label in KINDS.items():

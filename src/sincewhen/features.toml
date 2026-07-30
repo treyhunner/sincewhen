@@ -11569,16 +11569,13 @@ checked = "2026-07-28"
 [[features]]
 id = "re-finditer"
 name = "re.finditer()"
-added = "2.3"
+added = "2.2"
 category = "function"
 attributes = ["re.finditer"]
 
 [features.evidence]
-method = "interpreter"
-symbol = "re.finditer"
-absent_in = "2.2"
-present_in = "2.3"
-note = "The 2.7 docs date it to 2.2, but the 2.2 interpreter does not resolve it and 2.3 does."
+method = "manual"
+note = "2.2 by a hair, and only from 2.2.2. Lib/sre.py defines finditer in 2.2.0 behind a sys.hexversion guard that passes, but sre.__all__ does not list it and re.py is `from sre import *`, so `re.finditer` does not exist in 2.2.0 or 2.2.1. 2.2.2 added `__all__.append(\"finditer\")` and fixed it. The 2.2 interpreter this corpus builds is 2.2.0, so it reports the name as absent and dates it 2.3; the docs say \"New in version 2.2\". At this dataset's feature-release granularity the docs are right, because a micro release is still 2.2. Recorded rather than derived, because no method here reads micro releases."
 checked = "2026-07-29"
 
 [[features]]
