@@ -114,8 +114,9 @@ The Python version you *run* `sincewhen` on has nothing to do with the versions 
   A feature missing from 3.2 as well has a real gap and takes the later date.
 - Some features cannot be dated, only bounded, and those are reported as "1.5 or earlier".
   There are four of them, each a module needing something the oldest interpreters could not be built with.
-- Anything present in Python 0.9.1 reads as "0.9 (first public release)" rather than "0.9 or earlier".
-  Python began before it was published, so a few of those are genuinely older, but there is no earlier release to reach for: nothing has been in Python longer than Python has been public.
+- Anything present in Python 0.9.1 is dated 0.9 and reads as "0.9 (first public release)".
+  Python began before it was published, so a few of those are genuinely older, but there is no earlier release for them to have been added in: nothing has been in Python longer than Python has been public.
+  Those entries are dated rather than bounded for that reason, and each one's evidence still records that it may predate the public record.
 - Release dates come from python.org's downloads database back to 2.2, and from CPython's release tags before that.
   Python 0.9 and 1.6 have no release tag, so they show no date.
 - Searching for a module member that has no entry of its own falls back to the module it lives in, since a member cannot be older than its module.

@@ -7,6 +7,25 @@ Dataset changes are listed apart from everything else, because they are the chan
 A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
+## Unreleased
+
+### Dataset
+
+- **115 entries at Python 0.9 are dated rather than bounded.**
+  They used to carry `or_earlier = true`, which said that 0.9 was as far back as the sources reach and the feature might be older still.
+  That is true and unusable: nothing older than Python 0.9.1 was ever released, so the bound left open a range of releases that does not exist.
+  `max()`, `len()`, `dict.keys()`, `math.sqrt()` and 111 more now claim 0.9 outright.
+  The reported phrase is unchanged, since these already read as "0.9 (first public release)", but `or_earlier` is now `false` for them in the dataset and in `--json` output.
+  Each one's evidence still records that the name is at least that old and may predate the public record.
+- **Four entries are still bounded**, and all four leave a real question open: `os.path` at "1.2 or earlier", and `copyreg`, `resource` and `zlib` at "1.5 or earlier".
+
+### Research pipeline
+
+- **The floor rule lives in one place.**
+  `Verdict.or_earlier` reports a bound only where a release below it could still be the answer, so no method can produce a "0.9 or earlier" claim now.
+  The evidence notes are keyed on the underlying open bound instead, which is what keeps the "may be older" record on the 0.9 entries.
+
+
 ## 0.4.0 - 2026-07-29
 
 ### Dataset

@@ -35,7 +35,6 @@ id = "containment-check"
 name = "containment check (in, not in)"
 added = "0.9"
 category = "syntax"
-or_earlier = true
 nodes = ["Compare"]
 check = "has_containment"
 
@@ -51,7 +50,6 @@ id = "tuple-unpacking"
 name = "tuple unpacking (a, b = 1, 2)"
 added = "0.9"
 category = "syntax"
-or_earlier = true
 nodes = ["Tuple", "List"]
 check = "has_tuple_target"
 
@@ -1136,7 +1134,6 @@ id = "getopt-error"
 name = "getopt.error"
 added = "0.9"
 category = "exception"
-or_earlier = true
 attributes = ["getopt.error"]
 
 [features.evidence]
@@ -1559,7 +1556,6 @@ id = "dict-keys"
 name = "dict.keys()"
 added = "0.9"
 category = "method"
-or_earlier = true
 methods = ["dict.keys"]
 
 [features.evidence]
@@ -1575,7 +1571,6 @@ id = "list-append"
 name = "list.append()"
 added = "0.9"
 category = "method"
-or_earlier = true
 methods = ["list.append"]
 
 [features.evidence]
@@ -1591,7 +1586,6 @@ id = "list-insert"
 name = "list.insert()"
 added = "0.9"
 category = "method"
-or_earlier = true
 methods = ["list.insert"]
 
 [features.evidence]
@@ -1607,7 +1601,6 @@ id = "list-sort"
 name = "list.sort()"
 added = "0.9"
 category = "method"
-or_earlier = true
 methods = ["list.sort"]
 
 [features.evidence]
@@ -3127,7 +3120,6 @@ id = "getopt"
 name = "getopt module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["getopt"]
 
 [features.evidence]
@@ -3143,7 +3135,6 @@ id = "math"
 name = "math module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["math"]
 
 [features.evidence]
@@ -3157,7 +3148,6 @@ id = "posix"
 name = "posix module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["posix"]
 
 [features.evidence]
@@ -3171,7 +3161,6 @@ id = "string"
 name = "string module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["string"]
 
 [features.evidence]
@@ -3187,7 +3176,6 @@ id = "sys"
 name = "sys module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["sys"]
 
 [features.evidence]
@@ -3201,7 +3189,6 @@ id = "time"
 name = "time module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["time"]
 
 [features.evidence]
@@ -3566,7 +3553,6 @@ id = "calendar"
 name = "calendar module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["calendar"]
 
 [features.evidence]
@@ -3670,7 +3656,6 @@ id = "dis"
 name = "dis module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["dis"]
 
 [features.evidence]
@@ -3701,7 +3686,6 @@ id = "fnmatch"
 name = "fnmatch module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["fnmatch"]
 
 [features.evidence]
@@ -3732,7 +3716,6 @@ id = "glob"
 name = "glob module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["glob"]
 
 [features.evidence]
@@ -4046,7 +4029,6 @@ id = "shutil"
 name = "shutil module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["shutil"]
 
 [features.evidence]
@@ -4092,7 +4074,6 @@ id = "stat"
 name = "stat module"
 added = "0.9"
 category = "module"
-or_earlier = true
 modules = ["stat"]
 
 [features.evidence]
@@ -5575,7 +5556,6 @@ id = "float"
 name = "float()"
 added = "0.9"
 category = "class"
-or_earlier = true
 builtins = ["float"]
 
 [features.evidence]
@@ -5591,7 +5571,6 @@ id = "int"
 name = "int()"
 added = "0.9"
 category = "class"
-or_earlier = true
 builtins = ["int"]
 
 [features.evidence]
@@ -5607,7 +5586,6 @@ id = "range"
 name = "range()"
 added = "0.9"
 category = "class"
-or_earlier = true
 builtins = ["range"]
 
 [features.evidence]
@@ -5653,7 +5631,6 @@ id = "type"
 name = "type()"
 added = "0.9"
 category = "class"
-or_earlier = true
 builtins = ["type"]
 
 [features.evidence]
@@ -8503,7 +8480,6 @@ id = "math-acos"
 name = "math.acos()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.acos"]
 
 [features.evidence]
@@ -8713,7 +8689,6 @@ id = "sys-exit"
 name = "sys.exit()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["sys.exit"]
 
 [features.evidence]
@@ -8834,7 +8809,6 @@ id = "time-sleep"
 name = "time.sleep()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["time.sleep"]
 
 [features.evidence]
@@ -8850,7 +8824,6 @@ id = "time-time"
 name = "time.time()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["time.time"]
 
 [features.evidence]
@@ -8881,7 +8854,6 @@ id = "abs"
 name = "abs()"
 added = "0.9"
 category = "function"
-or_earlier = true
 builtins = ["abs"]
 
 [features.evidence]
@@ -8897,7 +8869,6 @@ id = "chr"
 name = "chr()"
 added = "0.9"
 category = "function"
-or_earlier = true
 builtins = ["chr"]
 
 [features.evidence]
@@ -8944,7 +8915,6 @@ id = "dir"
 name = "dir()"
 added = "0.9"
 category = "function"
-or_earlier = true
 builtins = ["dir"]
 
 [features.evidence]
@@ -8960,7 +8930,6 @@ id = "divmod"
 name = "divmod()"
 added = "0.9"
 category = "function"
-or_earlier = true
 builtins = ["divmod"]
 
 [features.evidence]
@@ -8976,7 +8945,6 @@ id = "eval"
 name = "eval()"
 added = "0.9"
 category = "function"
-or_earlier = true
 builtins = ["eval"]
 
 [features.evidence]
@@ -9082,7 +9050,6 @@ id = "input"
 name = "input()"
 added = "0.9"
 category = "function"
-or_earlier = true
 builtins = ["input"]
 
 [features.evidence]
@@ -9098,7 +9065,6 @@ id = "len"
 name = "len()"
 added = "0.9"
 category = "function"
-or_earlier = true
 builtins = ["len"]
 
 [features.evidence]
@@ -9129,7 +9095,6 @@ id = "max"
 name = "max()"
 added = "0.9"
 category = "function"
-or_earlier = true
 builtins = ["max"]
 
 [features.evidence]
@@ -9145,7 +9110,6 @@ id = "min"
 name = "min()"
 added = "0.9"
 category = "function"
-or_earlier = true
 builtins = ["min"]
 
 [features.evidence]
@@ -9176,7 +9140,6 @@ id = "open"
 name = "open()"
 added = "0.9"
 category = "function"
-or_earlier = true
 builtins = ["open"]
 
 [features.evidence]
@@ -9192,7 +9155,6 @@ id = "ord"
 name = "ord()"
 added = "0.9"
 category = "function"
-or_earlier = true
 builtins = ["ord"]
 
 [features.evidence]
@@ -9404,7 +9366,6 @@ id = "calendar-isleap"
 name = "calendar.isleap()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["calendar.isleap"]
 
 [features.evidence]
@@ -9420,7 +9381,6 @@ id = "calendar-leapdays"
 name = "calendar.leapdays()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["calendar.leapdays"]
 
 [features.evidence]
@@ -9436,7 +9396,6 @@ id = "calendar-monthcalendar"
 name = "calendar.monthcalendar()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["calendar.monthcalendar"]
 
 [features.evidence]
@@ -9452,7 +9411,6 @@ id = "calendar-monthrange"
 name = "calendar.monthrange()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["calendar.monthrange"]
 
 [features.evidence]
@@ -9468,7 +9426,6 @@ id = "calendar-prcal"
 name = "calendar.prcal()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["calendar.prcal"]
 
 [features.evidence]
@@ -9484,7 +9441,6 @@ id = "calendar-prmonth"
 name = "calendar.prmonth()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["calendar.prmonth"]
 
 [features.evidence]
@@ -9500,7 +9456,6 @@ id = "calendar-weekday"
 name = "calendar.weekday()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["calendar.weekday"]
 
 [features.evidence]
@@ -9516,7 +9471,6 @@ id = "dis-dis"
 name = "dis.dis()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["dis.dis"]
 
 [features.evidence]
@@ -9532,7 +9486,6 @@ id = "dis-disassemble"
 name = "dis.disassemble()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["dis.disassemble"]
 
 [features.evidence]
@@ -9548,7 +9501,6 @@ id = "dis-disco"
 name = "dis.disco()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["dis.disco"]
 
 [features.evidence]
@@ -9564,7 +9516,6 @@ id = "dis-distb"
 name = "dis.distb()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["dis.distb"]
 
 [features.evidence]
@@ -9700,7 +9651,6 @@ id = "fnmatch-fnmatch"
 name = "fnmatch.fnmatch()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["fnmatch.fnmatch"]
 
 [features.evidence]
@@ -9731,7 +9681,6 @@ id = "getopt-getopt"
 name = "getopt.getopt()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["getopt.getopt"]
 
 [features.evidence]
@@ -9747,7 +9696,6 @@ id = "glob-glob"
 name = "glob.glob()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["glob.glob"]
 
 [features.evidence]
@@ -9954,7 +9902,6 @@ id = "math-asin"
 name = "math.asin()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.asin"]
 
 [features.evidence]
@@ -9970,7 +9917,6 @@ id = "math-atan"
 name = "math.atan()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.atan"]
 
 [features.evidence]
@@ -9986,7 +9932,6 @@ id = "math-atan2"
 name = "math.atan2()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.atan2"]
 
 [features.evidence]
@@ -10002,7 +9947,6 @@ id = "math-ceil"
 name = "math.ceil()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.ceil"]
 
 [features.evidence]
@@ -10018,7 +9962,6 @@ id = "math-cos"
 name = "math.cos()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.cos"]
 
 [features.evidence]
@@ -10034,7 +9977,6 @@ id = "math-cosh"
 name = "math.cosh()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.cosh"]
 
 [features.evidence]
@@ -10050,7 +9992,6 @@ id = "math-exp"
 name = "math.exp()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.exp"]
 
 [features.evidence]
@@ -10066,7 +10007,6 @@ id = "math-fabs"
 name = "math.fabs()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.fabs"]
 
 [features.evidence]
@@ -10082,7 +10022,6 @@ id = "math-floor"
 name = "math.floor()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.floor"]
 
 [features.evidence]
@@ -10154,7 +10093,6 @@ id = "math-log"
 name = "math.log()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.log"]
 
 [features.evidence]
@@ -10170,7 +10108,6 @@ id = "math-log10"
 name = "math.log10()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.log10"]
 
 [features.evidence]
@@ -10200,7 +10137,6 @@ id = "math-pow"
 name = "math.pow()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.pow"]
 
 [features.evidence]
@@ -10216,7 +10152,6 @@ id = "math-sin"
 name = "math.sin()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.sin"]
 
 [features.evidence]
@@ -10232,7 +10167,6 @@ id = "math-sinh"
 name = "math.sinh()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.sinh"]
 
 [features.evidence]
@@ -10248,7 +10182,6 @@ id = "math-sqrt"
 name = "math.sqrt()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.sqrt"]
 
 [features.evidence]
@@ -10264,7 +10197,6 @@ id = "math-tan"
 name = "math.tan()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.tan"]
 
 [features.evidence]
@@ -10280,7 +10212,6 @@ id = "math-tanh"
 name = "math.tanh()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["math.tanh"]
 
 [features.evidence]
@@ -10934,7 +10865,6 @@ id = "shutil-copy"
 name = "shutil.copy()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["shutil.copy"]
 
 [features.evidence]
@@ -10950,7 +10880,6 @@ id = "shutil-copy2"
 name = "shutil.copy2()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["shutil.copy2"]
 
 [features.evidence]
@@ -10966,7 +10895,6 @@ id = "shutil-copyfile"
 name = "shutil.copyfile()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["shutil.copyfile"]
 
 [features.evidence]
@@ -10982,7 +10910,6 @@ id = "shutil-copymode"
 name = "shutil.copymode()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["shutil.copymode"]
 
 [features.evidence]
@@ -10998,7 +10925,6 @@ id = "shutil-copystat"
 name = "shutil.copystat()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["shutil.copystat"]
 
 [features.evidence]
@@ -11014,7 +10940,6 @@ id = "shutil-copytree"
 name = "shutil.copytree()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["shutil.copytree"]
 
 [features.evidence]
@@ -11200,7 +11125,6 @@ id = "stat-s-ifmt"
 name = "stat.S_IFMT()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["stat.S_IFMT"]
 
 [features.evidence]
@@ -11216,7 +11140,6 @@ id = "stat-s-imode"
 name = "stat.S_IMODE()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["stat.S_IMODE"]
 
 [features.evidence]
@@ -11232,7 +11155,6 @@ id = "stat-s-isblk"
 name = "stat.S_ISBLK()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["stat.S_ISBLK"]
 
 [features.evidence]
@@ -11248,7 +11170,6 @@ id = "stat-s-ischr"
 name = "stat.S_ISCHR()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["stat.S_ISCHR"]
 
 [features.evidence]
@@ -11264,7 +11185,6 @@ id = "stat-s-isdir"
 name = "stat.S_ISDIR()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["stat.S_ISDIR"]
 
 [features.evidence]
@@ -11280,7 +11200,6 @@ id = "stat-s-isfifo"
 name = "stat.S_ISFIFO()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["stat.S_ISFIFO"]
 
 [features.evidence]
@@ -11296,7 +11215,6 @@ id = "stat-s-islnk"
 name = "stat.S_ISLNK()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["stat.S_ISLNK"]
 
 [features.evidence]
@@ -11312,7 +11230,6 @@ id = "stat-s-isreg"
 name = "stat.S_ISREG()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["stat.S_ISREG"]
 
 [features.evidence]
@@ -11328,7 +11245,6 @@ id = "stat-s-issock"
 name = "stat.S_ISSOCK()"
 added = "0.9"
 category = "function"
-or_earlier = true
 attributes = ["stat.S_ISSOCK"]
 
 [features.evidence]
@@ -20107,7 +20023,6 @@ id = "math-pi"
 name = "math.pi"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["math.pi"]
 
 [features.evidence]
@@ -20208,7 +20123,6 @@ id = "string-digits"
 name = "string.digits"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["string.digits"]
 
 [features.evidence]
@@ -20224,7 +20138,6 @@ id = "string-hexdigits"
 name = "string.hexdigits"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["string.hexdigits"]
 
 [features.evidence]
@@ -20240,7 +20153,6 @@ id = "string-octdigits"
 name = "string.octdigits"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["string.octdigits"]
 
 [features.evidence]
@@ -20256,7 +20168,6 @@ id = "string-whitespace"
 name = "string.whitespace"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["string.whitespace"]
 
 [features.evidence]
@@ -20272,7 +20183,6 @@ id = "sys-argv"
 name = "sys.argv"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["sys.argv"]
 
 [features.evidence]
@@ -20303,7 +20213,6 @@ id = "sys-modules"
 name = "sys.modules"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["sys.modules"]
 
 [features.evidence]
@@ -20319,7 +20228,6 @@ id = "sys-path"
 name = "sys.path"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["sys.path"]
 
 [features.evidence]
@@ -20335,7 +20243,6 @@ id = "sys-stdin"
 name = "sys.stdin"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["sys.stdin"]
 
 [features.evidence]
@@ -20407,7 +20314,6 @@ id = "math-e"
 name = "math.e"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["math.e"]
 
 [features.evidence]
@@ -20583,7 +20489,6 @@ id = "sys-stderr"
 name = "sys.stderr"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["sys.stderr"]
 
 [features.evidence]
@@ -20599,7 +20504,6 @@ id = "sys-stdout"
 name = "sys.stdout"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["sys.stdout"]
 
 [features.evidence]
@@ -20705,7 +20609,6 @@ id = "dis-hasconst"
 name = "dis.hasconst"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["dis.hasconst"]
 
 [features.evidence]
@@ -20721,7 +20624,6 @@ id = "dis-hasjabs"
 name = "dis.hasjabs"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["dis.hasjabs"]
 
 [features.evidence]
@@ -20737,7 +20639,6 @@ id = "dis-hasjrel"
 name = "dis.hasjrel"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["dis.hasjrel"]
 
 [features.evidence]
@@ -20768,7 +20669,6 @@ id = "dis-hasname"
 name = "dis.hasname"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["dis.hasname"]
 
 [features.evidence]
@@ -20784,7 +20684,6 @@ id = "dis-opname"
 name = "dis.opname"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["dis.opname"]
 
 [features.evidence]
@@ -22635,7 +22534,6 @@ id = "stat-st-atime"
 name = "stat.ST_ATIME"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["stat.ST_ATIME"]
 
 [features.evidence]
@@ -22651,7 +22549,6 @@ id = "stat-st-ctime"
 name = "stat.ST_CTIME"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["stat.ST_CTIME"]
 
 [features.evidence]
@@ -22667,7 +22564,6 @@ id = "stat-st-dev"
 name = "stat.ST_DEV"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["stat.ST_DEV"]
 
 [features.evidence]
@@ -22683,7 +22579,6 @@ id = "stat-st-gid"
 name = "stat.ST_GID"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["stat.ST_GID"]
 
 [features.evidence]
@@ -22699,7 +22594,6 @@ id = "stat-st-ino"
 name = "stat.ST_INO"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["stat.ST_INO"]
 
 [features.evidence]
@@ -22715,7 +22609,6 @@ id = "stat-st-mode"
 name = "stat.ST_MODE"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["stat.ST_MODE"]
 
 [features.evidence]
@@ -22731,7 +22624,6 @@ id = "stat-st-mtime"
 name = "stat.ST_MTIME"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["stat.ST_MTIME"]
 
 [features.evidence]
@@ -22747,7 +22639,6 @@ id = "stat-st-nlink"
 name = "stat.ST_NLINK"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["stat.ST_NLINK"]
 
 [features.evidence]
@@ -22763,7 +22654,6 @@ id = "stat-st-size"
 name = "stat.ST_SIZE"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["stat.ST_SIZE"]
 
 [features.evidence]
@@ -22779,7 +22669,6 @@ id = "stat-st-uid"
 name = "stat.ST_UID"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["stat.ST_UID"]
 
 [features.evidence]
@@ -23917,7 +23806,6 @@ id = "calendar-day-abbr"
 name = "calendar.day_abbr"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["calendar.day_abbr"]
 
 [features.evidence]
@@ -23933,7 +23821,6 @@ id = "calendar-day-name"
 name = "calendar.day_name"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["calendar.day_name"]
 
 [features.evidence]
@@ -23949,7 +23836,6 @@ id = "calendar-month-abbr"
 name = "calendar.month_abbr"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["calendar.month_abbr"]
 
 [features.evidence]
@@ -23965,7 +23851,6 @@ id = "calendar-month-name"
 name = "calendar.month_name"
 added = "0.9"
 category = "constant"
-or_earlier = true
 attributes = ["calendar.month_name"]
 
 [features.evidence]

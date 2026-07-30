@@ -81,6 +81,16 @@ ANNOTATION_BUILDS = ("2.7", "3.14")
 # method here. A name already in it cannot be dated, only bounded.
 OLDEST_SOURCE = SOURCE_ORDER[0]
 
+# Python 0.9.1 is also the first release the public ever had, and that
+# makes its floor different in kind from every other one. "1.5 or
+# earlier" leaves a real question open, because 1.0 through 1.4 exist and
+# one of them is the answer. "0.9 or earlier" leaves nothing open: there
+# is no earlier Python to reach for, and nothing has been in the language
+# longer than the language has been public. So a floor here is reported
+# as a date, and the evidence note goes on recording that the name is at
+# least that old and may predate the public record.
+FIRST_PUBLIC_RELEASE = OLDEST_SOURCE
+
 
 def version_key(version: str) -> tuple[int, int]:
     major, _, minor = version.partition(".")
@@ -243,8 +253,8 @@ class Verdict:
         return self.absent_in
 
     @property
-    def or_earlier(self) -> bool:
-        """Whether the answer is a bound rather than a date.
+    def _open_bound(self) -> bool:
+        """Whether the winning method's floor is left open by anything else.
 
         Only true when the answer *is* the floor of whichever method
         produced it, and nothing else closes it. A name that one method
@@ -252,8 +262,23 @@ class Verdict:
         a bounded one, which is why `map` stopped being "1.2 or earlier"
         once the source could be read: the archives were reporting their
         own age, not its.
+
+        This is what the evidence note describes, and it stays true at
+        the first public release even though `or_earlier` does not.
         """
         return self._is_floor and not self.bounded_by_its_module
+
+    @property
+    def or_earlier(self) -> bool:
+        """Whether the answer is a bound rather than a date.
+
+        An open bound at the first public release is not one, because
+        there is nothing under it: see `FIRST_PUBLIC_RELEASE`. `max` is
+        in the builtins table of Python 0.9.1 and the answer is 0.9,
+        stated as a date, while `zlib` stays "1.5 or earlier" because 1.0
+        through 1.4 are all still on the table.
+        """
+        return self._open_bound and self.added != FIRST_PUBLIC_RELEASE
 
     @property
     def added(self) -> str | None:
@@ -522,7 +547,7 @@ class Verdict:
                 "absent_in": self.interpreter_absent_in,
                 "present_in": self.interpreter,
             } | self._closed_by_module()
-            if self.or_earlier:
+            if self._open_bound:
                 evidence["note"] = (
                     f"Resolves in {self.interpreter}, and no earlier release "
                     "can be shown to lack it. " + (self.interpreter_note or "")
@@ -546,12 +571,12 @@ class Verdict:
                 "present_in": self.source,
             } | self._closed_by_module()
             notes = []
-            if self.or_earlier and self.source == OLDEST_SOURCE:
+            if self._open_bound and self.source == OLDEST_SOURCE:
                 notes.append(
                     f"Registered in {self.source}, the oldest source release "
                     "there is, so it is at least that old and may be older."
                 )
-            elif self.or_earlier:
+            elif self._open_bound:
                 # A floor above the oldest release means the older
                 # source neither binds the name nor rules it out: a
                 # method table row inside an `#if`, or a module whose
@@ -573,7 +598,7 @@ class Verdict:
                 "absent_in": self.archive_absent_in,
                 "present_in": self.archive,
             } | self._closed_by_module()
-            if self.or_earlier:
+            if self._open_bound:
                 evidence["note"] = (
                     f"Documented in {self.archive}, the oldest archived "
                     "doc build, so it is at least that old and may be older."
