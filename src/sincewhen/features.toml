@@ -31,6 +31,38 @@
 # --------------------------------------------------------------------
 
 [[features]]
+id = "containment-check"
+name = "containment check (in, not in)"
+added = "0.9"
+category = "syntax"
+or_earlier = true
+nodes = ["Compare"]
+check = "has_containment"
+
+[features.evidence]
+method = "grammar"
+symbol = "'in'"
+present_in = "0.9"
+note = "`comp_op` in the 0.9.1 grammar is '<'|'>'|'='|'>' '='|'<' '='|'<' '>'|'in'|'not' 'in'|'is'|'is' 'not', so both spellings are in the first public release and nothing can date them further back. `not in` has no token of its own to check, being `'not' 'in'` in that same rule. Only the operator is this old: `key in some_dict` is a TypeError until 2.2, and `'ab' in 'abc'` until 2.3, neither of which an AST can see."
+checked = "2026-07-29"
+
+[[features]]
+id = "tuple-unpacking"
+name = "tuple unpacking (a, b = 1, 2)"
+added = "0.9"
+category = "syntax"
+or_earlier = true
+nodes = ["Tuple", "List"]
+check = "has_tuple_target"
+
+[features.evidence]
+method = "grammar"
+symbol = "exprlist"
+present_in = "0.9"
+note = "0.9.1's `expr_stmt: (exprlist '=')* exprlist` is what makes a comma-separated target legal, and `exprlist` is in the first public release, so this cannot be dated. There is no token named for the feature, so the rule is what gets checked. The 0.9.1 interpreter runs `a, b = 1, 2`, the `a, b = b, a` swap, a nested `a, (b, c) = 1, (2, 3)` and `for a, b in pairs`."
+checked = "2026-07-29"
+
+[[features]]
 id = "equality-operator"
 name = "equality operator (==)"
 added = "1.0"

@@ -64,6 +64,21 @@ def test_no_features_detected():
         # One operator of a chain is enough, and each is its own claim.
         ("0 <= x == y", "equality-operator"),
         ("a <= b != c", "inequality-operator"),
+        ("x in y", "containment-check"),
+        ("x not in y", "containment-check"),
+        # Everything that stores into a tuple is unpacking of some kind.
+        ("a, b = 1, 2", "tuple-unpacking"),
+        ("a, b = b, a", "tuple-unpacking"),
+        ("(a, b) = pair", "tuple-unpacking"),
+        ("[a, b] = pair", "tuple-unpacking"),
+        ("a, (b, c) = 1, (2, 3)", "tuple-unpacking"),
+        ("for a, b in pairs:\n    pass", "tuple-unpacking"),
+        ("with open(p) as (a, b):\n    pass", "tuple-unpacking"),
+        ("[x for a, b in pairs]", "tuple-unpacking"),
+        # Extended unpacking is both features at once, and the newer one
+        # sets the floor.
+        ("a, *rest = values", "tuple-unpacking"),
+        ("a, *rest = values", "starred-assignment"),
     ],
 )
 def test_syntax_features(source, expected):
@@ -113,6 +128,19 @@ def test_syntax_features(source, expected):
         # An assignment is not a comparison, which is the whole reason
         # 0.9.1 could spell equality `=`.
         ("a = b", "equality-operator"),
+        # `for ... in` and `import ... in`-free syntax use the keyword
+        # without comparing anything, so there is no Compare node.
+        ("for i in items:\n    pass", "containment-check"),
+        ("[x for x in items]", "containment-check"),
+        # A tuple that is read rather than assigned into is a display,
+        # not unpacking. `except (A, B)` is the case that would hurt.
+        ("x = (1, 2)", "tuple-unpacking"),
+        ("try:\n    pass\nexcept (A, B):\n    pass", "tuple-unpacking"),
+        ("f(a, b)", "tuple-unpacking"),
+        ("def f(a, b):\n    pass", "tuple-unpacking"),
+        # `del a, b` has no tuple node at all, and deletes rather than
+        # stores in any case.
+        ("del a, b", "tuple-unpacking"),
     ],
 )
 def test_narrow_syntax_matchers_do_not_over_fire(source, unwanted):

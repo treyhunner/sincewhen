@@ -115,6 +115,38 @@ def _has_equality(node: ast.Compare, _bound: frozenset[str]) -> bool:
     return any(isinstance(operator, ast.Eq) for operator in node.ops)
 
 
+def _has_containment(node: ast.Compare, _bound: frozenset[str]) -> bool:
+    """`x in y` or `x not in y`, both in the 0.9.1 grammar.
+
+    The operator is all this can see, and the operator is the only part
+    of containment that is as old as Python. What a release will accept
+    on the right of it moved twice, and neither move is visible in an
+    AST: `key in some_dict` is a `TypeError` until 2.2, where `has_key`
+    was the spelling, and `'ab' in 'abc'` is one until 2.3, which is when
+    a string's `in` stopped requiring a single character on the left. So
+    this reports the operator and says nothing about its operands, which
+    is the honest limit of a syntactic tool.
+    """
+    return any(isinstance(operator, ast.In | ast.NotIn) for operator in node.ops)
+
+
+def _has_tuple_target(node: ast.Tuple | ast.List, _bound: frozenset[str]) -> bool:
+    """A comma-separated assignment target, as in `a, b = 1, 2`.
+
+    Store context is what makes this unpacking rather than a display:
+    `except (A, B)` and `x = (1, 2)` are both loads. Everything that
+    stores into a tuple is unpacking of some kind, including `for a, b in
+    pairs`, `with open(p) as (a, b)`, the `a, b = b, a` swap, and a
+    nested `a, (b, c) = 1, (2, 3)`, all of which run under 0.9.1.
+
+    A starred target is deliberately not excluded. `a, *rest = values` is
+    tuple unpacking too, and reporting both it and the 3.0 feature is two
+    true statements rather than a double count: the newer one sets the
+    floor.
+    """
+    return isinstance(node.ctx, ast.Store)
+
+
 def _has_inequality(node: ast.Compare, _bound: frozenset[str]) -> bool:
     """`a != b`, which arrived in 1.0 alongside `<>`.
 
@@ -248,6 +280,8 @@ CHECKS: dict[str, Callable[[Any, frozenset[str]], bool]] = {
     "has_multiple_unpackings": _has_multiple_unpackings,
     "has_equality": _has_equality,
     "has_inequality": _has_inequality,
+    "has_containment": _has_containment,
+    "has_tuple_target": _has_tuple_target,
     "is_async_generator": _is_async_generator,
     "is_builtin_generic": _is_builtin_generic,
     "is_zero_argument_super": _is_zero_argument_super,

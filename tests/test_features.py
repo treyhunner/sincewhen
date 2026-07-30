@@ -285,9 +285,11 @@ def test_diffed_evidence_brackets_the_claimed_version():
 
     A feature dated "or earlier" is the exception: it is in the oldest
     archive there is, so there is no release to point at that lacks it.
+    `in` is that case for the grammar: it is in the 0.9.1 `comp_op`, so
+    there is no earlier grammar to show without it.
     """
     for feature, evidence in cited():
-        if evidence.method in {"objects.inv", "archive", "source"}:
+        if evidence.method in {"objects.inv", "archive", "source", "grammar"}:
             assert evidence.present_in == str(feature.added), feature.id
             if feature.or_earlier:
                 assert evidence.absent_in is None, feature.id

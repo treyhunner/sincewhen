@@ -66,7 +66,7 @@ EVIDENCE_REQUIRED = {
     "archive": ("present_in",),
     "source": ("symbol", "file", "present_in"),
     "interpreter": ("symbol", "present_in"),
-    "grammar": ("symbol", "absent_in", "present_in"),
+    "grammar": ("symbol", "present_in"),
     "annotation": ("docs", "quote"),
     "pep": ("pep", "python_version"),
     "manual": ("note",),
