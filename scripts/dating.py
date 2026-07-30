@@ -36,6 +36,7 @@ Usage:
     uv run scripts/dating.py math.isclose tomllib itertools.batched
 """
 
+import keyword
 import sys
 from dataclasses import dataclass, field
 from functools import cache
@@ -155,6 +156,27 @@ def is_type_member(name: str) -> bool:
     return head in BUILTIN_TYPES and bool(member)
 
 
+def is_keyword(name: str) -> bool:
+    """Whether asking about `name` here would answer about a doc anchor.
+
+    Every Python keyword is also a `std:label` in the inventories, since
+    the reference manual has a section for each one, and a label is
+    indexed whenever someone got around to writing the anchor. So `in`
+    reports as 3.2 and `if`, `for` and `while` all report as some 3.x
+    release, none of which is a fact about the language: `in` is in the
+    0.9.1 `comp_op` rule.
+
+    This method dates symbols, and a keyword is not one. What settles a
+    keyword is CPython's own grammar, which `grammar.py` reads, so the
+    answer here is to refuse rather than to guess.
+
+    Only the hard keywords. A soft keyword is a real name as well:
+    `type` is a builtin this dataset dates to 0.9, and `match` and
+    `case` are ordinary identifiers everywhere but a match statement.
+    """
+    return keyword.iskeyword(name)
+
+
 # Python 3.0 and 3.1 do not count against continuity. Plenty of features
 # shipped in 2.7 and then reappeared in 3.2, and calling those 3.2
 # additions would be pedantically true and practically wrong: nobody
@@ -169,6 +191,7 @@ class Verdict:
     """What each method says about one name, and whether they agree."""
 
     name: str
+    keyword: bool = False
     interpreter: str | None = None
     interpreter_absent_in: str | None = None
     interpreter_is_floor: bool = False
@@ -286,7 +309,8 @@ class Verdict:
         inventory, annotation = self.inventory, self.annotation
         match self.status:
             case (
-                "conflict"
+                "keyword"
+                | "conflict"
                 | "source-contradicts-archive"
                 | "interpreter-contradicts-source"
                 | "interpreter-contradicts-docs"
@@ -347,7 +371,14 @@ class Verdict:
         `property` shipped in 2.2 and reached the built-in functions
         page in 2.3. In all three the docs are right and the archive is
         merely late.
+
+        A keyword is refused outright rather than reconciled, because
+        every method here would be answering about something else: see
+        `is_keyword`.
         """
+        if self.keyword:
+            return "keyword"
+
         # Both the source and the pre-Sphinx archives speak for the old
         # era, and both usually beat the 3.x inventories, which are
         # sparse for 3.0 and 3.1 and make old modules look new:
@@ -833,7 +864,15 @@ def _date_from_archive(verdict: Verdict, presence: dict) -> None:
 
 
 def date_symbol(name: str) -> Verdict:
-    """What the cached docs say about when `name` arrived."""
+    """What the cached docs say about when `name` arrived.
+
+    A keyword is refused before anything is consulted, because the
+    sources all have something of that name and none of them is the
+    keyword. `grammar.py` is what answers those.
+    """
+    if is_keyword(name):
+        return Verdict(name=name, keyword=True)
+
     verdict = Verdict(name=name)
     _date_the_module(verdict)
 
@@ -883,6 +922,13 @@ def main(argv: list[str]) -> int:
         verdict = date_symbol(name)
         print(f"{name}")
         print(f"  status      {verdict.status}")
+        if verdict.keyword:
+            print(
+                f"  {name!r} is a keyword, and the only thing here with that "
+                "name is a documentation anchor. Ask the grammar instead:\n"
+                f"    uv run scripts/grammar.py --token \"'{name}'\"\n"
+            )
+            continue
         print(
             f"  added       {verdict.added or '?'}{' or earlier' if verdict.or_earlier else ''}"
         )

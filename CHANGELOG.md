@@ -21,6 +21,11 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ### Research pipeline
 
+- **`dating.py` refuses a keyword instead of answering from a documentation anchor.**
+  `uv run scripts/dating.py in` used to report 3.2, which is when someone wrote the reference manual's anchor for the `in` section, not when the operator arrived: it is in the 0.9.1 grammar.
+  Every keyword has such a label, so `if`, `for`, `while` and `return` were all answerable and all wrong.
+  A keyword now reports a `keyword` status and points at `grammar.py`, which is the method that settles syntax, and `verify-dataset` asks for grammar evidence rather than accepting the label.
+  Soft keywords are deliberately still answered, because `type` is a builtin this dataset dates to 0.9 and `match` and `case` are ordinary names.
 - **The floor rule lives in one place.**
   `Verdict.or_earlier` reports a bound only where a release below it could still be the answer, so no method can produce a "0.9 or earlier" claim now.
   The evidence notes are keyed on the underlying open bound instead, which is what keeps the "may be older" record on the 0.9 entries.

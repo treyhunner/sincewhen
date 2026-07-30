@@ -69,6 +69,13 @@ def check_symbols(entry: dict, names: list[str]) -> tuple[str, str]:
     dated = {}
     for name in names:
         verdict = date_symbol(name)
+        if verdict.status == "keyword":
+            return (
+                MISMATCH,
+                f"{name} is a keyword, and the only thing the docs index "
+                "under that name is a section anchor; date it from the "
+                "grammar and cite it with grammar evidence",
+            )
         if verdict.status == "conflict":
             return (
                 MISMATCH,
