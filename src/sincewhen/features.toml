@@ -3669,16 +3669,17 @@ checked = "2026-07-29"
 [[features]]
 id = "copyreg"
 name = "copyreg module"
-added = "1.5"
+added = "3.0"
 category = "module"
-or_earlier = true
+pep = 3108
 modules = ["copyreg"]
 
 [features.evidence]
-method = "archive"
-present_in = "1.5"
-note = "Documented in 1.5, the oldest archived doc build, so it is at least that old and may be older."
-checked = "2026-07-29"
+method = "pep"
+pep = 3108
+python_version = "3.0"
+note = "The entry claims the name as spelled: PEP 3108 renamed `copy_reg` to `copyreg` in 3.0, and no earlier release can import the new spelling. The module under its old name is documented in 1.5, the oldest archived doc build, so the functionality is 1.5 or earlier. `copy_reg` itself gets no entry, the same as every name Python 3 removed."
+checked = "2026-07-30"
 
 [[features]]
 id = "dis"

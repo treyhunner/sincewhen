@@ -17,7 +17,10 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
   `max()`, `len()`, `dict.keys()`, `math.sqrt()` and 111 more now claim 0.9 outright.
   The reported phrase is unchanged, since these already read as "0.9 (first public release)", but `or_earlier` is now `false` for them in the dataset and in `--json` output.
   Each one's evidence still records that the name is at least that old and may predate the public record.
-- **Four entries are still bounded**, and all four leave a real question open: `os.path` at "1.2 or earlier", and `copyreg`, `resource` and `zlib` at "1.5 or earlier".
+- **Three entries are still bounded**, and all three leave a real question open: `os.path` at "1.2 or earlier", and `resource` and `zlib` at "1.5 or earlier".
+- **`copyreg` was "1.5 or earlier" and is now 3.0.**
+  The old claim dated `copy_reg`, a name Python 3 removed: PEP 3108 renamed it to `copyreg` in 3.0, so no earlier release can import the spelling this entry matches.
+  The rename is what settled it, and the functionality's older history under `copy_reg` now lives in the evidence note rather than the version.
 - **Two more syntax entries, both from before Python 2.**
   A dict display with items, `{'k': 1}`, is 1.0: 0.9.1's `atom` rule spells a dict `'{' '}'` with nothing allowed between the braces and its grammar has no `dictmaker` rule at all, so only the empty display is as old as Python.
   Unpacking at a call, `f(*args)` and `f(**kwargs)`, is 1.6, where both spellings arrived in the same `arglist` line.
