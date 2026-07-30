@@ -36,6 +36,7 @@ Usage:
     uv run scripts/dating.py math.isclose tomllib itertools.batched
 """
 
+import keyword
 import sys
 from dataclasses import dataclass, field
 from functools import cache
@@ -80,6 +81,16 @@ ANNOTATION_BUILDS = ("2.7", "3.14")
 # The oldest release whose source survives, and so the floor of every
 # method here. A name already in it cannot be dated, only bounded.
 OLDEST_SOURCE = SOURCE_ORDER[0]
+
+# Python 0.9.1 is also the first release the public ever had, and that
+# makes its floor different in kind from every other one. "1.5 or
+# earlier" leaves a real question open, because 1.0 through 1.4 exist and
+# one of them is the answer. "0.9 or earlier" leaves nothing open: there
+# is no earlier Python to reach for, and nothing has been in the language
+# longer than the language has been public. So a floor here is reported
+# as a date, and the evidence note goes on recording that the name is at
+# least that old and may predate the public record.
+FIRST_PUBLIC_RELEASE = OLDEST_SOURCE
 
 
 def version_key(version: str) -> tuple[int, int]:
@@ -145,6 +156,27 @@ def is_type_member(name: str) -> bool:
     return head in BUILTIN_TYPES and bool(member)
 
 
+def is_keyword(name: str) -> bool:
+    """Whether asking about `name` here would answer about a doc anchor.
+
+    Every Python keyword is also a `std:label` in the inventories, since
+    the reference manual has a section for each one, and a label is
+    indexed whenever someone got around to writing the anchor. So `in`
+    reports as 3.2 and `if`, `for` and `while` all report as some 3.x
+    release, none of which is a fact about the language: `in` is in the
+    0.9.1 `comp_op` rule.
+
+    This method dates symbols, and a keyword is not one. What settles a
+    keyword is CPython's own grammar, which `grammar.py` reads, so the
+    answer here is to refuse rather than to guess.
+
+    Only the hard keywords. A soft keyword is a real name as well:
+    `type` is a builtin this dataset dates to 0.9, and `match` and
+    `case` are ordinary identifiers everywhere but a match statement.
+    """
+    return keyword.iskeyword(name)
+
+
 # Python 3.0 and 3.1 do not count against continuity. Plenty of features
 # shipped in 2.7 and then reappeared in 3.2, and calling those 3.2
 # additions would be pedantically true and practically wrong: nobody
@@ -159,6 +191,7 @@ class Verdict:
     """What each method says about one name, and whether they agree."""
 
     name: str
+    keyword: bool = False
     interpreter: str | None = None
     interpreter_absent_in: str | None = None
     interpreter_is_floor: bool = False
@@ -243,8 +276,8 @@ class Verdict:
         return self.absent_in
 
     @property
-    def or_earlier(self) -> bool:
-        """Whether the answer is a bound rather than a date.
+    def _open_bound(self) -> bool:
+        """Whether the winning method's floor is left open by anything else.
 
         Only true when the answer *is* the floor of whichever method
         produced it, and nothing else closes it. A name that one method
@@ -252,8 +285,23 @@ class Verdict:
         a bounded one, which is why `map` stopped being "1.2 or earlier"
         once the source could be read: the archives were reporting their
         own age, not its.
+
+        This is what the evidence note describes, and it stays true at
+        the first public release even though `or_earlier` does not.
         """
         return self._is_floor and not self.bounded_by_its_module
+
+    @property
+    def or_earlier(self) -> bool:
+        """Whether the answer is a bound rather than a date.
+
+        An open bound at the first public release is not one, because
+        there is nothing under it: see `FIRST_PUBLIC_RELEASE`. `max` is
+        in the builtins table of Python 0.9.1 and the answer is 0.9,
+        stated as a date, while `zlib` stays "1.5 or earlier" because 1.0
+        through 1.4 are all still on the table.
+        """
+        return self._open_bound and self.added != FIRST_PUBLIC_RELEASE
 
     @property
     def added(self) -> str | None:
@@ -261,7 +309,8 @@ class Verdict:
         inventory, annotation = self.inventory, self.annotation
         match self.status:
             case (
-                "conflict"
+                "keyword"
+                | "conflict"
                 | "source-contradicts-archive"
                 | "interpreter-contradicts-source"
                 | "interpreter-contradicts-docs"
@@ -322,7 +371,14 @@ class Verdict:
         `property` shipped in 2.2 and reached the built-in functions
         page in 2.3. In all three the docs are right and the archive is
         merely late.
+
+        A keyword is refused outright rather than reconciled, because
+        every method here would be answering about something else: see
+        `is_keyword`.
         """
+        if self.keyword:
+            return "keyword"
+
         # Both the source and the pre-Sphinx archives speak for the old
         # era, and both usually beat the 3.x inventories, which are
         # sparse for 3.0 and 3.1 and make old modules look new:
@@ -522,7 +578,7 @@ class Verdict:
                 "absent_in": self.interpreter_absent_in,
                 "present_in": self.interpreter,
             } | self._closed_by_module()
-            if self.or_earlier:
+            if self._open_bound:
                 evidence["note"] = (
                     f"Resolves in {self.interpreter}, and no earlier release "
                     "can be shown to lack it. " + (self.interpreter_note or "")
@@ -546,12 +602,12 @@ class Verdict:
                 "present_in": self.source,
             } | self._closed_by_module()
             notes = []
-            if self.or_earlier and self.source == OLDEST_SOURCE:
+            if self._open_bound and self.source == OLDEST_SOURCE:
                 notes.append(
                     f"Registered in {self.source}, the oldest source release "
                     "there is, so it is at least that old and may be older."
                 )
-            elif self.or_earlier:
+            elif self._open_bound:
                 # A floor above the oldest release means the older
                 # source neither binds the name nor rules it out: a
                 # method table row inside an `#if`, or a module whose
@@ -573,7 +629,7 @@ class Verdict:
                 "absent_in": self.archive_absent_in,
                 "present_in": self.archive,
             } | self._closed_by_module()
-            if self.or_earlier:
+            if self._open_bound:
                 evidence["note"] = (
                     f"Documented in {self.archive}, the oldest archived "
                     "doc build, so it is at least that old and may be older."
@@ -808,7 +864,15 @@ def _date_from_archive(verdict: Verdict, presence: dict) -> None:
 
 
 def date_symbol(name: str) -> Verdict:
-    """What the cached docs say about when `name` arrived."""
+    """What the cached docs say about when `name` arrived.
+
+    A keyword is refused before anything is consulted, because the
+    sources all have something of that name and none of them is the
+    keyword. `grammar.py` is what answers those.
+    """
+    if is_keyword(name):
+        return Verdict(name=name, keyword=True)
+
     verdict = Verdict(name=name)
     _date_the_module(verdict)
 
@@ -858,6 +922,13 @@ def main(argv: list[str]) -> int:
         verdict = date_symbol(name)
         print(f"{name}")
         print(f"  status      {verdict.status}")
+        if verdict.keyword:
+            print(
+                f"  {name!r} is a keyword, and the only thing here with that "
+                "name is a documentation anchor. Ask the grammar instead:\n"
+                f"    uv run scripts/grammar.py --token \"'{name}'\"\n"
+            )
+            continue
         print(
             f"  added       {verdict.added or '?'}{' or earlier' if verdict.or_earlier else ''}"
         )

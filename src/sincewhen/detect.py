@@ -63,6 +63,20 @@ def _has_none_key(node: ast.Dict, _bound: frozenset[str]) -> bool:
     return any(key is None for key in node.keys)
 
 
+def _has_dict_items(node: ast.Dict, _bound: frozenset[str]) -> bool:
+    """`{'k': 1}`, a dict display with something between the braces.
+
+    The empty display is as old as Python and the pairs are not: 0.9.1
+    spells a dict `'{' '}'` in its `atom` rule and has no `dictmaker`
+    rule at all, so `{}` is 0.9 and `{'k': 1}` is 1.0.
+
+    A key of `None` is `{**a}` rather than a pair, so at least one real
+    key is required and a display of nothing but unpackings is the 3.5
+    feature alone.
+    """
+    return any(key is not None for key in node.keys)
+
+
 def _has_starred_element(
     node: ast.List | ast.Tuple | ast.Set, _bound: frozenset[str]
 ) -> bool:
@@ -99,6 +113,23 @@ def _has_multiple_unpackings(node: ast.Call, _bound: frozenset[str]) -> bool:
     starred = sum(isinstance(argument, ast.Starred) for argument in node.args)
     doubled = sum(keyword.arg is None for keyword in node.keywords)
     return starred > 1 or doubled > 1
+
+
+def _has_call_unpacking(node: ast.Call, _bound: frozenset[str]) -> bool:
+    """`f(*args)` or `f(**kwargs)`, unpacking at a call site.
+
+    Both spellings arrived in the same 1.6 grammar line, so they are one
+    feature rather than two; `apply(f, args)` was how it was written
+    before. `f(*a, *b)` reports this and the 3.5 `multiple-unpackings`
+    entry both, which is two true statements about one call.
+
+    Collecting is the older half of the pair and a different node:
+    `def f(*args)` is 1.0 and `def f(**kwargs)` is 1.5, and neither is a
+    `Call`.
+    """
+    return any(isinstance(argument, ast.Starred) for argument in node.args) or any(
+        keyword.arg is None for keyword in node.keywords
+    )
 
 
 def _has_equality(node: ast.Compare, _bound: frozenset[str]) -> bool:
@@ -274,10 +305,12 @@ def _has_starred_subscript(node: ast.Subscript, _bound: frozenset[str]) -> bool:
 # feature keyed on a builtin can tell a real use from a shadowed one.
 CHECKS: dict[str, Callable[[Any, frozenset[str]], bool]] = {
     "has_none_key": _has_none_key,
+    "has_dict_items": _has_dict_items,
     "has_starred_element": _has_starred_element,
     "has_starred_target": _has_starred_target,
     "has_async_comprehension": _has_async_comprehension,
     "has_multiple_unpackings": _has_multiple_unpackings,
+    "has_call_unpacking": _has_call_unpacking,
     "has_equality": _has_equality,
     "has_inequality": _has_inequality,
     "has_containment": _has_containment,

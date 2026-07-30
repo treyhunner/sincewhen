@@ -283,15 +283,18 @@ def test_evidence_records_the_date_it_was_checked():
 def test_diffed_evidence_brackets_the_claimed_version():
     """`absent_in` then `present_in` has to be the version being claimed.
 
-    A feature dated "or earlier" is the exception: it is in the oldest
+    A feature nothing can date is the exception: it is in the oldest
     archive there is, so there is no release to point at that lacks it.
-    `in` is that case for the grammar: it is in the 0.9.1 `comp_op`, so
-    there is no earlier grammar to show without it.
+    That covers the ones reported as "or earlier" and the ones at the
+    first public release, which are dated rather than bounded and still
+    have nothing underneath them to bracket against. `in` is that case
+    for the grammar: it is in the 0.9.1 `comp_op`, so there is no earlier
+    grammar to show without it.
     """
     for feature, evidence in cited():
         if evidence.method in {"objects.inv", "archive", "source", "grammar"}:
             assert evidence.present_in == str(feature.added), feature.id
-            if feature.or_earlier:
+            if feature.or_earlier or feature.added.is_first_public_release:
                 assert evidence.absent_in is None, feature.id
             else:
                 assert evidence.absent_in is not None, feature.id
@@ -351,26 +354,35 @@ def test_evidence_missing_a_required_field_is_rejected():
         _build(entry(evidence={"method": "objects.inv", "symbol": "py:module x"}))
 
 
-def test_or_earlier_features_say_so():
-    """The phrase, and the release date, both come off the same flag.
+def test_the_first_public_release_is_a_date_and_not_a_bound():
+    """Nothing at the floor is flagged, and the release is named.
 
     `max` is the exemplar because it is in the builtins table of the
     oldest Python that survives, so nothing can date it further back.
-    `map` used to sit here, and stopped qualifying once the source
-    could be read: it is absent from 0.9.1 and present in 1.0.1.
-
-    At the oldest release the bound is not phrased as one. "0.9 or
-    earlier" is true and reads as an evasion, because there is no earlier
-    release to reach for. The flag itself is unchanged, so anything
-    reading the dataset still sees a bound.
+    That used to make it "0.9 or earlier", which is true and useless:
+    there is no release under 0.9 for it to have been added in. `map`
+    is the contrast, and it stopped being bounded once the source could
+    be read: absent from 0.9.1, present in 1.0.1.
     """
     (feature,) = [f for f in load_features() if f.id == "max"]
-    assert feature.or_earlier
+    assert not feature.or_earlier
     assert feature.since == "0.9 (first public release)"
 
     (dated,) = [f for f in load_features() if f.id == "map"]
     assert not dated.or_earlier
     assert dated.since == "1.0"
+
+
+def test_no_feature_is_bounded_at_the_first_public_release():
+    """The rule holds across the dataset, not just for `max`.
+
+    "0.9 or earlier" cannot be acted on by anything: `sincewhen` reports
+    the release a feature has been available since, and there is no
+    release below the first public one to report.
+    """
+    for feature in load_features():
+        if feature.added.is_first_public_release:
+            assert not feature.or_earlier, feature.id
 
 
 def test_a_bound_above_the_oldest_release_still_reads_as_a_bound():

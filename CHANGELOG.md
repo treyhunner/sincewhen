@@ -7,6 +7,33 @@ Dataset changes are listed apart from everything else, because they are the chan
 A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
+## Unreleased
+
+### Dataset
+
+- **115 entries at Python 0.9 are dated rather than bounded.**
+  Nothing older than Python 0.9.1 was ever released, so "0.9 or earlier" left open a range of releases that does not exist.
+  `max()`, `len()`, `dict.keys()` and 112 more now claim 0.9 outright.
+  The reported phrase is unchanged, but `--json` now says `or_earlier: false`, and the evidence still records that the name may predate the public record.
+  Three bounded entries remain: `os.path` at "1.2 or earlier", `resource` and `zlib` at "1.5 or earlier".
+- **`copyreg` was "1.5 or earlier" and is now 3.0.**
+  The old claim dated `copy_reg`, a name Python 3 removed: PEP 3108 renamed it in 3.0, so no earlier release can import this spelling.
+  The old name's history stays in the evidence note.
+- **Two more syntax entries, both from before Python 2.**
+  A dict display with items, `{'k': 1}`, is 1.0: 0.9.1's grammar allows nothing between the braces, so only the empty display is as old as Python.
+  Unpacking at a call, `f(*args)` and `f(**kwargs)`, is 1.6, where both spellings arrived in one `arglist` line; `apply(f, args)` was the spelling before.
+  Collecting is older and separate: `def f(*args)` is 1.0, `def f(**kwargs)` is 1.5, and neither fires this entry.
+
+### Research pipeline
+
+- **`dating.py` refuses a keyword instead of answering from a documentation anchor.**
+  `uv run scripts/dating.py in` used to report 3.2, the age of the reference manual's anchor for the `in` section rather than of the operator, which is in the 0.9.1 grammar.
+  A keyword now points at `grammar.py`, and `verify-dataset` demands grammar evidence for one.
+  Soft keywords are still answered, because `type` is a builtin and `match` and `case` are ordinary names.
+- **The floor rule lives in one place.**
+  `Verdict.or_earlier` reports a bound only where a release below it could still be the answer, so no method can produce a "0.9 or earlier" claim.
+
+
 ## 0.4.0 - 2026-07-29
 
 ### Dataset

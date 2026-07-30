@@ -31,7 +31,7 @@ import argparse
 import sys
 import tomllib
 
-from dating import date_symbol
+from dating import FIRST_PUBLIC_RELEASE, date_symbol
 from grammar import dated_syntax
 from sources import ROOT, load_peps
 
@@ -69,6 +69,13 @@ def check_symbols(entry: dict, names: list[str]) -> tuple[str, str]:
     dated = {}
     for name in names:
         verdict = date_symbol(name)
+        if verdict.status == "keyword":
+            return (
+                MISMATCH,
+                f"{name} is a keyword, and the only thing the docs index "
+                "under that name is a section anchor; date it from the "
+                "grammar and cite it with grammar evidence",
+            )
         if verdict.status == "conflict":
             return (
                 MISMATCH,
@@ -136,11 +143,16 @@ def check_grammar(entry: dict) -> tuple[str, str]:
     """Compare `added` against CPython's own grammar.
 
     A token already in the oldest cached grammar can only be bounded, the
-    same way a builtin already in the oldest tarball can. `in` and
-    `exprlist` are both in the 0.9.1 grammar, so nothing can date them
-    and the entry has to say "or earlier" rather than "0.9". Checking the
-    flag as well as the version is the point: they are different claims
-    and only one of them is right.
+    same way a builtin already in the oldest tarball can. Checking the
+    flag as well as the version is the point: "1.5" and "1.5 or earlier"
+    are different claims and only one of them is right.
+
+    The oldest grammar there is comes from the first public release, and
+    a bound there closes itself: `in` and `exprlist` are both in the
+    0.9.1 grammar and nothing older exists for them to have come from, so
+    those entries say 0.9 rather than "0.9 or earlier". This is the rule
+    `dating.py` applies to every other method, spelled out again here
+    because the grammar is checked without going through it.
     """
     token = entry["evidence"]["symbol"]
     record = dated_syntax().get(token)
@@ -151,9 +163,10 @@ def check_grammar(entry: dict) -> tuple[str, str]:
     if found != entry["added"]:
         where = record.get("added") or f"{record['floor']} or earlier"
         return MISMATCH, f"claims {entry['added']}, but {token} appears in {where}"
-    if bounded != ("added" not in record):
+    open_bound = "added" not in record and found != FIRST_PUBLIC_RELEASE
+    if bounded != open_bound:
         claimed = "or earlier" if bounded else "exactly"
-        actual = "a bound" if "added" not in record else "a date"
+        actual = "a bound" if open_bound else "a date"
         return MISMATCH, f"claims {found} {claimed}, but {token} is {actual}"
     phrase = f"{found} or earlier" if bounded else found
     return OK, f"{phrase} confirmed by the grammar"

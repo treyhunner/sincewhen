@@ -120,20 +120,20 @@ class Feature:
     def since(self) -> str:
         """How to say when this arrived, in one phrase.
 
-        Some features are older than the oldest surviving record.
-        `max()` is in the builtins table of Python 0.9.1, the first
-        public release, so 0.9 is the oldest version it can be shown to
-        have existed in rather than the version that added it.
+        Some features cannot be dated, only bounded, and those say so:
+        `zlib` is "1.5 or earlier", which leaves a real question open,
+        since 1.0 through 1.4 all exist and one of them is the answer.
 
-        At that oldest release the bound stops being worth phrasing as
-        one. "0.9 or earlier" is literally true, since Python existed
-        before it was published, but it reads as an evasion when there is
-        no earlier release to reach for: nothing has been in Python longer
-        than Python has been public. So the floor says what it means, and
-        the `or_earlier` flag stays set for anything that reads the
-        dataset, because the claim itself has not changed.
+        The first public release is the exception, and it is a claim
+        about the world rather than a way of phrasing one. `max()` is in
+        the builtins table of Python 0.9.1 and may well be older, but
+        there is no earlier Python to have been added in: nothing has
+        been in the language longer than the language has been public.
+        So those entries are dated rather than bounded, and the release
+        is named for what it is. Their evidence still records that the
+        name is at least that old and may predate the public record.
         """
-        if self.or_earlier and self.added.is_first_public_release:
+        if self.added.is_first_public_release:
             return f"{self.added} (first public release)"
         return f"{self.added} or earlier" if self.or_earlier else str(self.added)
 
