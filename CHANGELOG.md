@@ -17,6 +17,27 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 - Two of those needed a human, and the reason is worth reading:
   - **`copy()` and `clear()` on `list` and `bytearray` are 3.3.** The docs describe them once for the whole mutable-sequence family, as `sequence.copy`, so no per-name marker dates them, and the inventory does not index `list.copy` until 3.13. The 3.3 whatsnew names both types outright.
   - **`int.bit_length()` is 2.7**, which the 2.7 inventory shows and the 3.14 docs contradict with a 3.1 marker. Both are true: it shipped in 2.7 and again in 3.1, and 3.0 is the only release in between that lacks it.
+- **68 more entries for the ancient methods, out of the types' own method tables**, which no doc build could ever date.
+  `sincewhen --search setdefault` now answers "Python 2.0", and `split`, `append`, `keys`, `startswith` and 60-odd more answer for the first time.
+  339 of the 397 methods the docs index carry no version marker at all, because a method that predates the "New in version" convention never got one.
+
+  | release | what the tables show                                                                       |
+  |---------|--------------------------------------------------------------------------------------------|
+  | 0.9     | `dict.keys`, `list.append`, `list.insert`, `list.sort`, bounded rather than dated            |
+  | 1.0     | `dict.items`, `dict.values`, `list.count`, `list.index`, `list.remove`, `list.reverse`       |
+  | 1.5     | `dict.clear`, `dict.copy`, `dict.get`, `dict.update`, `list.extend`, `list.pop`              |
+  | 1.6     | the string methods, 29 of them, from `split` to `startswith` to `translate`                 |
+  | 2.0     | `dict.setdefault`, `str.encode`, `str.isalnum`, `str.isalpha`                                |
+  | 2.1     | `dict.popitem`                                                                              |
+  | 2.2     | `type.mro`, which the inventory would have called 3.12                                      |
+  | 2.3     | `slice.indices`                                                                             |
+  | 2.4     | every `set` and `frozenset` method, since `setobject.c` arrives in that release              |
+
+  So Python's dictionary had `keys()` and `has_key()` and nothing else in 1991, and could not be copied or updated until 1.5.
+- **A pre-2.6 method entry is a claim about instances.** `"x".split()` is 1.6; `str.split` written as an unbound call needs 2.2, because `str` was a builtin function and not a class until then. The head of the name is deliberately not consulted: `dict` the builtin is 2.2 and the `dict` type is in 0.9.1.
+- **Five entries had their evidence re-derived**, from a doc marker to the method table that outranks it: `str.encode`, `dict.fromkeys`, `dict.pop`, `str.rsplit` and `str.partition`. All five keep the version they had, which is the cross-check: nine of the names the tables date have a marker too, and nine of nine agree.
+- **`str.zfill()` stays 2.2 and now says why.** The 1.6 through 2.2 tables carry its row inside an `#if 0`, because it really arrived in 2.2.2, so the source can only bound it at "2.3 or earlier" and the docs' own marker wins.
+- **`list.extend()` and `list.pop()` are 1.5.2, recorded as 1.5**, which is the corpus's 1.5 slot: it reads the 1.5.2 tarball, and both are in that release's own `Misc/NEWS`. A micro release is still 1.5 at this dataset's granularity, the same reading that keeps `str.zfill` at 2.2, and the evidence on both entries says so. `dict.clear()`, `dict.copy()`, `dict.get()` and `dict.update()` are in the 1.5.2 `HISTORY` instead, so those four are 1.5 proper.
 - **Methods Python 3 removed are deliberately absent**, for the same reason the Python 2 builtins are: `added` has no way to say "and then it was taken away". `str.decode`, `dict.iteritems` and `dict.viewkeys` are all dated by the 2.7 docs and all stay out.
 - **`datetime.date` no longer carries a 3.7 marker it never earned.** A version marker attaches to the signature above it, and `classmethod date.fromisoformat(...)` did not match the signature pattern, so its 3.7 marker landed on the class instead. This was invisible in the shipped dataset because the source method outranked it, and it is the kind of thing that stops being invisible later.
 
@@ -28,6 +49,18 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ### Research pipeline
 
+- **A new oracle, `scripts/typemethods.py`, reads the method tables of the builtin types** out of every CPython tarball from 0.9.1 to 2.5.
+  This is `source.py`'s argument one level down: a type's method table is the list it registers its methods from rather than a description of one, so a name missing from it is a name that release did not have.
+  86 names come out of it, 80 dated outright.
+  Four decisions govern whether any of it can be believed, and each one had a wrong answer available:
+  - **A type is a family.** `stringobject.c` is the 2.x string and `unicodeobject.c` is what became `str`, and their tables disagree: `encode` is in the unicode table from 1.6 and the string table from 2.0. A member counts as present only where every type in the family binds it, which makes `str.encode` 2.0 and agrees with the marker the docs already carry. `isdecimal` and `isnumeric`, which the 2.x string type never had, are reported rather than dated.
+  - **A special method is a slot, not a table row**, so every dunder is left to the docs. `list.__getitem__` has been a slot since 0.9.1 and gained a table row in 2.4 so a list could be pickled, so a row is the age of the row.
+  - **Only the method tables**, never the getset or member tables. Those only exist from 2.2, and before that an attribute was a `strcmp` inside `tp_getattr`, so reading them would date every attribute to the release that unified the type system.
+  - **A row inside an `#if` proves nothing either way**, exactly as for a module member. That is what keeps `str.zfill` at the 2.2 its own docs give it.
+- **Two markers the docs never meant were caught by comparing the tables against them**, which is the same check that found every mistake in the module-member extractor.
+  `dict.values` is 1.0 and appeared to be dated 3.9, because that marker belongs to `d | other` two signatures further down and `annotations.py` cannot see an operator expression as a signature.
+  `str.translate` is 1.6 and appeared to be dated 2.6, off a marker reading "New in version 2.6: Support for a `None` *table* argument".
+  Both now resolve correctly because the tables outrank a marker, and a type method's evidence note says "the nearest marker" rather than "the docs date it", since for these two the docs do not.
 - **An inventory entry for a member of a builtin type now bounds rather than dates.**
   `stdtypes` documents a whole family of types in one table and Sphinx grew per-name markup for those tables release by release, so the release that first indexes one of these is the age of the markup: `list.copy` arrived in 3.3 and was first indexed in 3.13, and `type.mro` predates Python 3 entirely and was first indexed in 3.12.
   The inventory used to date 213 of the 397 such names it indexes and now dates none of them, so 179 questions it answered confidently are refused instead.
@@ -35,6 +68,8 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 - **`annotations.py` reads `classmethod`, `static` and `abstractmethod` signatures**, which it previously skipped, so their markers no longer attach to whatever signature came before them.
   That fixed the false `datetime.date` and `bytearray.join` dates above, dated 35 names the markers were stranded on, `date.fromisoformat` among them, and dropped 15 they were wrongly attached to.
 - `just propose` writes `methods` entries, groups one method across sibling types from a single marker, and stops producing ids like `object---set-name--`.
+- `just propose` names a group the way the dataset already names one: `set.copy() and frozenset.copy()` for two, and `hex() on bytes, bytearray and memoryview` for a method spelled for three types.
+- `just typemethods` reports what the tables date, `--tables` shows each release's raw tables, `--partial` shows what a family disagrees about, and `--compare` checks every name against what the rest of the pipeline says.
 
 
 ## 0.3.0 - 2026-07-29

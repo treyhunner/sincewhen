@@ -315,7 +315,9 @@ def test_source_evidence_cites_the_file_it_was_read_from():
     for feature, evidence in cited_by_source:
         assert evidence.file is not None, feature.id
         assert evidence.file.endswith((".c", ".py")), feature.id
-        targets = feature.builtins | feature.modules | feature.attributes
+        targets = (
+            feature.builtins | feature.modules | feature.attributes | feature.methods
+        )
         assert evidence.symbol in targets, feature.id
 
 

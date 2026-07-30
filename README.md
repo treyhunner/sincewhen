@@ -175,6 +175,7 @@ For anything in the standard library, let the archived documentation say what th
 $ just fetch-docs                       # one-time, ~500 MB into a gitignored .cache/
 $ just whenadded math.lcm               # what each source says, and whether they agree
 $ just propose math.lcm math.isqrt      # entries with evidence, ready to paste
+$ just typemethods --compare            # what the builtin types' method tables date
 $ just verify-dataset                   # re-derive every claim in the dataset
 ```
 
@@ -186,7 +187,7 @@ Evidence has eight `method` values, seven of which a machine can recheck:
 |---------------|---------------------------------------------------------------------------------------------------------------------------------------------|
 | `objects.inv` | the symbol is absent from one release's Sphinx inventory and present in the next                                                            |
 | `archive`     | the same diff over the module lists and built-in function pages in the pre-Sphinx doc builds, back to the 0.9.1 LaTeX                       |
-| `source`      | the name is absent from one release's own C or Python implementation and present in the next, which reaches back further than any doc build |
+| `source`      | the name is absent from one release's own C or Python implementation and present in the next, which reaches back further than any doc build. For a method of a builtin type this is the type's own method table, which is the only thing that can date `dict.setdefault` or `str.split` at all |
 | `interpreter` | that release's own interpreter, built from its tarball, was asked whether the name resolves                                                 |
 | `annotation`  | the documentation dates it itself, in an "Added in version" marker quoted in the entry                                                      |
 | `grammar`     | the token is absent from one release's grammar and present in the next, which is what shipped rather than what a PEP intended               |

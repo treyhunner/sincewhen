@@ -20,12 +20,16 @@ MATCHER_FIELDS = ("nodes", "builtins", "modules", "attributes", "methods")
 #   archive      the same diff for the era before Sphinx, over the
 #                module lists and built-in function pages in the
 #                archived HTML doc builds
-#   source       the same diff over the builtins table in CPython's own
-#                `bltinmodule.c`, which reaches back to 0.9.1 and so
-#                predates every doc build. Alone among these, its
-#                absences count for as much as its presences, because
-#                the table is the list the interpreter registers its
-#                builtins from rather than a description of one
+#   source       the same diff over the tables CPython registers names
+#                from: `builtin_methods[]` in `bltinmodule.c`, a
+#                module's own method table, and a builtin type's. It
+#                reaches back to 0.9.1 and so predates every doc build.
+#                Alone among these, its absences count for as much as
+#                its presences, because such a table is the list the
+#                interpreter builds a namespace from rather than a
+#                description of one. It is the only thing that dates a
+#                method as old as `dict.setdefault`, which no doc build
+#                ever marked
 #   interpreter  the name was asked of that release's own interpreter,
 #                built from its pinned tarball, and resolved. The only
 #                method that reads Python rather than a description of

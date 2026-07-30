@@ -229,13 +229,44 @@ def test_attribute_on_a_non_name_is_ignored():
         ("(255).bit_count()", "int-bit-count"),
         ("(2.0).is_integer()", "float-is-integer"),
         ("True.bit_count()", "int-bit-count"),
+        # The ancient methods, which only the type's own method table
+        # dates: no doc build says when any of these arrived.
+        ('"abc".split()', "str-split"),
+        ('"abc".startswith("a")', "str-startswith"),
+        ("[].append(x)", "list-append"),
+        ("[].extend(x)", "list-extend"),
+        ("{}.setdefault(k, v)", "dict-setdefault"),
+        ("{}.keys()", "dict-keys"),
+        ("{1, 2}.add(3)", "set-add"),
         # The type's own name is as certain as a literal is.
         ('dict.fromkeys("abc")', "dict-fromkeys"),
         ('str.casefold("HI")', "str-casefold"),
+        ("type.mro(int)", "type-mro"),
     ],
 )
 def test_methods_are_detected_where_the_receiver_pins_the_type(source, expected):
     assert expected in features(source)
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    [
+        ("[].copy()", "list-copy-clear"),
+        ("{}.copy()", "dict-copy"),
+        ("{1, 2}.copy()", "set-copy"),
+        ('"a".index("a")', "str-index"),
+        ("[].index(x)", "list-index"),
+    ],
+)
+def test_one_method_name_is_a_different_age_on_each_type(source, expected):
+    """A dict is not a list, and a set is not a dict.
+
+    `copy()` is 1.5 on a dict, 2.4 on a set and 3.3 on a list, so a
+    receiver whose type is certain has to pick exactly one of them.
+    """
+    assert {found.feature.id for found in detect(source) if found.feature.methods} == {
+        expected
+    }
 
 
 @pytest.mark.parametrize(
@@ -246,9 +277,6 @@ def test_methods_are_detected_where_the_receiver_pins_the_type(source, expected)
         "self.rows.copy()",
         "get_row().copy()",
         "rows[0].clear()",
-        # A dict is not a list, and a set is not a dict.
-        "{}.clear()",
-        "{1, 2}.copy()",
         # A shadowed type name is not the type.
         'dict = {"a": 1}\ndict.fromkeys("abc")',
     ],

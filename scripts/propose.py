@@ -90,6 +90,27 @@ def display(name: str, roles: set[str], matcher: str) -> str:
     return name
 
 
+def display_group(group: list[str], roles: set[str], matcher: str) -> str:
+    """A name for a whole group, which is three shapes in practice.
+
+    One method on several types reads better with the method in front,
+    since that is the thing that arrived: "hex() on bytes, bytearray and
+    memoryview". Two of anything else is a conjunction. Naming is
+    editorial, so this only has to be a good enough draft to leave alone
+    most of the time.
+    """
+    if len(group) == 1:
+        return display(group[0], roles, matcher)
+    members = {name.rpartition(".")[2] for name in group}
+    if matcher == "methods" and len(members) == 1:
+        types = [name.partition(".")[0] for name in group]
+        if len(types) > 2:
+            listed = f"{', '.join(types[:-1])} and {types[-1]}"
+            return f"{members.pop()}() on {listed}"
+    drawn = [display(name, roles, matcher) for name in group]
+    return " and ".join(drawn) if len(drawn) == 2 else ", ".join(drawn)
+
+
 def one_method_several_types(group: list[str]) -> bool:
     """Whether a group is one method spelled for several builtin types.
 
@@ -148,7 +169,7 @@ def propose(group: list[str]) -> tuple[str | None, str]:
     lines = [
         "[[features]]",
         f'id = "{slug(group[0])}"',
-        f'name = "{display(group[0], roles, matcher)}"',
+        f'name = "{display_group(group, roles, matcher)}"',
         f'added = "{lead.added}"',
         f'category = "{category}"',
         *(["or_earlier = true"] if lead.or_earlier else []),
