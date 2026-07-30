@@ -99,6 +99,14 @@ Four modern types are deliberately outside `LINEAGE`, because no release in this
 `memoryview` is 2.7 and 2.x `buffer` is a different interface.
 Those four are what the docs' markers and their types' own dates have to answer for, and `type_is_covered` is what keeps the omission from being silent.
 
+What answers for them is the rule that closes a module member's bound, one level down: a method cannot predate the type that holds it.
+The inventory can only bound a type member, and where that bound sits at exactly the release the type arrived in there is nothing underneath it, so `dating.py` reports a date.
+`memoryview.tolist` is first indexed in 2.7 and `memoryview` is 2.7, so it is 2.7 and not "2.7 or earlier", the same way `weakref.ref` is 2.1.
+This is taken only where `type_is_covered` says no, because everywhere else the head answers a different question, which is the same reason `_date_the_module` skips a type member.
+Where the bound does not close, the entry needs a human: `bytes` and `bytearray` are 2.6 and their methods are first indexed in 3.4, so four releases sit between the floor and the bound.
+Those carry `manual` evidence resting on three checks, all recorded in `features.toml` above the group: both types are 2.6 and 2.6's `bytes` is a synonym for `str`, which is the reading that already dates the `b"..."` literal to 2.6 rather than to PEP 3112's own 3.0 header; every one of the string methods is already dated on `str` at 2.5 or earlier, so the types are the binding constraint and the 1.6 answer the exclusion exists to prevent never arises; and no whatsnew since announces adding one, which is what distinguishes them from `bytearray.copy`, `bytearray.clear` and `bytearray.resize`, each of which does and has its own entry.
+`bytes.fromhex` is the counter-example that keeps the rule honest: 2.6 and 2.7 both spell `bytes` as `str`, no 2.x `str` has `fromhex`, and so that one spelling is 3.0 while `bytearray.fromhex` is 2.6.
+
 The rest of the era's churn is not load bearing.
 `struct methodlist` becomes `PyMethodDef`, which does not matter because the table is found by the identifier the type points at.
 Resolution moves from a `tp_getattr` function calling `findmethod()` to a `tp_methods` slot in 2.2, so both are read.

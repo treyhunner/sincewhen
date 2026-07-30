@@ -271,6 +271,10 @@ def test_the_types_2_x_had_under_another_name_are_left_out(name):
     table for `bytes` would date `bytes.capitalize` to 1.6, five releases
     before anything could be spelled `b"..."`. 2.x `range` returns a
     list, so `range(3).index` in this era is `list.index`.
+
+    The dataset dates these all the same, from the types' own arrivals
+    rather than from any method table: see
+    `test_every_method_of_the_types_the_tables_miss_is_dated`.
     """
     assert not typemethods.type_is_covered(name)
 

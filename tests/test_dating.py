@@ -6,7 +6,7 @@ covers and a unit test cannot. A guard is worth testing on its own
 because its whole job is to fire before any source is consulted.
 """
 
-from dating import date_symbol, is_keyword
+from dating import Verdict, _date_the_type, date_symbol, is_keyword
 
 
 def test_a_keyword_is_refused_rather_than_answered():
@@ -36,3 +36,81 @@ def test_a_soft_keyword_is_still_a_name():
     """
     for name in ("type", "match", "case", "_"):
         assert not is_keyword(name), name
+
+
+def type_member(
+    name: str = "memoryview.tolist",
+    floor: str = "2.7",
+    type_added: str = "2.7",
+    type_is_floor: bool = False,
+    annotation: str | None = None,
+) -> Verdict:
+    """`memoryview.tolist` as the sources leave it.
+
+    The inventory can only bound a member of a builtin type, and 2.7 is
+    the oldest one that indexes this. Built by hand so the reconciliation
+    can be exercised without the 500 MB corpus behind it.
+    """
+    return Verdict(
+        name=name,
+        floor=floor,
+        annotation=annotation,
+        type_name="memoryview",
+        type_added=type_added,
+        type_absent_in="2.6",
+        type_is_floor=type_is_floor,
+    )
+
+
+def test_a_type_closes_the_bound_on_its_own_member():
+    """A bound at the type's own arrival leaves nothing underneath it.
+
+    `memoryview` is 2.7 and a method cannot predate the type that holds
+    it, so `memoryview.tolist` is 2.7 rather than "2.7 or earlier". This
+    is `weakref.ref` one level down.
+    """
+    verdict = type_member()
+    assert verdict.status == "type"
+    assert verdict.added == "2.7"
+    assert not verdict.or_earlier
+
+
+def test_a_bound_above_the_types_arrival_stays_open():
+    """`bytes` is 2.6 and its methods are first indexed in 3.4.
+
+    Four releases separate the two, so the inventory bounds and the type
+    floors and neither dates. Those entries need a human.
+    """
+    verdict = type_member(floor="3.4")
+    assert verdict.status != "type"
+    assert verdict.added is None
+
+
+def test_a_bounded_type_passes_its_bound_along():
+    """Only a dated type closes anything, exactly as for a module."""
+    verdict = type_member(type_is_floor=True)
+    assert verdict.status != "type"
+
+
+def test_a_marker_about_an_argument_does_not_reopen_the_bound():
+    """The marker nearest `memoryview.tobytes` dates its `order` argument.
+
+    "Added in version 3.8: *order* can be {'C', 'F', 'A'}" is not a claim
+    about when the method arrived, and the 2.7 inventory already lists
+    it, so the type's own bound answers instead of the conflict.
+    """
+    verdict = type_member(name="memoryview.tobytes", annotation="3.8")
+    assert verdict.status == "type"
+    assert verdict.added == "2.7"
+
+
+def test_the_head_is_not_consulted_for_a_type_the_tables_reach():
+    """`dict` the builtin is 2.2 and the `dict` type is in 0.9.1.
+
+    Reading the head as a floor would date `dict.keys` to 2.2, which is
+    why this is taken only for the four types no release in the source
+    corpus implements under a name anyone would call them by.
+    """
+    verdict = Verdict(name="dict.keys")
+    _date_the_type(verdict)
+    assert verdict.type_added is None

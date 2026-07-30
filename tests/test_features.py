@@ -139,6 +139,52 @@ def test_every_dated_method_is_still_there():
             assert hasattr(getattr(builtins, type_name), method), name
 
 
+# The four types no release from 0.9.1 to 2.5 implements under a name
+# anyone would call them by, so `typemethods.LINEAGE` leaves them out.
+# What the tables cannot reach, the types' own arrivals answer for.
+UNCOVERED_TYPES = ("bytes", "bytearray", "memoryview", "range")
+
+
+def test_every_method_of_the_types_the_tables_miss_is_dated():
+    """Silence in `typemethods.py` is not licence to be silent here.
+
+    `bytes` and `bytearray` are 2.6, `memoryview` is 2.7 and the `range`
+    type is 3.0, so no release in the source corpus carries a method
+    table for any of them. That is a decision about the derivation and
+    not about the dataset: a method cannot predate the type that holds
+    it, which dates every one of these.
+
+    Attributes are a different matcher and out of this: `range.start` and
+    `memoryview.itemsize` are not methods.
+    """
+    dated = {name for feature in load_features() for name in feature.methods}
+    for type_name in UNCOVERED_TYPES:
+        the_type = getattr(builtins, type_name)
+        for member in dir(the_type):
+            if member.startswith("_"):
+                continue
+            if not callable(getattr(the_type, member)):
+                continue
+            assert f"{type_name}.{member}" in dated, f"{type_name}.{member}"
+
+
+def test_no_method_of_a_modern_type_predates_that_type():
+    """`bytearray` is 2.6, so nothing spelled `bytearray.x` is older.
+
+    Only for the types whose ancestors the source corpus has none of.
+    `dict.keys` is 0.9 and `dict` the builtin is 2.2, because a method
+    entry from that era is a claim about instances rather than about the
+    type, and `range()` the builtin is 0.9 while the `range` type is 3.0.
+    """
+    types_ = {name: feature for feature in load_features() for name in feature.builtins}
+    for feature in load_features():
+        for name in feature.methods:
+            head = name.partition(".")[0]
+            if head not in {"bytearray", "memoryview"}:
+                continue
+            assert types_[head].added <= feature.added, (feature.id, name)
+
+
 def test_lookup_finds_a_method_by_its_own_name():
     """Nobody searching for a method types the type in front of it."""
     assert [f.id for f in lookup("removeprefix")] == ["str-removeprefix"]
