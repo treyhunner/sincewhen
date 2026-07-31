@@ -188,6 +188,33 @@ def test_search_suggests_members_when_the_dataset_has_nothing(capsys):
     assert "asyncio.TimeoutError" in output
 
 
+def test_search_suggests_past_a_misspelled_module(capsys):
+    """`suprocess.Popen` knows more than "no match": it knows `Popen`."""
+    assert main(["--search", "suprocess.Popen"]) == 0
+    output = capsys.readouterr().out
+    assert "No entry for 'suprocess.Popen'. Did you mean one of these?" in output
+    assert "subprocess.Popen - Python 2.4" in output
+
+
+def test_search_keeps_the_module_when_the_module_is_real(capsys):
+    """A real module that lacks the member answers about itself.
+
+    `os.Popen` is not a typo for `subprocess.Popen`, and `os` is a true
+    answer to a narrower question, so the suggestion path stays out of
+    the way wherever the head of the name is a module.
+    """
+    assert main(["--search", "os.Popen"]) == 0
+    output = capsys.readouterr().out
+    assert "No entry for os.Popen, but it lives in:" in output
+    assert "subprocess.Popen" not in output
+
+
+def test_search_with_no_match_on_either_half(capsys):
+    """Both halves unknown is still nothing, not a wild guess."""
+    assert main(["--search", "suprocess.no_such_member"]) == 1
+    assert "No feature matches" in capsys.readouterr().err
+
+
 def test_search_caps_a_long_suggestion_list(capsys):
     """A name in fifty modules is not an answer, it is a directory."""
     answers = [

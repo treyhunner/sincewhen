@@ -212,6 +212,15 @@ def _search(term: str, as_json: bool) -> int:
         features, answers = found, _suggestions(query)
     elif suggested := _suggestions(query):
         features, answers = [], suggested
+    elif not found and "." in query and (near := _suggestions(query.rsplit(".")[-1])):
+        # A dotted name that matched nothing at all, not even a module,
+        # is usually a typo in the module: `suprocess.Popen`. The part
+        # after the dot is still a name worth answering, and it is the
+        # half the reader spelled correctly. Only when nothing was found
+        # is this reached, so a real module that simply lacks the member
+        # still gets the module fallback below rather than a suggestion
+        # from somewhere else: `os.Popen` answers about `os`.
+        features, answers = [], near
     else:
         features, answers = found, []
 

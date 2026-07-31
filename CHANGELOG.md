@@ -9,6 +9,13 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ## Unreleased
 
+### Tool
+
+- **A misspelled module no longer swallows the search.**
+  `sincewhen --search suprocess.Popen` reported "No feature matches" and stopped, throwing away the half of the name that was spelled right.
+  A dotted name that matches nothing at all, not even a module, now gets the same suggestions a bare name would: `suprocess.Popen` offers `subprocess.Popen`.
+  A real module that simply lacks the member is untouched, so `os.Popen` still answers about `os`.
+
 ### Documentation
 
 - **A "Try it in your browser" section**, pointing at [pym.dev/since](https://pym.dev/since), where the tool runs in the tab rather than on a server.
