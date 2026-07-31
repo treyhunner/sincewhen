@@ -153,14 +153,30 @@ def test_a_member_cannot_predate_its_module():
     assert not found.or_earlier
 
 
-# The one name the index and the dataset both date and disagree about.
-# `importlib.import_module` is in the 2.7 inventory and in 3.1 onward, so
-# the only release lacking it is 3.0 and the dataset's own continuity
-# rule makes that 2.7. Its entry says 3.1, because `dating.py` reads the
-# 2.x inventories only through branches that need a documentation marker
-# and discards their presence otherwise. That is a pipeline bug with its
-# own follow-up; the entry answers for this name either way.
-PIPELINE_BUG = frozenset({"importlib.import_module"})
+def test_a_stale_index_is_clamped_at_lookup(monkeypatch):
+    """The module's entry is the binding constraint even on a stale index.
+
+    The generator applies the same rule from the pipeline's own module
+    dates, so a freshly written file never carries this. An entry can
+    say something the pipeline cannot, though, since a manual correction
+    outranks it, and the answer must not depend on which of the two
+    caught the disagreement first.
+    """
+    stale = parse_index("copyreg 1.5? constructor,pickle\n")
+    monkeypatch.setattr("sincewhen.members.load_index", lambda: stale)
+    found = lookup_member("copyreg.pickle")
+    assert found is not None
+    assert found.since == "3.0"
+    assert not found.or_earlier
+
+
+# No name the index and the dataset both date is in disagreement.
+# `importlib.import_module` used to be the one exception: the index said
+# 2.7 from the inventories' presence and the entry said 3.1 from the
+# release that first documented it. Building the 3.x interpreters and
+# asking them settled it at 2.7, so the entry moved and the exception
+# closed.
+PIPELINE_BUG: frozenset[str] = frozenset()
 
 
 def test_the_index_agrees_with_the_dataset_where_both_speak():

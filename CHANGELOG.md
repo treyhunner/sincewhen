@@ -57,7 +57,7 @@ Two entries keep their versions and gained `manual` evidence: `os.mknod` and `ha
 
 - **A per-module member index ships with the package, so searching for a module member answers about the member rather than its module.**
   `sincewhen -s platform.system` used to say "no entry, but it lives in `platform`, which is 2.3" and now says `platform.system - Python 2.3`; a bare `TimeoutError` suggests `asyncio.TimeoutError` and two others instead of finding nothing.
-  The index is `src/sincewhen/members.txt`, 3,723 members across 242 modules, and every version in it is `scripts/dating.py`'s verdict rather than a fresh opinion, published only where something corroborates it.
+  The index is `src/sincewhen/members.txt`, 3,760 members across 248 modules, and every version in it is `scripts/dating.py`'s verdict rather than a fresh opinion, published only where something corroborates it.
   It sits behind `features.toml`, so a name with an entry of its own never reaches it, and `sincewhen.lookup_member()` and `sincewhen.find_members()` are the library equivalents.
 - **Python 0.9 has a release date, 1991-02-20, so the 115 entries at the first public release report an age like every other row.**
   They read as a plain `0.9` now instead of `0.9 (first public release)`, and the release column, which was blank for them, carries the date.

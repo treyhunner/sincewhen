@@ -272,8 +272,8 @@ def index() -> dict[str, dict[str, tuple[str, bool]]]:
     to write an entry for, worked out once and written down.
 
     Deriving it here rather than ranking the sources again is what took
-    the members that disagree with a dataset entry from 6 to 1, and that
-    one is a pipeline bug rather than a ranking mistake. Every rule this
+    the members that disagree with a dataset entry from 6 to 1, and the
+    interpreters have since corrected that entry and closed the last one. Every rule this
     needs already existed: a bound the module closes, a marker that
     outranks a floor, a backport to 2.7 that really arrived on the spine,
     a re-add that belongs to the 3.x line. Restating any of them here
@@ -284,16 +284,18 @@ def index() -> dict[str, dict[str, tuple[str, bool]]]:
 
     - 8877 the newest release no longer documents, since answering for
       them would be answering about a language this parser cannot read;
-    - 422 `dating.py` refuses, because the sources contradict each other;
+    - 417 `dating.py` refuses, because the sources contradict each other;
     - 165 in a module nothing here can read, see `UNREADABLE`;
-    - 907 whose verdict rests on an inventory diff alone and cannot be
+    - 887 whose verdict rests on an inventory diff alone and cannot be
       corroborated, see `_publish`.
 
-    A member dated older than its own module is dropped too. It cannot be
-    older, so the pair is a disagreement rather than an answer, and the
-    one that reaches this is `copyreg`, which is 3.0 as spelled while its
-    members inherit `copy_reg`'s history. That is the rename rule in
-    AGENTS.md, one level down.
+    A member dated older than its own module takes the module's date
+    instead. It cannot be older, so the module is the binding constraint,
+    and the one that reaches this is `copyreg`, which is 3.0 as spelled
+    while its members inherit `copy_reg`'s history. That is the rename
+    rule in AGENTS.md, one level down, and the same closing of a bound
+    that `bounded_by_its_module` does: a bounded module still passes its
+    bound along.
     """
     members: dict[str, dict[str, tuple[str, bool]]] = defaultdict(dict)
     for name, versions in documented().items():
@@ -310,7 +312,7 @@ def index() -> dict[str, dict[str, tuple[str, bool]]]:
         if owner.added is not None and version_key(published[0]) < version_key(
             owner.added
         ):
-            continue
+            published = (owner.added, owner.or_earlier)
         members[module][member] = published
     return dict(sorted(members.items()))
 
