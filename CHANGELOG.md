@@ -7,6 +7,14 @@ Dataset changes are listed apart from everything else, because they are the chan
 A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
+## Unreleased
+
+### Documentation
+
+- **A "Try it in your browser" section**, pointing at [pym.dev/since](https://pym.dev/since), where the tool runs in the tab rather than on a server.
+- **A "History you can look up" section**, collecting the stories the dataset tells when read end to end: the arcs where one problem got a better answer every few years, the features that are younger than they feel, and what the mismatches between the sources look like in practice.
+
+
 ## 0.6.0 - 2026-07-30
 
 ### Dataset

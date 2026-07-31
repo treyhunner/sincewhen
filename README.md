@@ -8,6 +8,13 @@ Find out which Python version added each feature your code uses.
 Point `sincewhen` at a file and it will tell you what's in there and how long each piece of it has been in Python, back to the first public release in 1991.
 
 
+## Try it in your browser
+
+`sincewhen` parses with the standard library's `ast` and ships no dependencies, so the whole tool runs in a browser tab.
+Paste code in at [pym.dev/since](https://pym.dev/since) to see what it reports without installing anything.
+The analysis runs on your own machine, in the tab, so nothing you paste is uploaded anywhere.
+
+
 ## Installation
 
 Installing with [`uv tool`](https://docs.astral.sh/uv/concepts/tools/):
@@ -119,6 +126,77 @@ concurrent.futures.TimeoutError - Python 3.5 (released 2015-09-13)
 
 Pass `--json` to either mode for machine-readable output.
 A search that answers from the member index emits member records, which carry `module` where a feature record carries `id` and `category`.
+
+
+## History you can look up
+
+Dating 1,847 features against seven independent sources turns up a lot of history that is easy to misremember, and nearly all of it is one search away:
+
+```console
+$ sincewhen --search sorted
+sorted() - Python 2.4 (released 2004-11-30)
+  Docs: https://docs.python.org/3/whatsnew/2.4.html
+```
+
+Here are a few of my favorites.
+
+### The same problem, solved a little better each time
+
+The standard library is full of arcs: a series of tools for one problem, each solving it a bit better than the last.
+
+**Counting.**
+How do you count things in Python?
+The answer kept improving for thirteen years: `dict.get` arrived in 1997 (Python 1.5), `dict.setdefault` in 2000 (2.0), `dict.fromkeys` in 2003 (2.3), `collections.defaultdict` in 2006 (2.5), and `collections.Counter` in 2010 (2.7).
+[Counting things in Python](https://treyhunner.com/2015/11/counting-things-in-python/) walks this same history as code, refactoring one loop forward through every release.
+
+**String formatting.**
+Python has gone through several waves of string interpolation.
+Percent formatting was there at the beginning, in 1991.
+Then `string.Template` in 2004 (2.4), `str.format` in 2008 (2.6), f-strings in 2016 (3.6), and t-strings in 2025 (3.14).
+All five still work.
+[T-strings in Python](https://www.pythonmorsels.com/t-strings-in-python/#string-formatting-a-very-brief-history) lays them out side by side.
+
+**Records.**
+"A class that just holds some fields" sounds like a solved problem.
+Tuples were the answer in 1991, but Python has added new answers since: `collections.namedtuple` in 2008 (2.6), `types.SimpleNamespace` in 2012 (3.3), `typing.NamedTuple` in 2015 (3.5), `dataclasses` in 2018 (3.7), and `typing.TypedDict` in 2019 (3.8).
+
+**Running a subprocess.**
+`os.system` is from 1997 (1.5).
+`subprocess.Popen` arrived in 2004 (2.4) with the stated aim of replacing it, `subprocess.check_output` in 2010 (2.7), and `subprocess.run` in 2015 (3.5).
+`os.system` is still there in Python 3.14.
+
+### Other surprising stories
+
+**Comprehensions came six years after `map()` and `filter()`.**
+`map()`, `filter()`, and `lambda` are all from 1994 (1.0), so the whole functional trio was there together before any comprehension syntax existed.
+List comprehensions arrived in 2000 (2.0), generator expressions in 2004 (2.4), and dict and set comprehensions in 2010 (2.7).
+
+**`sorted()` is nearly fourteen years younger than `list.sort()`.**
+Sorting a list in place worked in 1991 (0.9); sorting anything into a new list arrived in 2004 (2.4).
+`reversed()` is also from 2004 (2.4), against a `list.reverse()` from 1994 (1.0).
+
+**`enumerate()` took twelve years.**
+It arrived in 2003 (2.3), so `for i in range(len(items))` was simply how you numbered things for a long time.
+`zip()` beat it by three years, so from 2000 to 2003 you could pair two lists together but still could not number one.
+
+**Curly braces meant only dictionaries for sixteen years.**
+Dict literals date to 1994 (1.0).
+Sets arrived as a module in 2003 (2.3), became the `set()` and `frozenset()` builtins in 2004 (2.4), and finally got literals, and set comprehensions with them, in 2010 (2.7).
+
+**String methods did not exist for Python's first nine years.**
+Until 2000 (1.6), splitting a string meant `string.split(line)` rather than `line.split()`.
+That release added twenty-nine string methods at once, and the `string` module kept growing anyway: `string.ascii_lowercase` is from 2001 (2.2) and `string.Template` from 2004 (2.4), both newer than the methods that took away the module's original job.
+Today `string` has twelve public names left.
+
+### Why seven sources
+
+The documentation is a record kept by many people over thirty-five years, and a module's early history is genuinely hard to reconstruct after the fact.
+An "Added in version" marker attaches to whatever signature sits above it, which is not always the thing it was written about: `compile()` is from 1994 (1.0), and the nearest marker in the current docs says 3.8 because it documents a `flags` value.
+The Python 2.7 docs date `bisect` to 2.1, while `Lib/bisect.py` is already in the 1.0 tarball, from 1994.
+And a PEP records what was planned rather than what shipped: class decorators are headed `Python-Version: 3.0` by PEP 3129, and CPython's 2.6 grammar already has the rule.
+
+That is why every version here is checked against seven independent sources rather than trusted to any one of them.
+Twenty entries in the dataset carry an evidence note recording that the documentation dates them to a different release than the one they shipped in.
 
 
 ## Library
