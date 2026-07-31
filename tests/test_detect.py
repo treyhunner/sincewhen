@@ -223,6 +223,17 @@ def test_modules_are_detected():
     assert features("from importlib import resources") == {"importlib-resources"}
 
 
+def test_a_module_python_3_renamed_is_claimed_only_under_its_new_name():
+    """`reprlib` is 3.0, and `repr` the module is no version at all.
+
+    The parser reads Python 3 source, so `import repr` can only ever be
+    a mistake there, and dating it 1.0 fed a floor into
+    `minimum_version()` for an import that fails on every Python 3.
+    """
+    assert features("import reprlib") == {"reprlib"}
+    assert features("import repr") == set()
+
+
 def test_attributes_are_detected():
     assert "math-isclose" in features("import math\nmath.isclose(a, b)")
     assert "itertools-batched" in features("import itertools\nitertools.batched(x, 2)")

@@ -86,8 +86,9 @@ def check_symbols(entry: dict, names: list[str]) -> tuple[str, str]:
             return (
                 MISMATCH,
                 f"{name}: the {verdict.interpreter_absent_in} interpreter does "
-                f"not resolve it and the docs date it {verdict.annotation}; a "
-                "micro release may have fixed it, so settle it with manual "
+                f"not resolve it and the {verdict.documented_by} says "
+                f"{verdict.documented}; a micro release may have fixed it, or "
+                "the build may be missing a library, so settle it with manual "
                 "evidence",
             )
         if verdict.status == "source-contradicts-archive":

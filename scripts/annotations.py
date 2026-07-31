@@ -32,13 +32,28 @@ import argparse
 import json
 import re
 from collections.abc import Iterator
+from functools import cache
 from pathlib import Path
 
 from sources import text_files, text_root
 
+# Which cached text build to trust for a given era. The 3.x docs dropped
+# the Python 2 markers, and the 2.7 docs obviously stop at 2.7. Named
+# here rather than by each caller, because `dated_releases` and
+# `dating.py` have to read the builds in the same order to agree.
+ANNOTATION_BUILDS = ("2.7", "3.14")
+
 # The wording changed over the years: older docs say "New in version",
 # newer ones say "Added in version". Both mean the same thing.
-ANNOTATION = re.compile(r"^(?P<indent>\s*)(New|Added) in version (?P<version>\d+\.\d+)")
+#
+# The micro is captured separately and kept separately. The dataset
+# works at feature-release granularity, so `added` stays "3.5" for a
+# marker that says 3.5.2, but the difference is the only thing that can
+# explain a built interpreter disagreeing with the docs: this corpus
+# builds each release's `.0`, and `typing.Type` really is not in 3.5.0.
+ANNOTATION = re.compile(
+    r"^(?P<indent>\s*)(New|Added) in version (?P<version>\d+\.\d+)(?P<micro>\.\d+)?"
+)
 
 # A signature line: a dotted name, optionally followed by a call
 # signature. The leading words are the ones the text build puts in front
@@ -105,6 +120,7 @@ def annotations_in(path: Path, module_root: Path) -> Iterator[dict]:
             depth = len(marker["indent"])
             record = {
                 "added": marker["version"],
+                "release": marker["version"] + (marker["micro"] or ""),
                 "file": relative,
                 "line": number,
                 "quote": " ".join(_paragraph(lines, number - 1)),
@@ -194,6 +210,35 @@ def collect(version: str = "3.14") -> list[dict]:
 def _key(version: str) -> tuple[int, int]:
     major, _, minor = version.partition(".")
     return int(major), int(minor)
+
+
+@cache
+def dated_releases() -> dict[str, str]:
+    """The full release each name's oldest marker names, micro included.
+
+    Separate from the feature release the dataset records, and the only
+    thing that can tell a built interpreter's absence from a mistake.
+    The corpus builds each release's `.0`, so a marker that says 3.5.2 is
+    a marker the 3.5 interpreter is expected to disagree with, and one
+    that says 3.5 is not.
+
+    Read in the same build order as `dating.py`'s own index, so that a
+    name dated in both builds keeps its Python 2 marker in both places.
+    """
+    index: dict[str, str] = {}
+    for build in ANNOTATION_BUILDS:
+        for record in collect(build):
+            existing = index.get(record["name"])
+            if existing is None or _release_key(record["release"]) < _release_key(
+                existing
+            ):
+                index[record["name"]] = record["release"]
+    return index
+
+
+def _release_key(release: str) -> tuple[int, ...]:
+    """Sort key for a release that may or may not name a micro."""
+    return tuple(int(part) for part in release.split("."))
 
 
 def compare(records: list[dict]) -> list[dict]:

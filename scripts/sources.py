@@ -89,6 +89,50 @@ SOURCE_BUILDS = {
     "2.5": "2.5/Python-2.5.tgz",
 }
 
+# The source releases the interpreter oracle builds beyond the tarball
+# corpus above, and the only thing they are used for. `SOURCE_BUILDS`
+# stops at 2.5 because that is where the extractors in `source.py` and
+# `typemethods.py` stop being able to read a tree: a Python 3 module is
+# registered through a `PyModuleDef` rather than an `initmodule()` call,
+# and its builtins live nowhere near `bltinmodule.c`'s old table. None of
+# those extractors runs over these, so they are kept apart rather than
+# folded in.
+#
+# What they are for is the two things a build needs: a tarball to compile,
+# and a tree to ask whether an absence is this build's fault or that
+# release's. 2.6 and 2.7 are here because without them the timeline has a
+# hole either side of the Python 3 split, and a name that arrived in 2.6
+# would read as a 3.0 addition.
+#
+# Each is its feature release exactly, for the same reason the old corpus
+# is: this is a table of feature releases, and a name found in 3.4.3 may
+# have arrived in 3.4.3. python.org's directory naming changes at 3.3,
+# from the feature release to the full micro, so every path is spelled
+# out here the way the old ones are.
+MODERN_BUILDS = {
+    "2.6": "2.6/Python-2.6.tgz",
+    "2.7": "2.7/Python-2.7.tgz",
+    "3.0": "3.0/Python-3.0.tgz",
+    "3.1": "3.1/Python-3.1.tgz",
+    "3.2": "3.2/Python-3.2.tgz",
+    "3.3": "3.3.0/Python-3.3.0.tgz",
+    "3.4": "3.4.0/Python-3.4.0.tgz",
+    "3.5": "3.5.0/Python-3.5.0.tgz",
+    "3.6": "3.6.0/Python-3.6.0.tgz",
+    "3.7": "3.7.0/Python-3.7.0.tgz",
+    "3.8": "3.8.0/Python-3.8.0.tgz",
+    "3.9": "3.9.0/Python-3.9.0.tgz",
+    "3.10": "3.10.0/Python-3.10.0.tgz",
+    "3.11": "3.11.0/Python-3.11.0.tgz",
+    "3.12": "3.12.0/Python-3.12.0.tgz",
+    "3.13": "3.13.0/Python-3.13.0.tgz",
+    "3.14": "3.14.0/Python-3.14.0.tgz",
+}
+
+# Every release with a source tarball in the cache, oldest first, whether
+# it is read as text or built and asked.
+ALL_BUILDS = SOURCE_BUILDS | MODERN_BUILDS
+
 # The HTML doc archives, which are all that exists before the Sphinx
 # era. Each one carries a list of every module in that release, so
 # diffing them dates the pre-2.6 stdlib the same way `objects.inv` dates
@@ -250,7 +294,7 @@ def html_archive_path(version: str) -> Path:
 
 
 def source_archive_path(version: str) -> Path:
-    return CACHE / "src" / Path(SOURCE_BUILDS[version]).name
+    return CACHE / "src" / Path(ALL_BUILDS[version]).name
 
 
 def source_root(version: str) -> Path:

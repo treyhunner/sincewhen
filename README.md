@@ -198,7 +198,7 @@ Nobody should be typing version numbers from memory.
 For anything in the standard library, let the archived documentation say what the version is:
 
 ```console
-$ just fetch-docs                       # one-time, ~500 MB into a gitignored .cache/
+$ just fetch-docs                       # one-time, ~2 GB into a gitignored .cache/
 $ just whenadded math.lcm               # what each source says, and whether they agree
 $ just propose math.lcm math.isqrt      # entries with evidence, ready to paste
 $ just typemethods --compare            # what the builtin types' method tables date
@@ -214,18 +214,20 @@ Evidence has eight `method` values, seven of which a machine can recheck:
 | `objects.inv` | the symbol is absent from one release's Sphinx inventory and present in the next                                                            |
 | `archive`     | the same diff over the module lists and built-in function pages in the pre-Sphinx doc builds, back to the 0.9.1 LaTeX                       |
 | `source`      | the name is absent from one release's own C or Python implementation and present in the next, which reaches back further than any doc build. For a method of a builtin type this is the type's own method table, which is the only thing that can date `dict.setdefault` or `str.split` at all |
-| `interpreter` | that release's own interpreter, built from its tarball, was asked whether the name resolves                                                 |
+| `interpreter` | that release's own interpreter, built from its tarball, was asked whether the name resolves. Thirty-one of them, 0.9.1 to 3.14                |
 | `annotation`  | the documentation dates it itself, in an "Added in version" marker quoted in the entry                                                      |
 | `grammar`     | the token is absent from one release's grammar and present in the next, which is what shipped rather than what a PEP intended               |
 | `pep`         | the feature's PEP carries a `Python-Version` header                                                                                         |
 | `manual`      | a human read the archives and wrote down what they found, and why the other seven do not settle it                                          |
 
-`interpreter` is the only method that reads Python rather than a description of it, and it outranks the rest for the era it covers, 0.9.1 to 2.5.
+`interpreter` is the only method that reads Python rather than a description of it, and it outranks the rest across the whole timeline, 0.9.1 to 3.14.
 It is what settles a name no text can account for: `re.finditer` is defined in Python 2.2's `sre.py` and left out of its `__all__`, so `from sre import *` never bound it and the answer is 2.3, not the 2.2 the docs claim.
-Building the interpreters needs Docker and about ten minutes, so the result is committed as `scripts/interpreters.json` and nothing downstream needs a compiler:
+On the 3.x line it is the only cross-check `objects.inv` has, and the inventory dates *documentation*: `shutil.SpecialFileError` is first indexed in 3.13 and resolves from 2.7 on.
+Building the interpreters needs Docker and the better part of an hour, so the result is committed as `scripts/interpreters.json` and nothing downstream needs a compiler:
 
 ```console
-$ just build-pythons                    # build 0.9.1 through 2.5 (slow)
+$ just build-pythons                    # build 0.9.1 through 3.14 (slow)
+$ just build-pythons modern             # or just one half of it
 $ just probe-pythons                    # ask them all, and record it
 $ just interpreters-vs-dataset          # where they disagree with the dataset
 ```

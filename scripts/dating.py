@@ -41,8 +41,10 @@ import sys
 from dataclasses import dataclass, field
 from functools import cache
 
+from annotations import ANNOTATION_BUILDS
 from annotations import collect as collect_annotations
 from interpreters import dated as interpreter_dated
+from interpreters import micro_explains
 from modindex import HTML_BUILDS, dated_builtins, dated_members, dated_modules
 from source import SOURCE_ORDER
 from source import dated_builtins as source_builtins
@@ -73,10 +75,6 @@ SPINE = (
 # The 2.x line. Python 3.0 forked from 2.6, so this is a sibling of the
 # spine rather than its prefix, and the two are never chained.
 LEGACY = ("2.6", "2.7")
-
-# Which cached text build to trust for a given era. The 3.x docs dropped
-# the Python 2 markers, and the 2.7 docs obviously stop at 2.7.
-ANNOTATION_BUILDS = ("2.7", "3.14")
 
 # The oldest release whose source survives, and so the floor of every
 # method here. A name already in it cannot be dated, only bounded.
@@ -230,6 +228,46 @@ class Verdict:
             case "archive" | "docs-overstate":
                 return self.archive_is_floor
         return False
+
+    @property
+    def micro_explains_the_interpreter(self) -> bool:
+        """Whether the docs' own marker accounts for the interpreter's absence.
+
+        The corpus builds each release's `.0`, so a marker that names a
+        micro release is a marker the interpreter is *expected* to
+        disagree with: `typing.Type` says "Added in version 3.5.2", the
+        3.5.0 build does not have it, and 3.6 is the first release in the
+        corpus that does. Nothing is wrong there and nobody needs to
+        write a note about it.
+
+        The rule itself lives in `interpreters.py`, because `--check`
+        applies it too and two copies of it can reach opposite
+        conclusions about the same entry.
+        """
+        if self.interpreter is None or self.annotation is None:
+            return False
+        return micro_explains(self.name, self.annotation, self.interpreter)
+
+    @property
+    def documented(self) -> str | None:
+        """The oldest release any doc-derived method puts this name in.
+
+        The two of them are one claim for the purpose of ranking a built
+        interpreter against them, because they fail in the same
+        direction: a marker and an inventory entry both describe what was
+        written down, and both can be written down late. Which of them is
+        binding is whichever says the name is older, since being listed
+        proves presence and not being listed proves very little.
+        """
+        dates = [date for date in (self.annotation, self.inventory) if date is not None]
+        return min(dates, key=version_key) if dates else None
+
+    @property
+    def documented_by(self) -> str | None:
+        """Which doc-derived method the `documented` date came from."""
+        if self.documented is None:
+            return None
+        return "annotation" if self.documented == self.annotation else "inventory"
 
     @property
     def bounded_by_its_module(self) -> bool:
@@ -389,6 +427,16 @@ class Verdict:
         # name really did go away and come back: `types.NoneType` is
         # bound in the 1.1 tarball and in the 1.2 docs, then gone for
         # all of Python 3 until 3.10.
+        #
+        # This guards those two and no longer guards the interpreter,
+        # which now sees the whole timeline and detects a re-add itself:
+        # `types.NoneType` resolves in 1.1, not again until 3.10, and a
+        # mask like that is reported as a gap rather than as a date.
+        # Guarding the interpreter with it hid real corrections, because
+        # it fires whenever the two doc-derived methods agree, which is
+        # most of the 3.x line. It is what kept `dis.show_code` reading
+        # as 3.2 when 3.0's own `dis.py` defines it and the 3.0
+        # interpreter resolves it.
         readded = (
             self.inventory
             and self.line == "spine"
@@ -435,7 +483,12 @@ class Verdict:
         # Against the source it is a real disagreement rather than a
         # ranking: both claim proof, one about what the text binds and one
         # about what the interpreter bound, and they cannot both be right.
-        if self.interpreter and not readded:
+        if self.interpreter and not self.micro_explains_the_interpreter:
+            # A marker naming a micro release explains the disagreement
+            # outright, so the interpreter has nothing to add and the
+            # docs answer. Skipped here rather than resolved below,
+            # because "the interpreter is right about 3.5.0 and the docs
+            # are right about 3.5" leaves the docs holding the answer.
             if not self.interpreter_is_floor:
                 if (
                     self.source
@@ -443,8 +496,9 @@ class Verdict:
                     and self.source != self.interpreter
                 ):
                     return "interpreter-contradicts-source"
-                if self.annotation and self.annotation != self.interpreter:
-                    if version_key(self.interpreter) > version_key(self.annotation):
+                documented = self.documented
+                if documented and documented != self.interpreter:
+                    if version_key(self.interpreter) > version_key(documented):
                         # The interpreter says it arrived *later* than the
                         # docs claim, and this method cannot tell that from
                         # a micro release having fixed it. The corpus builds
@@ -458,6 +512,13 @@ class Verdict:
                         # "New in version 2.2" are right about the release
                         # even though the release's own `.0` could not do
                         # it. So this needs a human rather than a winner.
+                        #
+                        # The inventory is read the same way and for the
+                        # same reason, even though it is the method this
+                        # one exists to cross-check. Being indexed late is
+                        # what the inventory gets wrong, and it errs by
+                        # naming a release too new; a build that answers
+                        # "too new" as well is agreeing about nothing.
                         return "interpreter-contradicts-docs"
                     return "interpreter-overrides-docs"
                 return "interpreter"
@@ -545,6 +606,31 @@ class Verdict:
             ),
         }
 
+    def _overridden_docs_note_for_interpreter(self) -> str:
+        """What to say when a built interpreter outranks a doc-derived date.
+
+        Which doc source is being outranked changes what the note is
+        claiming, so it changes what the note says. A marker is the docs
+        making a dated statement and being wrong about it. An inventory
+        entry is not a statement about dates at all: it is the release
+        whose documentation first indexed the name, and the gap between
+        that and the release that shipped it is precisely what this
+        method exists to measure. `hashlib.sha3_256` shipped in 3.6 and
+        was first indexed in 3.11.
+        """
+        if self.documented_by == "annotation":
+            return (
+                f"The {self.annotation_build} docs date it to "
+                f"{self.annotation}, but the {self.interpreter_absent_in} "
+                f"interpreter does not resolve it and {self.interpreter} does."
+            )
+        return (
+            f"First indexed by the {self.inventory} inventory, which dates "
+            f"the documentation rather than the release: the "
+            f"{self.interpreter_absent_in} interpreter does not resolve it "
+            f"and {self.interpreter} does."
+        )
+
     def _overridden_docs_note(self) -> str:
         """What to say when the source outranks a version marker.
 
@@ -586,12 +672,7 @@ class Verdict:
             elif self.interpreter_note:
                 evidence["note"] = self.interpreter_note
             elif self.status == "interpreter-overrides-docs":
-                evidence["note"] = (
-                    f"The {self.annotation_build} docs date it to "
-                    f"{self.annotation}, but the {self.interpreter_absent_in} "
-                    "interpreter does not resolve it and "
-                    f"{self.interpreter} does."
-                )
+                evidence["note"] = self._overridden_docs_note_for_interpreter()
             return evidence | {"checked": checked}
         if self.status in {"source", "source-overrides-docs"}:
             evidence = {

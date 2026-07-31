@@ -1512,17 +1512,16 @@ checked = "2026-07-28"
 [[features]]
 id = "shutil-specialfileerror"
 name = "shutil.SpecialFileError"
-added = "3.13"
+added = "2.7"
 category = "exception"
 attributes = ["shutil.SpecialFileError"]
 
 [features.evidence]
-method = "objects.inv"
-symbol = "py:exception shutil.SpecialFileError"
-absent_in = "3.12"
-present_in = "3.13"
-note = "Also in Python 2.7, but missing from 3.12 as well as 3.0 and 3.1, so 3.13 is the oldest release it has been available in ever since."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "shutil.SpecialFileError"
+absent_in = "2.6"
+present_in = "2.7"
+checked = "2026-07-30"
 
 [[features]]
 id = "configparser-invalidwriteerror"
@@ -4011,19 +4010,19 @@ present_in = "1.5"
 checked = "2026-07-29"
 
 [[features]]
-id = "repr"
-name = "repr module"
-added = "1.0"
+id = "reprlib"
+name = "reprlib module"
+added = "3.0"
 category = "module"
-modules = ["repr"]
+pep = 3108
+modules = ["reprlib"]
 
 [features.evidence]
-method = "source"
-symbol = "repr"
-file = "Lib/repr.py"
-absent_in = "0.9"
-present_in = "1.0"
-checked = "2026-07-29"
+method = "pep"
+pep = 3108
+python_version = "3.0"
+note = "The entry claims the name as spelled: PEP 3108 renamed `repr` to `reprlib` in 3.0, and no earlier release can import the new spelling. The module under its old name is in the 1.0 tarball as `Lib/repr.py`, so the functionality is 1.0. `repr` itself gets no entry, the same as every name Python 3 removed: it was dated 1.0 here until the built interpreters showed it resolving in no release after 2.7."
+checked = "2026-07-30"
 
 [[features]]
 id = "resource"
@@ -7043,16 +7042,14 @@ checked = "2026-07-28"
 [[features]]
 id = "os-direntry"
 name = "os.DirEntry"
-added = "3.5"
+added = "3.6"
 category = "class"
 attributes = ["os.DirEntry"]
 
 [features.evidence]
-method = "objects.inv"
-symbol = "py:class os.DirEntry"
-absent_in = "3.4"
-present_in = "3.5"
-checked = "2026-07-28"
+method = "manual"
+note = "The docs and the 3.5 inventory both date the class to 3.5, and the name is 3.6. The type exists in 3.5, since `scandir()` yields it, but nothing in 3.5 binds it under a name: `Modules/posixmodule.c` gains `PyModule_AddObject(m, \"DirEntry\", ...)` in 3.6 and has no such call in 3.5, and the 3.5 interpreter resolves neither `os.DirEntry` nor `posix.DirEntry`. Two sources agreeing on the release the name arrived in is what settles this against a marker that is dating the class rather than the attribute."
+checked = "2026-07-30"
 
 [[features]]
 id = "subprocess-completedprocess"
@@ -8161,16 +8158,17 @@ checked = "2026-07-28"
 [[features]]
 id = "re-regexflag"
 name = "re.RegexFlag"
-added = "3.11"
+added = "3.6"
 category = "class"
 attributes = ["re.RegexFlag"]
 
 [features.evidence]
-method = "objects.inv"
-symbol = "py:class re.RegexFlag"
-absent_in = "3.10"
-present_in = "3.11"
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "re.RegexFlag"
+absent_in = "3.5"
+present_in = "3.6"
+note = "The 3.14 docs date it to 3.11, but the 3.5 interpreter does not resolve it and 3.6 does."
+checked = "2026-07-30"
 
 [[features]]
 id = "sqlite3-blob"
@@ -13491,10 +13489,9 @@ category = "function"
 attributes = ["os.mknod"]
 
 [features.evidence]
-method = "annotation"
-docs = "2.7:library/os.txt"
-quote = "New in version 2.3."
-checked = "2026-07-28"
+method = "manual"
+note = "The 2.7 docs say \"New in version 2.3\" and the built interpreters resolve it only from 2.7, and the docs are right. `posixmodule.c` guards the table row with `#if defined(HAVE_MKNOD) && defined(HAVE_MAKEDEV)`, and 2.6's `configure` probes for `makedev` in `<sys/types.h>` alone, where glibc 2.28 no longer defines it: the generated `pyconfig.h` has `HAVE_MKNOD` and not `HAVE_MAKEDEV`, while 2.7's has both because its `configure` carries a second probe. The absence is a 2018 header move and not 2003 history."
+checked = "2026-07-30"
 
 [[features]]
 id = "os-walk"
@@ -15057,16 +15054,17 @@ checked = "2026-07-28"
 [[features]]
 id = "importlib-import-module"
 name = "importlib.import_module()"
-added = "3.1"
+added = "2.7"
 category = "function"
 attributes = ["importlib.import_module"]
 
 [features.evidence]
-method = "objects.inv"
-symbol = "py:function importlib.import_module"
-absent_in = "3.0"
-present_in = "3.1"
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "importlib.import_module"
+absent_in = "2.6"
+present_in = "2.7"
+note = "First indexed by the 3.1 inventory, which dates the documentation rather than the release: the 2.6 interpreter does not resolve it and 2.7 does."
+checked = "2026-07-30"
 
 [[features]]
 id = "abc-abstractclassmethod"
@@ -15113,16 +15111,17 @@ checked = "2026-07-28"
 [[features]]
 id = "dis-show-code"
 name = "dis.show_code()"
-added = "3.2"
+added = "3.0"
 category = "function"
 attributes = ["dis.show_code"]
 
 [features.evidence]
-method = "objects.inv"
-symbol = "py:function dis.show_code"
-absent_in = "3.1"
-present_in = "3.2"
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "dis.show_code"
+absent_in = "2.7"
+present_in = "3.0"
+note = "The 3.14 docs date it to 3.2, but the 2.7 interpreter does not resolve it and 3.0 does."
+checked = "2026-07-30"
 
 [[features]]
 id = "functools-lru-cache"
@@ -17208,11 +17207,9 @@ category = "function"
 attributes = ["hashlib.scrypt"]
 
 [features.evidence]
-method = "objects.inv"
-symbol = "py:function hashlib.scrypt"
-absent_in = "3.5"
-present_in = "3.6"
-checked = "2026-07-28"
+method = "manual"
+note = "The 3.6 inventory dates it to 3.6 and the built interpreters resolve it only from 3.7, and the docs are right. `scrypt` is the one name in `hashlib` that comes from `_hashlib` with no Python fallback, and `_hashlib` is the module the interpreter corpus cannot build before 3.7 because its image ships OpenSSL 3. The 3.7 build has `_hashlib` and the 3.6 build does not, so the absence is the image's and not the release's."
+checked = "2026-07-30"
 
 [[features]]
 id = "hashlib-sha3"
@@ -17899,15 +17896,14 @@ checked = "2026-07-28"
 [[features]]
 id = "dis-end-async-for"
 name = "dis.END_ASYNC_FOR"
-added = "3.8"
+added = "3.14"
 category = "function"
 attributes = ["dis.END_ASYNC_FOR"]
 
 [features.evidence]
-method = "annotation"
-docs = "3.14:library/dis.txt"
-quote = "Added in version 3.8."
-checked = "2026-07-28"
+method = "manual"
+note = "The opcode is 3.8 and this name is 3.14. The docs write it `.. opcode:: END_ASYNC_FOR`, which the text build renders unqualified under the `dis` heading, so the marker gets attached to a dotted name the docs never claimed. `Lib/dis.py` binds a module-level constant only for the opcodes it needs itself, and `END_ASYNC_FOR = opmap['END_ASYNC_FOR']` first appears in 3.14; the built interpreters agree, and 3.14's predecessor resolves it in no micro release either. The name as spelled is what the entry claims, because dating it 3.8 put a floor under `minimum_version()` for code that raises `AttributeError` until 3.14. The opcode's own age is recorded here."
+checked = "2026-07-30"
 
 [[features]]
 id = "functools-cached-property"
@@ -18332,28 +18328,26 @@ checked = "2026-07-28"
 [[features]]
 id = "dis-contains-op"
 name = "dis.CONTAINS_OP"
-added = "3.9"
+added = "3.14"
 category = "function"
 attributes = ["dis.CONTAINS_OP"]
 
 [features.evidence]
-method = "annotation"
-docs = "3.14:library/dis.txt"
-quote = "Added in version 3.9."
-checked = "2026-07-28"
+method = "manual"
+note = "The opcode is 3.9 and this name is 3.14. The docs write it `.. opcode:: CONTAINS_OP`, which the text build renders unqualified under the `dis` heading, so the marker gets attached to a dotted name the docs never claimed. `Lib/dis.py` binds a module-level constant only for the opcodes it needs itself, and `CONTAINS_OP = opmap['CONTAINS_OP']` first appears in 3.14; the built interpreters agree, and 3.14's predecessor resolves it in no micro release either. The name as spelled is what the entry claims, because dating it 3.9 put a floor under `minimum_version()` for code that raises `AttributeError` until 3.14. The opcode's own age is recorded here."
+checked = "2026-07-30"
 
 [[features]]
 id = "dis-is-op"
 name = "dis.IS_OP"
-added = "3.9"
+added = "3.14"
 category = "function"
 attributes = ["dis.IS_OP"]
 
 [features.evidence]
-method = "annotation"
-docs = "3.14:library/dis.txt"
-quote = "Added in version 3.9."
-checked = "2026-07-28"
+method = "manual"
+note = "The opcode is 3.9 and this name is 3.14. The docs write it `.. opcode:: IS_OP`, which the text build renders unqualified under the `dis` heading, so the marker gets attached to a dotted name the docs never claimed. `Lib/dis.py` binds a module-level constant only for the opcodes it needs itself, and `IS_OP = opmap['IS_OP']` first appears in 3.14; the built interpreters agree, and 3.14's predecessor resolves it in no micro release either. The name as spelled is what the entry claims, because dating it 3.9 put a floor under `minimum_version()` for code that raises `AttributeError` until 3.14. The opcode's own age is recorded here."
+checked = "2026-07-30"
 
 [[features]]
 id = "functools-cache"
@@ -18801,15 +18795,14 @@ checked = "2026-07-28"
 [[features]]
 id = "dis-send"
 name = "dis.SEND"
-added = "3.11"
+added = "3.12"
 category = "function"
 attributes = ["dis.SEND"]
 
 [features.evidence]
-method = "annotation"
-docs = "3.14:library/dis.txt"
-quote = "Added in version 3.11."
-checked = "2026-07-28"
+method = "manual"
+note = "The opcode is 3.11 and this name is 3.12. The docs write it `.. opcode:: SEND`, which the text build renders unqualified under the `dis` heading, so the marker gets attached to a dotted name the docs never claimed. `Lib/dis.py` binds a module-level constant only for the opcodes it needs itself, and `SEND = opmap['SEND']` first appears in 3.12; the built interpreters agree, and 3.12's predecessor resolves it in no micro release either. The name as spelled is what the entry claims, because dating it 3.11 put a floor under `minimum_version()` for code that raises `AttributeError` until 3.12. The opcode's own age is recorded here."
+checked = "2026-07-30"
 
 [[features]]
 id = "enum-global-enum"

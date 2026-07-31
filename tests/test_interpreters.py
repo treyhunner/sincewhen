@@ -1,20 +1,22 @@
 """The decisions `interpreters.py` makes without asking an interpreter.
 
-Building fourteen interpreters needs Docker and ten minutes, so none of
-that is exercised here. What is exercised is the logic that turns their
-answers into version claims, which is where a bug does the real damage:
-every one of these functions can turn a working build into a wrong
-version number, silently, and several already did before they were
-guarded.
+Building thirty-one interpreters needs Docker and the better part of an
+hour, so none of that is exercised here. What is exercised is the logic
+that turns their answers into version claims, which is where a bug does
+the real damage: every one of these functions can turn a working build
+into a wrong version number, silently, and several already did before
+they were guarded.
 
 Three families, and the reason each one is worth a test:
 
-- **the probe source**, which has to parse under Python 0.9.1. That rules
-  out `==`, bare expression statements, and any name that was a keyword
-  in 1991, and none of those failures look like failures: they look like
-  a release that did not have the feature.
-- **the presence mask**, which has four readings and only one of them is
-  a date.
+- **the probe source**, which has to parse under Python 0.9.1 at one end
+  and Python 3.14 at the other. That rules out `==`, bare expression
+  statements, and any name that was a keyword in 1991, and none of those
+  failures look like failures: they look like a release that did not have
+  the feature.
+- **the presence mask**, which is read backwards from the newest release
+  because the claim is "available ever since", and which has five
+  readings of which only one is a date.
 - **the absence guard**, which is the difference between this method
   being useful and being a machine for inventing wrong versions. It took
   48 false disagreements down to 1.
@@ -25,6 +27,10 @@ import pytest
 
 RELEASES = ("0.9", "1.0", "1.1", "1.2")
 
+# A slice of the modern half, chosen so that the two releases the
+# dataset's own rule forgives sit in the middle of it.
+MODERN = ("2.6", "2.7", "3.0", "3.1", "3.2", "3.3")
+
 
 @pytest.fixture
 def table(monkeypatch):
@@ -32,6 +38,43 @@ def table(monkeypatch):
     built = {"releases": list(RELEASES), "presence": {}}
     monkeypatch.setattr(interpreters, "load_table", lambda: built)
     return built["presence"]
+
+
+@pytest.fixture
+def modern_table(monkeypatch):
+    """The same, over releases from the modern half of the corpus."""
+    built = {"releases": list(MODERN), "presence": {}}
+    monkeypatch.setattr(interpreters, "load_table", lambda: built)
+    return built["presence"]
+
+
+@pytest.fixture(autouse=True)
+def _no_cached_trees(monkeypatch, tmp_path):
+    """Point the corpus at an empty directory that exists.
+
+    Every test here works from a fake presence table, and none of them
+    should be reading the 2 GB corpus. Without this they do: `_ships_in`
+    refuses outright when a release's tree is missing, so three tests
+    passed only on a machine that happened to have `.cache/` populated
+    and failed in CI, where the test job restores no corpus.
+    """
+    monkeypatch.setattr(interpreters, "source_root", lambda version: tmp_path)
+    _forget()
+    yield
+    _forget()
+
+
+def _forget():
+    """Drop every cache keyed on a release, since the fakes move.
+
+    They are keyed by release and name rather than by what the tree said,
+    which is right in production, where the tree does not change under a
+    run, and wrong here, where changing it is the entire point.
+    """
+    interpreters._ships_in.cache_clear()
+    interpreters._legacy_modules.cache_clear()
+    interpreters._library_root.cache_clear()
+    interpreters._c_module_inits.cache_clear()
 
 
 @pytest.fixture
@@ -47,6 +90,7 @@ def shipped(monkeypatch):
     monkeypatch.setattr(
         interpreters, "_ships_as_package", lambda version, module: False
     )
+    _forget()
     return modules
 
 
@@ -107,6 +151,22 @@ class TestProbeSource:
         source = interpreters._probe_source(["attribute str.format"])
         assert "try:\n    _ = str.format\n" in source
 
+    def test_the_modern_half_prints_with_a_function(self):
+        """`print 'x'` is a syntax error from 3.0, and 2.6 accepts both."""
+        source = interpreters._probe_source(["module bisect"], "3.5")
+        assert "print('Y module bisect')" in source
+        assert "print 'Y" not in source
+
+    def test_python_3_is_asked_about_its_own_keywords(self):
+        """`print` and `exec` are names there, and names are datable.
+
+        Skipping them everywhere would leave the two builtins that most
+        obviously changed in Python 3 with nothing to say about them.
+        """
+        source = interpreters._probe_source(["builtin print"], "3.5")
+        assert "_ = print" in source
+        assert "Y builtin print" in source
+
 
 class TestHealthSource:
     """0.9.1 has no `==`, so the check cannot be written the obvious way."""
@@ -125,9 +185,19 @@ class TestHealthSource:
         for label, *_ in interpreters.HEALTH:
             assert f"print 'H {label}'" in source
 
+    def test_the_modern_half_checks_which_release_answered(self):
+        """Seventeen prefixes side by side, so "which one is this" matters.
+
+        Compared part by part rather than as a prefix, because 2.6 calls
+        itself "2.6" with no micro and a bare "3.1" prefix matches 3.10.
+        """
+        source = interpreters._health_source("3.1")
+        assert "sys.version.split()[0].split('.')[:2] == ['3', '1']" in source
+        assert interpreters._health_source("3.10").count("['3', '10']") == 1
+
 
 class TestDated:
-    """Four readings of a presence mask, and only one is a date."""
+    """Five readings of a presence mask, and only one is a date."""
 
     def test_absent_then_present_ever_since_is_a_date(self, table, shipped):
         table["module bisect"] = "..##"
@@ -161,6 +231,18 @@ class TestDated:
     def test_a_name_no_release_resolves_gets_no_answer(self, table, shipped):
         assert interpreters.dated("module tomllib") is None
 
+    def test_the_answer_is_read_from_the_newest_release_backwards(self, table, shipped):
+        """ "Available ever since" is a claim about the end of the timeline.
+
+        A name present at the start, gone, and back again is dated from
+        where it came back, not from where it first appeared.
+        """
+        table["module argparse"] = "#..#"
+        found = interpreters.dated("module argparse")
+        assert found is not None
+        assert found["since"] == "1.2"
+        assert found["floor"] == "0.9"
+
     def test_a_date_the_build_cannot_support_falls_back_to_a_floor(
         self, table, shipped
     ):
@@ -174,6 +256,123 @@ class TestDated:
         shipped["1.0"] = {"zlib"}
         found = interpreters.dated("module zlib")
         assert found == {"floor": "1.1", "unbuilt_in": "1.0", "mask": "..##"}
+
+
+class TestForgivenReleases:
+    """3.0 and 3.1 do not count against continuity, and only sometimes."""
+
+    def test_a_gap_at_3_0_and_3_1_does_not_move_the_date(self, modern_table):
+        """`argparse` shipped in 2.7 and again in 3.2, and it is 2.7.
+
+        Nobody shipped code on 3.0 or 3.1, so a gap there is not a gap
+        anyone lived through. This is the dataset's own rule, and a mask
+        that spans the whole history is what makes it computable.
+        """
+        modern_table["module argparse"] = ".#..##"
+        assert interpreters.dated("module argparse") == {
+            "added": "2.7",
+            "absent_in": "2.6",
+            "mask": ".#..##",
+        }
+
+    def test_the_gap_is_only_forgiven_where_the_older_side_has_it(self, modern_table):
+        """Absent from 2.7, 3.0 and 3.1 means the answer is 3.2.
+
+        Reading the gap as continuous regardless would date such a name
+        to 3.0, a release it demonstrably could not be used in.
+        """
+        modern_table["module unittest.mock"] = "....##"
+        assert interpreters.dated("module unittest.mock") == {
+            "added": "3.2",
+            "absent_in": "3.1",
+            "mask": "....##",
+        }
+
+    def test_a_removal_is_not_bridged_either(self, modern_table):
+        """A name Python 3 dropped has no continuity to preserve.
+
+        Forgiving the gap on the strength of the older side alone
+        reported `repr` as last seen in 3.1, a release that never had it.
+        """
+        modern_table["module repr"] = "##...."
+        found = interpreters.dated("module repr")
+        assert found is not None
+        assert found["removed_after"] == "2.7"
+
+
+class TestUnanswered:
+    """ "Could not be asked" is not "absent", and the table records which."""
+
+    def test_a_name_that_killed_the_interpreter_dates_nothing(
+        self, modern_table, monkeypatch
+    ):
+        """The 3.5 build segfaults on `import uuid`, and 3.5 still has it.
+
+        Read as an absence this dates `uuid.NAMESPACE_DNS` to 3.7, five
+        releases after the release that shipped it.
+        """
+        built = {
+            "releases": list(MODERN),
+            "presence": {"attribute uuid.NAMESPACE_DNS": "###..#"},
+            "unanswered": {"3.1": ["attribute uuid.NAMESPACE_DNS"]},
+        }
+        monkeypatch.setattr(interpreters, "load_table", lambda: built)
+        assert not interpreters.absence_is_real("3.1", "attribute uuid.NAMESPACE_DNS")
+        assert interpreters.absence_is_real("3.2", "attribute uuid.NAMESPACE_DNS")
+
+    def test_a_builtin_is_not_exempt_from_it(self):
+        """A builtin's absence is otherwise always real, and a crash is not one."""
+        built = {
+            "releases": list(MODERN),
+            "presence": {"builtin print": "...###"},
+            "unanswered": {"2.7": ["builtin print"]},
+        }
+        with pytest.MonkeyPatch.context() as patch:
+            patch.setattr(interpreters, "load_table", lambda: built)
+            assert not interpreters.absence_is_real("2.7", "builtin print")
+            assert interpreters.absence_is_real("2.6", "builtin print")
+
+    def test_a_keyword_is_unaskable_rather_than_absent(self):
+        """`print` cannot be spelled as a name before 3.0, so nobody asked.
+
+        Left to fall through it wrote sixteen leading absences and dated
+        `print` to 3.0 against a 2.7 the probe never put a question to.
+        """
+        targets = ["builtin print", "builtin abs"]
+        assert interpreters._unaskable(targets, "2.7") == {"builtin print"}
+        assert interpreters._unaskable(targets, "3.0") == set()
+
+
+class TestShipsIn:
+    """Whether a release's own tree implements a module, per era."""
+
+    def test_the_modern_half_reads_the_library_by_path(self, tmp_path, monkeypatch):
+        """A dotted name is a path there, which the old reading cannot spell."""
+        library = tmp_path / "Python-3.3.0" / "Lib"
+        (library / "unittest").mkdir(parents=True)
+        (library / "unittest" / "__init__.py").touch()
+        (library / "unittest" / "mock.py").touch()
+        monkeypatch.setattr(interpreters, "source_root", lambda version: tmp_path)
+        _forget()
+        assert interpreters._ships_in("3.3", "unittest.mock")
+        assert not interpreters._ships_in("3.3", "unittest.doesnotexist")
+
+    def test_a_modern_c_module_is_found_by_its_init_function(
+        self, tmp_path, monkeypatch
+    ):
+        """`PyInit_<name>` is what the import protocol looks for.
+
+        That is what makes reading it safe where reading a bare function
+        name is not: `initall()` once dated a builtin called `all` to
+        1991, because it was a function name and not a module name.
+        """
+        modules = tmp_path / "Python-3.3.0" / "Modules"
+        modules.mkdir(parents=True)
+        (modules / "zlibmodule.c").write_text("PyMODINIT_FUNC\nPyInit_zlib(void)\n{}\n")
+        monkeypatch.setattr(interpreters, "source_root", lambda version: tmp_path)
+        _forget()
+        assert interpreters._ships_in("3.3", "zlib")
+        assert not interpreters._ships_in("3.3", "tomllib")
 
 
 class TestAbsenceIsReal:
