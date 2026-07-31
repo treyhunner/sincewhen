@@ -55,6 +55,13 @@ jobs:
       # built interpreters last reported.
       - name: Check the dataset against the built interpreters
         run: uv run scripts/interpreters.py --check
+      # The member index is generated, so a change to how anything is
+      # dated has to be rebuilt into it. Only the dataset half of the
+      # index is cross-checked by the test suite, so without this a
+      # shifted answer for any of the members with no entry of their
+      # own would merge unnoticed.
+      - name: Re-derive the member index
+        run: uv run scripts/memberindex.py --check
       - name: Re-derive every version claim
         run: uv run scripts/verify_dataset.py
 
@@ -65,8 +72,9 @@ jobs:
       - uses: astral-sh/setup-uv@v6
         with:
           enable-cache: true
-      - name: Check the wheel ships the feature dataset
+      - name: Check the wheel ships both data files
         run: |
           uv build
           wheel="$(ls -t dist/*.whl | head -1)"
           unzip -l "$wheel" | grep -q 'sincewhen/features.toml'
+          unzip -l "$wheel" | grep -q 'sincewhen/members.txt'

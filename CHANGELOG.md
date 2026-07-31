@@ -55,12 +55,25 @@ Two entries keep their versions and gained `manual` evidence: `os.mknod` and `ha
 
 ### Tool
 
+- **A per-module member index ships with the package, so searching for a module member answers about the member rather than its module.**
+  `sincewhen -s platform.system` used to say "no entry, but it lives in `platform`, which is 2.3" and now says `platform.system - Python 2.3`; a bare `TimeoutError` suggests `asyncio.TimeoutError` and two others instead of finding nothing.
+  The index is `src/sincewhen/members.txt`, 3,760 members across 248 modules, and every version in it is `scripts/dating.py`'s verdict rather than a fresh opinion, published only where something corroborates it.
+  It sits behind `features.toml`, so a name with an entry of its own never reaches it, and `sincewhen.lookup_member()` and `sincewhen.find_members()` are the library equivalents.
 - **Python 0.9 has a release date, 1991-02-20, so the 115 entries at the first public release report an age like every other row.**
   They read as a plain `0.9` now instead of `0.9 (first public release)`, and the release column, which was blank for them, carries the date.
   0.9 is the second row neither python.org's downloads database nor CPython's tags can reach, and it comes from the same Wikipedia table of versions that already dates 1.6.
   The date is the 0.9 line's, while this project's corpus is the 0.9.1 tarball, cut within days of it and never separately dated.
   Leaving the row out was the larger error: a blank column says the release has no date at all, which no source claims.
   Every version the dataset can name now has a release date.
+
+### Research pipeline
+
+- **`modindex.py` reads 3289 module members out of the pre-Sphinx doc builds, up from 2165.**
+  Four markup changes the extractor had silently stopped matching at: 2.3 moved every signature into a one-row table, 1.5 paginated each module across several pages so `os.listdir` belonged to nothing, 1.2 and 1.3 put the signature before the `-- function of module math`, and 1.4's HTML is a broken LaTeX2HTML run whose members are now read from its own LaTeX instead.
+  A regex that stops matching reports an empty module rather than an error, which is why none of it showed up until the member index needed the data.
+- **An archive floor no longer outranks a documentation marker of the same version.**
+  "Documented in 2.3 and possibly earlier" is a bound and "New in version 2.3" is a date, so `dating.py` returns `docs-date-the-floor` for that pair and reports the date.
+  This is the rule the source method already applied, and `os.mknod` is what surfaced its absence.
 
 
 ## 0.5.0 - 2026-07-30

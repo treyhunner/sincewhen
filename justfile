@@ -55,10 +55,15 @@ interpreters-vs-dataset:
 typemethods *args='':
     uv run scripts/typemethods.py {{ args }}
 
+# Build the per-module member index the package ships (usage: just memberindex --write)
+memberindex *args='':
+    uv run scripts/memberindex.py {{ args }}
+
 # Re-derive every version claim in the dataset and compare
 verify-dataset *args='':
     uv run scripts/release_dates.py --check
     uv run scripts/interpreters.py --check
+    uv run scripts/memberindex.py --check
     uv run scripts/verify_dataset.py {{ args }}
 
 # Look up what the cached docs say about a symbol
@@ -73,16 +78,18 @@ propose *names='':
 test-cov:
     uv run pytest --cov=sincewhen --cov=tests --cov-report=term-missing --cov-report=html
 
-# Check the built wheel ships the feature dataset
+# Check the built wheel ships the feature dataset and the member index
 check-package: build
     #!/usr/bin/env bash
     set -euo pipefail
     wheel="$(ls -t dist/*.whl | head -1)"
-    if ! unzip -l "$wheel" | grep -q 'sincewhen/features.toml'; then
-        echo "features.toml is missing from ${wheel}." >&2
-        exit 1
-    fi
-    echo "features.toml is present in ${wheel}."
+    for data in features.toml members.txt; do
+        if ! unzip -l "$wheel" | grep -q "sincewhen/${data}"; then
+            echo "${data} is missing from ${wheel}." >&2
+            exit 1
+        fi
+        echo "${data} is present in ${wheel}."
+    done
 
 # Bump version (usage: just bump patch|minor|major)
 bump value:
