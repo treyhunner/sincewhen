@@ -23,6 +23,7 @@ import tarfile
 import urllib.request
 
 from sources import (
+    ALL_BUILDS,
     CACHE,
     GRAMMAR_TAGS,
     GRAMMAR_URL,
@@ -34,7 +35,6 @@ from sources import (
     PEPS_URL,
     RELEASE_TAGS,
     RELEASES_URL,
-    SOURCE_BUILDS,
     TAG_URL,
     TEXT_BUILDS,
     TEXT_URL,
@@ -140,7 +140,7 @@ def fetch_all() -> dict[str, str]:
         tags.write_text(json.dumps(dates, indent=2) + "\n", encoding="utf-8")
     entries[relative(tags)] = digest(tags)
 
-    for version, path in SOURCE_BUILDS.items():
+    for version, path in ALL_BUILDS.items():
         archive = source_archive_path(version)
         if not archive.exists():
             url = HTML_URL.format(path=path)

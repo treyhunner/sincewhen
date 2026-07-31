@@ -35,7 +35,7 @@ test *args='':
 fetch-docs:
     uv run scripts/fetch_docs.py
 
-# Build Python 0.9.1 through 2.5 from the cached tarballs (slow, needs a C compiler)
+# Build Python 0.9.1 through 3.14 from the cached tarballs (slow, needs a C compiler)
 build-pythons *versions='':
     uv run scripts/interpreters.py --build {{ versions }}
 

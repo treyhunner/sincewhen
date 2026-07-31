@@ -9,6 +9,39 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ## Unreleased
 
+### Dataset
+
+Six corrected versions, found by building the 3.x releases and asking them.
+Five are the same mistake: `objects.inv` dates when a name was *documented*, and these were documented late.
+
+- **`shutil.SpecialFileError` is 2.7, not 3.13.** Indexed in 2.7, dropped for all of 3.x, indexed again in 3.13, and importable from 2.7 on apart from 3.0.
+- **`re.RegexFlag` is 3.6, not 3.11.** The 3.11 marker dates its addition to `__all__`.
+- **`importlib.import_module()` is 2.7, not 3.1.** First indexed in 3.1.
+- **`dis.show_code()` is 3.0, not 3.2.** It shipped undocumented for two releases, as `platform` did in 2.3.
+- **`os.DirEntry` is 3.6, not 3.5.** The type is 3.5; nothing binds it under a name until 3.6.
+- **The `repr` module entry is gone, replaced by `reprlib` at 3.0.** PEP 3108 renamed it, so `import repr` fails on every Python 3 and the entry was feeding a 1.0 floor into `minimum_version()`.
+
+Four more `dis` opcode constants moved the other way, to the release `Lib/dis.py` first binds the name: `dis.SEND` is 3.12 and `dis.CONTAINS_OP`, `dis.IS_OP` and `dis.END_ASYNC_FOR` are 3.14.
+Their markers date the opcode, which is older, and `minimum_version()` was reporting 3.11 for code that raises `AttributeError` until 3.14.
+Two entries keep their versions and gained `manual` evidence: `os.mknod` and `hashlib.scrypt` are absent from a build for reasons that are the toolchain's rather than the release's.
+
+### Research pipeline
+
+- **The interpreter oracle reaches 3.14**, building thirty-one releases instead of fourteen, in a second pinned image.
+  This is the cross-check the 3.x half never had: 634 entries rest on `objects.inv` and its failure mode is silent.
+  1634 claims are now confirmed by a release that was built and asked.
+- **The presence mask is one continuous string**, so "the oldest release it has been available in ever since, ignoring 3.0 and 3.1" is read straight off it.
+  2.6 and 2.7 are built for the same reason: without them a 2.6 addition reads as 3.0.
+- **A marker naming a micro release explains an interpreter that contradicts it**, since the corpus builds each `.0`.
+  Sixteen names, fourteen of them `typing`'s, needed no hand-written note once the extractor kept the micro it had been discarding.
+- **A name that kills the interpreter is recorded as unanswered, not absent**, and so is one the probe cannot spell.
+  Asking the 3.5 build for `uuid.NAMESPACE_DNS` segfaults it, and "could not be asked" is not a fact about 3.5.
+  Every absence from a batch that died is now re-asked on its own, since a hundred names share one process and only a fatal crash is visible.
+- **The absence guard reads a tree by that tree's own Python version.**
+  A Python 2 C module names itself in `Py_InitModule("dbm", ...)`, and grepping 2.7 for `PyInit_` dated `dbm` to 3.0.
+- **The re-add guard no longer covers the interpreter**, which detects a re-add from the mask itself.
+  Guarding it fired on most of the 3.x line and hid two of the corrections above.
+
 ### Tool
 
 - **Python 0.9 has a release date, 1991-02-20, so the 115 entries at the first public release report an age like every other row.**
