@@ -409,6 +409,11 @@ class Verdict:
                 # than a release that demonstrably has it, so the
                 # release wins.
                 return self.archive
+            case "docs-date-the-floor":
+                # The archives can only show the name was already there;
+                # the marker says which release put it there, and they
+                # name the same release.
+                return annotation
             case "docs-predate":
                 # The docs claim it arrived earlier than the oldest
                 # archive that lists it. Being listed proves presence;
@@ -618,6 +623,17 @@ class Verdict:
             if self.annotation and self.annotation != self.archive:
                 later = version_key(self.annotation) > version_key(self.archive)
                 return "docs-overstate" if later else "docs-predate"
+            if self.annotation and self.archive_is_floor:
+                # The two agree on the version and disagree on what kind
+                # of claim it is, and the marker makes the sharper one.
+                # "Documented in 2.3 and possibly earlier" is a limit on
+                # how far back the doc builds reach; "New in version 2.3"
+                # is a date, and a date at the floor leaves nothing under
+                # it. This is the rule the source branch above already
+                # applies: without it every member the docs date to 2.5
+                # would read as "2.5 or earlier" purely because 2.5 is
+                # the newest archive there is.
+                return "docs-date-the-floor"
             return "archive"
 
         # A type member the inventory can only bound, whose type arrived

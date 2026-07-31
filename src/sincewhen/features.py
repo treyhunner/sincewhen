@@ -259,6 +259,21 @@ def _method_name(target: str) -> str:
     return target.rpartition(".")[2].casefold()
 
 
+@cache
+def _targets() -> frozenset[str]:
+    return frozenset().union(*(feature.targets for feature in load_features()))
+
+
+def has_entry(name: str) -> bool:
+    """Whether some entry matches this exact name.
+
+    Search offers the member index alongside the dataset for a bare
+    name, and a member the dataset already dates should not be listed
+    twice, once as an entry and once as a suggestion.
+    """
+    return name in _targets()
+
+
 def enclosing_module(query: str) -> list[Feature]:
     """The module a dotted name lives in, if the dataset knows it.
 

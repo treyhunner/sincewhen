@@ -90,7 +90,35 @@ removeprefix() on str, bytes and bytearray - Python 3.9 (released 2020-10-05)
   Docs: https://docs.python.org/3/whatsnew/3.9.html
 ```
 
+A module member with no entry of its own is answered from the member index, which covers every documented member of every stdlib module:
+
+```console
+$ sincewhen --search platform.system
+platform.system - Python 2.3 (released 2003-07-29)
+
+$ sincewhen --search os.path.relpath
+os.path.relpath - Python 2.6 (released 2008-10-02)
+```
+
+A member nothing can date is bounded, exactly as an entry would be:
+
+```console
+$ sincewhen --search os.path.join
+os.path.join - Python 1.5 or earlier (released 1997-12-31)
+```
+
+A bare name searches every module's member list, which is how a name usually gets typed:
+
+```console
+$ sincewhen --search TimeoutError
+No entry for 'TimeoutError'. Did you mean one of these?
+multiprocessing.TimeoutError - Python 3.3 (released 2012-09-29)
+asyncio.TimeoutError - Python 3.4 (released 2014-03-17)
+concurrent.futures.TimeoutError - Python 3.5 (released 2015-09-13)
+```
+
 Pass `--json` to either mode for machine-readable output.
+A search that answers from the member index emits member records, which carry `module` where a feature record carries `id` and `category`.
 
 
 ## Library
@@ -105,6 +133,10 @@ Version(major=3, minor=11)
 Version(major=3, minor=11)
 >>> sincewhen.minimum_version("x = 1") is None
 True
+>>> sincewhen.lookup_member("platform.system").since
+'2.3'
+>>> [answer.dotted for answer in sincewhen.find_members("system")]
+['os.system', 'platform.system']
 ```
 
 `minimum_version()` returns `None` when nothing detected sets a floor, which means no known feature requires a particular release rather than that the code runs anywhere.
@@ -144,7 +176,10 @@ The Python version you *run* `sincewhen` on has nothing to do with the versions 
 - Release dates come from python.org's downloads database back to 2.2, and from CPython's release tags before that.
   Python 0.9 and 1.6 are the two rows neither source reaches, 0.9 because CPython's history begins after it and 1.6 because it was cut by BeOpen and has no tag, so both are taken from Wikipedia's table of versions.
   The 0.9 date is that table's date for the whole 0.9 line, while the corpus reads the 0.9.1 tarball, which was cut within days of it and which no source dates on its own.
-- Searching for a module member that has no entry of its own falls back to the module it lives in, since a member cannot be older than its module.
+- Searching for a module member with no entry of its own falls back to the member index, which covers about 3,700 members across 242 modules.
+  Its versions are derived by the same machinery that rechecks every entry in the dataset, so an answer from it is the answer an entry would carry; what it does not carry is the evidence, which is most of what an entry is for.
+  It holds only names the newest Python still documents, so a member Python 3 removed is not in it; only names the sources agree about; and only names something corroborates, so a member whose sole evidence is a 3.x inventory diff is left out rather than dated by the age of its markup.
+  A member the index has never heard of falls back to the module it lives in, as before.
 - A method of a builtin type is dated for searching but is mostly not detected, because `value.removeprefix(...)` says nothing about what `value` is.
   Only a receiver whose type is certain reports one: a literal, as in `"Mr. Smith".removeprefix("Mr. ")`, or the type's own name, as in `dict.fromkeys(keys)`.
 
@@ -233,6 +268,17 @@ $ just interpreters-vs-dataset          # where they disagree with the dataset
 ```
 
 `manual` is for the cases where the sources genuinely disagree, and every one of them is printed on every `verify-dataset` run so the override stays visible.
+
+`src/sincewhen/members.txt` is the other file the package ships, and it is generated rather than curated.
+It is the member index search falls back to, and it is derived from the same cache by the same rules, so it is rebuilt rather than edited:
+
+```console
+$ just memberindex --write              # regenerate the index from the cache
+$ just memberindex --module platform    # what the index has for one module
+$ just memberindex --grep system        # every module with a member of that name
+```
+
+`just verify-dataset` re-derives it and fails if the committed file is not what the sources produce, exactly as it does for every version claim.
 
 A new entry, or a corrected version on an existing one, also gets a line under `Unreleased` in [`CHANGELOG.md`](CHANGELOG.md).
 Dataset changes are the ones that alter what `sincewhen` reports about code that did not change, so they are worth spelling out.

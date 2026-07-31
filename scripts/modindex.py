@@ -32,10 +32,11 @@ Usage:
 
 import argparse
 import re
+from collections.abc import Iterator
 from functools import cache
 from pathlib import Path
 
-from sources import HTML_BUILDS, LATEX_BUILDS, html_root
+from sources import HTML_BUILDS, LATEX_BUILDS, html_root, source_root
 
 # `<a href="lib/module-bisect.html">` in a Sphinx-era module index.
 INDEX_LINK = re.compile(r'href="[^"]*module-(?P<name>[a-zA-Z0-9_.]+)\.html"')
@@ -170,19 +171,75 @@ def dated_modules() -> dict[str, dict[str, str]]:
     return dated
 
 
-# A module's members, in the three shapes the archives use. The LaTeX
-# names the member and leaves the module to the enclosing section; the
-# oldest HTML helpfully names both on one line; the later HTML puts the
-# member on its module's own page.
+# A module's members, in the shapes the archives use. Every one of them
+# is the same LaTeX document seen through a different converter, so the
+# thing worth anchoring on is the descriptor the docs were written with:
+# `funcdesc` and `datadesc` name a module's own members, `methoddesc` and
+# `memberdesc` name an object's, and every shape below preserves that
+# distinction one way or another.
+#
+# The LaTeX names the member and leaves the module to the enclosing
+# section. A run of related names is written as one `desc` environment
+# followed by `\funcline` or `\dataline` continuations, and 0.9.1 spells
+# both as `\funcitem`, sometimes with several comma-separated names in
+# one set of braces.
 MEMBER_LATEX = re.compile(
-    r"\\begin\{(?:func|data|exc|class|member)desc\}\{(?P<name>[A-Za-z_]\w*)\}"
+    r"\\begin\{(?:func|data|exc|class)desc\}\{(?P<name>[A-Za-z_]\w*)\}"
+    r"|\\(?:func|data|exc)(?:line|item)\{(?P<names>[^{}]*)\}"
 )
+
+# `<DT><B>acos</B> (<VAR>x</VAR>) -- function of module math` in the 1.2
+# and 1.3 builds, which name the module on the same line. The signature
+# sits between the name and the dash, so anything up to the end of the
+# line is allowed through: anchoring on `</B> --` matched the data
+# entries and skipped every function, which is why 1.2 yielded 165
+# members where the same docs read the other way yield 612.
+#
+# The phrase does the filtering these builds need. A method says "method
+# of file object" and an attribute "attribute of regex", so only a
+# module's own members reach this at all, and across every build that
+# uses the shape the roles are `function`, `data` and `exception`.
 MEMBER_NAMED_HTML = re.compile(
-    r"<DT><B>(?P<name>[A-Za-z_]\w*)</B>\s*--\s*\w+ of module\s+(?P<module>[\w.]+)",
+    r"<DT><B>(?P<name>[A-Za-z_]\w*)</B>[^\n]*?--\s*\w+ of module\s+"
+    r"(?P<module>[\w.]+)",
     re.IGNORECASE,
 )
+
+# One member's own entry from 1.5 on. The name sits in a `<tt>` inside a
+# bold `<dt>`, and from 2.3 that bold moved into a one-row table so a
+# long signature could wrap, which is why `<nobr>` is the other anchor.
+# Missing that second shape is what made 2.2 yield 1456 members and 2.3
+# only 476: everything with an argument list stopped matching, and only
+# the plain data entries survived.
+#
+# The `<tt>`'s class is the descriptor the entry was written as, and its
+# attributes are not in a fixed order, so the class is picked out of them
+# separately. 1.5 writes it unquoted and 2.5 puts an `id` in front of it.
 MEMBER_HTML = re.compile(
-    r"<dt><b>(?:<a[^>]*>)?<tt[^>]*>(?P<name>[A-Za-z_]\w*)</tt>", re.IGNORECASE
+    r"(?:<dt>|<nobr>)\s*<b>\s*"
+    r"(?:<span[^>]*>[^<]*</span>\s*(?:&nbsp;|\s)*)?"
+    r"(?:<a\b[^>]*>\s*)?"
+    r"<tt(?P<attrs>[^>]*)>(?P<name>[A-Za-z_]\w*)</tt>",
+    re.IGNORECASE,
+)
+TT_CLASS = re.compile(r"""class\s*=\s*['"]?(?P<role>\w+)""", re.IGNORECASE)
+
+# The descriptor kinds that name a module's own members. A `datadesc`
+# leaves its `<tt>` unclassed, so a bare one counts as data. `method` and
+# `member` describe an object instead, and a page can carry both:
+# `socket-objects.html` sits under `module-socket.html` and every name on
+# it is a method of a socket rather than of `socket`.
+MEMBER_ROLES = frozenset({"function", "class", "exception", "data", ""})
+
+# `<link rel="up" href="module-os.html">`, later spelled `rel="parent"`.
+# From 1.5 a module's documentation is split across as many pages as it
+# has sections, and only the first is named after the module: `os.listdir`
+# lives on `os-file-dir.html`, whose only link back to `os` is this one.
+# Following it is what makes the result a module's members rather than
+# its first section's.
+PARENT_LINK = re.compile(
+    r"""<link\s+rel\s*=\s*['"]?(?:up|parent)['"]?\s+href\s*=\s*['"]([^'"]+)['"]""",
+    re.IGNORECASE,
 )
 
 # `\subsection{Standard Module {\tt string}` inside a LaTeX file that
@@ -192,8 +249,43 @@ LATEX_MODULE = re.compile(
     r"(?:\{\\tt\s*|\\sectcode\{)(?P<name>[A-Za-z_][\w.]*)"
 )
 
+# Any other sectioning command, which ends the module the last heading
+# opened. 0.9.1 documents `stdwin` and then `\subsubsection{Window Object
+# Methods}` in the same section, and without this every window method
+# would read as a member of `stdwin`.
+LATEX_SECTION = re.compile(r"\\(?:sub)*section\*?\{")
+
 # The page name that says which module a page documents.
 MODULE_PAGE = re.compile(r"^module-(?P<name>[\w.]+)$")
+
+# The one release whose HTML cannot be read for members at all. Its
+# LaTeX2HTML run collapsed every grouped descriptor into its first name
+# and ran the rest together as prose, so `math` documents `acos` and
+# then `asinx`, `atanx`, `ceilx`. Fixing that alone would not help:
+# the 1.4 build also has no `module-*.html` pages, no `up` or `parent`
+# links and no `of module` phrases, so nothing here could attribute one
+# of its members to a module anyway. The LaTeX in the same release's
+# source tarball is the same document, intact, so members are read from
+# there instead. Nothing is diffed across the difference, because a
+# member only ever gets a floor: reading a release a second way can make
+# a floor older and can never invent an addition.
+LATEX_MEMBERS = frozenset({"1.4"})
+
+
+def _latex_names(match: re.Match[str]) -> Iterator[str]:
+    """The member names one LaTeX descriptor introduces.
+
+    A `\\funcitem` can carry several, as `{stdin, stdout, stderr}` and as
+    `{ps1,~ps2}`, so a group is split and each part checked for being a
+    name rather than the leftovers of a macro.
+    """
+    if match["name"]:
+        yield match["name"]
+        return
+    for part in match["names"].split(","):
+        name = part.replace("~", "").replace("\\", "").strip()
+        if name.isidentifier():
+            yield name
 
 
 def _members_from_latex(text: str) -> set[str]:
@@ -205,18 +297,57 @@ def _members_from_latex(text: str) -> set[str]:
         if heading is not None:
             module = heading["name"]
             continue
+        if LATEX_SECTION.search(line) is not None:
+            module = None
+            continue
         member = MEMBER_LATEX.search(line)
         if member is not None and module is not None:
-            found.add(f"{module}.{member['name']}")
+            found |= {f"{module}.{name}" for name in _latex_names(member)}
     return found
+
+
+def _page_modules(pages: list[Path]) -> dict[Path, str]:
+    """Which module each page documents, following the parent links.
+
+    A page named after a module speaks for it directly. Any other page
+    speaks for whichever module page it hangs under, however many
+    sections deep it sits, so the chain is walked rather than the one
+    link read.
+    """
+    parents = {}
+    for page in pages:
+        link = PARENT_LINK.search(page.read_text(encoding="utf-8", errors="replace"))
+        if link is not None:
+            parents[page.stem] = Path(link.group(1)).stem
+
+    owners = {}
+    for page in pages:
+        stem: str | None = page.stem
+        seen = set()
+        while stem is not None and stem not in seen:
+            seen.add(stem)
+            named = MODULE_PAGE.fullmatch(stem)
+            if named is not None:
+                owners[page] = named["name"]
+                break
+            stem = parents.get(stem)
+    return owners
+
+
+def _member_pages(version: str) -> list[Path]:
+    """The pages a release's members are read from."""
+    if version in LATEX_MEMBERS:
+        return sorted(source_root(version).rglob("*.tex"))
+    return library_pages(html_root(version))
 
 
 @cache
 def members_in(version: str) -> frozenset[str]:
     """Every documented `module.member` in one release."""
-    root = html_root(version)
+    pages = _member_pages(version)
+    owners = _page_modules([page for page in pages if page.suffix != ".tex"])
     found: set[str] = set()
-    for page in library_pages(root):
+    for page in pages:
         text = page.read_text(encoding="utf-8", errors="replace")
         if page.suffix == ".tex":
             found |= _members_from_latex(text)
@@ -225,12 +356,13 @@ def members_in(version: str) -> frozenset[str]:
             f"{match['module']}.{match['name']}"
             for match in MEMBER_NAMED_HTML.finditer(text)
         }
-        named = MODULE_PAGE.fullmatch(page.stem)
-        if named is not None:
-            found |= {
-                f"{named['name']}.{match['name']}"
-                for match in MEMBER_HTML.finditer(text)
-            }
+        module = owners.get(page)
+        if module is None:
+            continue
+        for match in MEMBER_HTML.finditer(text):
+            role = TT_CLASS.search(match["attrs"])
+            if (role["role"].lower() if role else "") in MEMBER_ROLES:
+                found.add(f"{module}.{match['name']}")
     return frozenset(found)
 
 

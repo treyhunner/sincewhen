@@ -1,9 +1,11 @@
-"""What `dating.py` refuses to answer.
+"""What `dating.py` refuses to answer, and how it reconciles a floor.
 
-Only the guards are exercised here, not the reconciliation: everything
-else in that module reads the 500 MB corpus, which `just verify-dataset`
-covers and a unit test cannot. A guard is worth testing on its own
-because its whole job is to fire before any source is consulted.
+The guards are worth testing on their own because their whole job is to
+fire before any source is consulted. The reconciliation mostly needs the
+500 MB corpus and is covered by `just verify-dataset`, but `Verdict` is
+a plain dataclass whose fields all default and whose `status`, `added`
+and `or_earlier` are pure properties, so a verdict can be built by hand
+and the ranking checked without reading anything.
 """
 
 from dating import Verdict, _date_the_type, date_symbol, is_keyword
@@ -140,3 +142,46 @@ def test_the_head_is_not_consulted_for_range_either():
     verdict = Verdict(name="range.count")
     _date_the_type(verdict)
     assert verdict.type_added is None
+
+
+def test_a_marker_dates_an_archive_floor_of_the_same_version():
+    """ "Documented in 2.3 and possibly earlier" is not "New in 2.3".
+
+    The archives can only show a name was already there by some release;
+    a marker says which release put it there. They agree on the version
+    and disagree on what kind of claim it is, and the sharper one wins.
+    `os.mknod` is the name that reaches this: 2.3 documents it and the
+    2.7 docs mark it "New in version 2.3".
+    """
+    verdict = Verdict(
+        name="os.mknod", archive="2.3", archive_is_floor=True, annotation="2.3"
+    )
+    assert verdict.status == "docs-date-the-floor"
+    assert verdict.added == "2.3"
+    assert not verdict.or_earlier
+
+
+def test_an_archive_floor_with_no_marker_stays_a_bound():
+    """The neighbour that proves the rule above is not too broad."""
+    verdict = Verdict(name="zlib", archive="1.5", archive_is_floor=True)
+    assert verdict.status == "archive"
+    assert verdict.added == "1.5"
+    assert verdict.or_earlier
+
+
+def test_a_marker_newer_than_the_archive_loses_to_it():
+    """Presence proves presence, so a later marker cannot be right."""
+    verdict = Verdict(
+        name="bisect", archive="1.5", archive_is_floor=True, annotation="2.1"
+    )
+    assert verdict.status == "docs-overstate"
+    assert verdict.added == "1.5"
+
+
+def test_a_marker_older_than_the_archive_wins():
+    """Not being listed proves very little, so the marker is believed."""
+    verdict = Verdict(
+        name="zipfile", archive="2.0", archive_is_floor=True, annotation="1.6"
+    )
+    assert verdict.status == "docs-predate"
+    assert verdict.added == "1.6"
