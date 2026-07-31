@@ -2746,6 +2746,561 @@ present_in = "2.5"
 note = "str is str and unicode in 2.5, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
 checked = "2026-07-29"
 
+# The four types whose method tables no release in the source corpus
+# carries. Nothing from 0.9.1 to 2.5 implements a type anyone would call
+# `bytes`, `bytearray`, `memoryview` or `range`, so `typemethods.py`
+# leaves them out and `type_is_covered` says so out loud. What answers
+# for them instead is the rule that closes a module member's bound one
+# level up: a method cannot predate the type that holds it.
+#
+# For `memoryview` that closes on its own and `dating.py` derives it: the
+# 2.7 inventory is the oldest that indexes `tolist`, and 2.7 is when
+# `memoryview` arrived, so there is nothing under the bound.
+#
+# For `bytes` and `bytearray` it does not, because the inventory does not
+# get round to indexing their methods until 3.4 for most of them, and 3.0,
+# 3.1 or 3.13 for the rest, which is the age of the markup rather than of
+# the methods. Each entry below says which release indexes it. So those
+# carry manual evidence, resting on three things:
+#
+#   - Both types arrived in 2.6, and 2.6's `bytes` is a synonym for
+#     `str`. That is the same reading that dates the b"..." literal to
+#     2.6 rather than to PEP 3112's own 3.0 header.
+#   - Every string method below is already dated on `str` at 2.5 or
+#     earlier, so the types are the binding constraint and not the
+#     methods. The one exception is `decode`, which has no `str` entry
+#     because Python 3 kept it on the byte types only, and which the 2.6
+#     inventory indexes under `str`. This is the clamp the `bytes`
+#     exclusion exists for: the 2.x string table would date
+#     `bytes.capitalize` to 1.6, five releases before anything could be
+#     spelled b"...".
+#   - Nothing announces adding one later. Every later addition to these
+#     types is named by a whatsnew or carries a marker of its own, and
+#     each has its own entry: `maketrans` 3.1, `copy` and `clear` 3.3,
+#     `hex` 3.5, `isascii` 3.7, `removeprefix` and `removesuffix` 3.9,
+#     `resize` 3.14. The last of those is why this says "or carries a
+#     marker": no whatsnew mentions `bytearray.resize` at all.
+#
+# `fromhex` is the one method both types have whose ages differ, so
+# `bytes.fromhex` sits with the 3.0 entries below rather than here. The
+# other seven `bytearray`-only entries are methods `bytes` never had.
+
+[[features]]
+id = "bytearray-append"
+name = "bytearray.append()"
+added = "2.6"
+category = "method"
+methods = ["bytearray.append"]
+
+[features.evidence]
+method = "manual"
+note = "bytearray arrived in 2.6 with the mutable sequence methods. The 2.6 What's New names append(), pop() and reverse() and calls the rest \"some of the methods of lists\", and no release since announces adding one. The 3.13 inventory is the first to index any of them, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytearray-extend"
+name = "bytearray.extend()"
+added = "2.6"
+category = "method"
+methods = ["bytearray.extend"]
+
+[features.evidence]
+method = "manual"
+note = "bytearray arrived in 2.6 with the mutable sequence methods. The 2.6 What's New names append(), pop() and reverse() and calls the rest \"some of the methods of lists\", and no release since announces adding one. The 3.13 inventory is the first to index any of them, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytearray-fromhex"
+name = "bytearray.fromhex()"
+added = "2.6"
+category = "method"
+methods = ["bytearray.fromhex"]
+
+[features.evidence]
+method = "manual"
+note = "bytearray arrived in 2.6 and no release since announces adding fromhex(). The 3.0 inventory is the first to index it, which is the age of the markup. bytes.fromhex() is a different age and has its own entry, because 2.6's bytes is str, which has no fromhex(). See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytearray-insert"
+name = "bytearray.insert()"
+added = "2.6"
+category = "method"
+methods = ["bytearray.insert"]
+
+[features.evidence]
+method = "manual"
+note = "bytearray arrived in 2.6 with the mutable sequence methods. The 2.6 What's New names append(), pop() and reverse() and calls the rest \"some of the methods of lists\", and no release since announces adding one. The 3.13 inventory is the first to index any of them, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytearray-pop"
+name = "bytearray.pop()"
+added = "2.6"
+category = "method"
+methods = ["bytearray.pop"]
+
+[features.evidence]
+method = "manual"
+note = "bytearray arrived in 2.6 with the mutable sequence methods. The 2.6 What's New names append(), pop() and reverse() and calls the rest \"some of the methods of lists\", and no release since announces adding one. The 3.13 inventory is the first to index any of them, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytearray-remove"
+name = "bytearray.remove()"
+added = "2.6"
+category = "method"
+methods = ["bytearray.remove"]
+
+[features.evidence]
+method = "manual"
+note = "bytearray arrived in 2.6 with the mutable sequence methods. The 2.6 What's New names append(), pop() and reverse() and calls the rest \"some of the methods of lists\", and no release since announces adding one. The 3.13 inventory is the first to index any of them, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytearray-reverse"
+name = "bytearray.reverse()"
+added = "2.6"
+category = "method"
+methods = ["bytearray.reverse"]
+
+[features.evidence]
+method = "manual"
+note = "bytearray arrived in 2.6 with the mutable sequence methods. The 2.6 What's New names append(), pop() and reverse() and calls the rest \"some of the methods of lists\", and no release since announces adding one. The 3.13 inventory is the first to index any of them, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-capitalize"
+name = "bytes.capitalize() and bytearray.capitalize()"
+added = "2.6"
+category = "method"
+methods = ["bytes.capitalize", "bytearray.capitalize"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose capitalize() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-center"
+name = "bytes.center() and bytearray.center()"
+added = "2.6"
+category = "method"
+methods = ["bytes.center", "bytearray.center"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose center() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-count"
+name = "bytes.count() and bytearray.count()"
+added = "2.6"
+category = "method"
+methods = ["bytes.count", "bytearray.count"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose count() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-decode"
+name = "bytes.decode() and bytearray.decode()"
+added = "2.6"
+category = "method"
+methods = ["bytes.decode", "bytearray.decode"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose decode() the 2.6 inventory indexes, so the types are the binding constraint rather than the method. This is the one name here with no str entry of its own, because Python 3 kept decode() on the byte types only. The 3.1 inventory is the first to index either of these two, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-endswith"
+name = "bytes.endswith() and bytearray.endswith()"
+added = "2.6"
+category = "method"
+methods = ["bytes.endswith", "bytearray.endswith"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose endswith() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-expandtabs"
+name = "bytes.expandtabs() and bytearray.expandtabs()"
+added = "2.6"
+category = "method"
+methods = ["bytes.expandtabs", "bytearray.expandtabs"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose expandtabs() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-find"
+name = "bytes.find() and bytearray.find()"
+added = "2.6"
+category = "method"
+methods = ["bytes.find", "bytearray.find"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose find() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-index"
+name = "bytes.index() and bytearray.index()"
+added = "2.6"
+category = "method"
+methods = ["bytes.index", "bytearray.index"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose index() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-isalnum"
+name = "bytes.isalnum() and bytearray.isalnum()"
+added = "2.6"
+category = "method"
+methods = ["bytes.isalnum", "bytearray.isalnum"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose isalnum() this dataset dates to 2.0, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-isalpha"
+name = "bytes.isalpha() and bytearray.isalpha()"
+added = "2.6"
+category = "method"
+methods = ["bytes.isalpha", "bytearray.isalpha"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose isalpha() this dataset dates to 2.0, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-isdigit"
+name = "bytes.isdigit() and bytearray.isdigit()"
+added = "2.6"
+category = "method"
+methods = ["bytes.isdigit", "bytearray.isdigit"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose isdigit() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-islower"
+name = "bytes.islower() and bytearray.islower()"
+added = "2.6"
+category = "method"
+methods = ["bytes.islower", "bytearray.islower"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose islower() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-isspace"
+name = "bytes.isspace() and bytearray.isspace()"
+added = "2.6"
+category = "method"
+methods = ["bytes.isspace", "bytearray.isspace"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose isspace() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-istitle"
+name = "bytes.istitle() and bytearray.istitle()"
+added = "2.6"
+category = "method"
+methods = ["bytes.istitle", "bytearray.istitle"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose istitle() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-isupper"
+name = "bytes.isupper() and bytearray.isupper()"
+added = "2.6"
+category = "method"
+methods = ["bytes.isupper", "bytearray.isupper"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose isupper() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-join"
+name = "bytes.join() and bytearray.join()"
+added = "2.6"
+category = "method"
+methods = ["bytes.join", "bytearray.join"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose join() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-ljust"
+name = "bytes.ljust() and bytearray.ljust()"
+added = "2.6"
+category = "method"
+methods = ["bytes.ljust", "bytearray.ljust"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose ljust() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-lower"
+name = "bytes.lower() and bytearray.lower()"
+added = "2.6"
+category = "method"
+methods = ["bytes.lower", "bytearray.lower"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose lower() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-lstrip"
+name = "bytes.lstrip() and bytearray.lstrip()"
+added = "2.6"
+category = "method"
+methods = ["bytes.lstrip", "bytearray.lstrip"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose lstrip() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-partition"
+name = "bytes.partition() and bytearray.partition()"
+added = "2.6"
+category = "method"
+methods = ["bytes.partition", "bytearray.partition"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose partition() this dataset dates to 2.5, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-replace"
+name = "bytes.replace() and bytearray.replace()"
+added = "2.6"
+category = "method"
+methods = ["bytes.replace", "bytearray.replace"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose replace() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-rfind"
+name = "bytes.rfind() and bytearray.rfind()"
+added = "2.6"
+category = "method"
+methods = ["bytes.rfind", "bytearray.rfind"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose rfind() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-rindex"
+name = "bytes.rindex() and bytearray.rindex()"
+added = "2.6"
+category = "method"
+methods = ["bytes.rindex", "bytearray.rindex"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose rindex() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-rjust"
+name = "bytes.rjust() and bytearray.rjust()"
+added = "2.6"
+category = "method"
+methods = ["bytes.rjust", "bytearray.rjust"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose rjust() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-rpartition"
+name = "bytes.rpartition() and bytearray.rpartition()"
+added = "2.6"
+category = "method"
+methods = ["bytes.rpartition", "bytearray.rpartition"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose rpartition() this dataset dates to 2.5, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-rsplit"
+name = "bytes.rsplit() and bytearray.rsplit()"
+added = "2.6"
+category = "method"
+methods = ["bytes.rsplit", "bytearray.rsplit"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose rsplit() this dataset dates to 2.4, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-rstrip"
+name = "bytes.rstrip() and bytearray.rstrip()"
+added = "2.6"
+category = "method"
+methods = ["bytes.rstrip", "bytearray.rstrip"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose rstrip() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-split"
+name = "bytes.split() and bytearray.split()"
+added = "2.6"
+category = "method"
+methods = ["bytes.split", "bytearray.split"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose split() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-splitlines"
+name = "bytes.splitlines() and bytearray.splitlines()"
+added = "2.6"
+category = "method"
+methods = ["bytes.splitlines", "bytearray.splitlines"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose splitlines() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-startswith"
+name = "bytes.startswith() and bytearray.startswith()"
+added = "2.6"
+category = "method"
+methods = ["bytes.startswith", "bytearray.startswith"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose startswith() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-strip"
+name = "bytes.strip() and bytearray.strip()"
+added = "2.6"
+category = "method"
+methods = ["bytes.strip", "bytearray.strip"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose strip() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-swapcase"
+name = "bytes.swapcase() and bytearray.swapcase()"
+added = "2.6"
+category = "method"
+methods = ["bytes.swapcase", "bytearray.swapcase"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose swapcase() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-title"
+name = "bytes.title() and bytearray.title()"
+added = "2.6"
+category = "method"
+methods = ["bytes.title", "bytearray.title"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose title() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-translate"
+name = "bytes.translate() and bytearray.translate()"
+added = "2.6"
+category = "method"
+methods = ["bytes.translate", "bytearray.translate"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose translate() this dataset dates to 1.6, so the types are the binding constraint rather than the method. bytes.translate is first indexed in 3.0 and bytearray.translate in 3.1, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-upper"
+name = "bytes.upper() and bytearray.upper()"
+added = "2.6"
+category = "method"
+methods = ["bytes.upper", "bytearray.upper"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose upper() this dataset dates to 1.6, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-zfill"
+name = "bytes.zfill() and bytearray.zfill()"
+added = "2.6"
+category = "method"
+methods = ["bytes.zfill", "bytearray.zfill"]
+
+[features.evidence]
+method = "manual"
+note = "Both types arrived in 2.6, and 2.6's bytes is a synonym for str, whose zfill() this dataset dates to 2.2, so the types are the binding constraint rather than the method. The 3.4 inventory is the first to index either name, which is the age of the markup. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
 [[features]]
 id = "float-as-integer-ratio"
 name = "float.as_integer_ratio()"
@@ -2838,6 +3393,33 @@ note = "Added in 2.7 and again in 3.1: the 2.7 inventory lists it and the 3.14 d
 checked = "2026-07-29"
 
 [[features]]
+id = "memoryview-tobytes"
+name = "memoryview.tobytes() and memoryview.tolist()"
+added = "2.7"
+category = "method"
+methods = ["memoryview.tobytes", "memoryview.tolist"]
+
+[features.evidence]
+method = "objects.inv"
+symbol = "py:method memoryview.tolist"
+absent_in = "2.6"
+present_in = "2.7"
+note = "The inventory only bounds a member of a builtin type, and 2.7 is the oldest one that indexes these. memoryview is absent from 2.6 and arrived in 2.7, so nothing in it can be older and the bound closes. The nearest marker to tobytes() says \"Added in version 3.8: *order* can be {'C', 'F', 'A'}\", which dates an argument."
+checked = "2026-07-30"
+
+[[features]]
+id = "bytes-fromhex"
+name = "bytes.fromhex()"
+added = "3.0"
+category = "method"
+methods = ["bytes.fromhex"]
+
+[features.evidence]
+method = "manual"
+note = "The one byte-string method 2.6 cannot answer for. bytes is a synonym for str in both 2.6 and 2.7, and neither release's str has fromhex(), so the oldest release that can spell this is 3.0, which is also the oldest inventory that indexes it. bytearray.fromhex() is 2.6 and has its own entry. See the note above the bytes and bytearray group."
+checked = "2026-07-30"
+
+[[features]]
 id = "bytes-maketrans"
 name = "bytes.maketrans() and bytearray.maketrans()"
 added = "3.1"
@@ -2875,6 +3457,18 @@ method = "annotation"
 docs = "3.14:library/stdtypes.txt"
 quote = "Added in version 3.2."
 checked = "2026-07-29"
+
+[[features]]
+id = "range-count"
+name = "range.count() and range.index()"
+added = "3.2"
+category = "method"
+methods = ["range.count", "range.index"]
+
+[features.evidence]
+method = "manual"
+note = "The 3.2 whatsnew says \"range objects now support index and count methods\", and the 3.2 inventory is the first to index either. No per-name marker dates them, because stdtypes carries the change as \"Changed in version 3.2: Implement the Sequence ABC\" on the type rather than on the methods. 2.x range returns a list and 2.x xrange is the lazy one, so no release before 3.0 answers to this spelling at all."
+checked = "2026-07-30"
 
 [[features]]
 id = "str-format-map"

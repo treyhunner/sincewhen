@@ -345,6 +345,16 @@ def test_attribute_on_a_non_name_is_ignored():
         ('dict.fromkeys("abc")', "dict-fromkeys"),
         ('str.casefold("HI")', "str-casefold"),
         ("type.mro(int)", "type-mro"),
+        # The four types the method tables cannot reach, dated from the
+        # types themselves rather than from any release's source.
+        ('b"abc".decode()', "bytes-decode"),
+        ("memoryview.tobytes(view)", "memoryview-tobytes"),
+        ("range.count(numbers, 3)", "range-count"),
+        ("bytearray.pop(data)", "bytearray-pop"),
+        ("bytearray.fromhex(text)", "bytearray-fromhex"),
+        ("bytes.fromhex(text)", "bytes-fromhex"),
+        ("memoryview.tolist(view)", "memoryview-tobytes"),
+        ("range.index(numbers, 3)", "range-count"),
     ],
 )
 def test_methods_are_detected_where_the_receiver_pins_the_type(source, expected):
@@ -359,6 +369,8 @@ def test_methods_are_detected_where_the_receiver_pins_the_type(source, expected)
         ("{1, 2}.copy()", "set-copy"),
         ('"a".index("a")', "str-index"),
         ("[].index(x)", "list-index"),
+        ('"a b".split()', "str-split"),
+        ('b"a b".split()', "bytes-split"),
     ],
 )
 def test_one_method_name_is_a_different_age_on_each_type(source, expected):
@@ -366,6 +378,10 @@ def test_one_method_name_is_a_different_age_on_each_type(source, expected):
 
     `copy()` is 1.5 on a dict, 2.4 on a set and 3.3 on a list, so a
     receiver whose type is certain has to pick exactly one of them.
+
+    A bytes literal is not a string literal either: `split()` is 1.6 on a
+    `str` and 2.6 on a `bytes`, because 2.6 is the oldest release the
+    name `bytes` can be spelled in.
     """
     assert {found.feature.id for found in detect(source) if found.feature.methods} == {
         expected
@@ -382,6 +398,13 @@ def test_one_method_name_is_a_different_age_on_each_type(source, expected):
         "rows[0].clear()",
         # A shadowed type name is not the type.
         'dict = {"a": 1}\ndict.fromkeys("abc")',
+        # A bytes literal is not a bytearray, so the mutable methods
+        # bytearray alone has do not fire on one.
+        'b"abc".append(1)',
+        'b"abc".insert(0, 1)',
+        # Nor is an arbitrary receiver a memoryview or a range.
+        "value.tolist()",
+        "sequence.index(3)",
     ],
 )
 def test_methods_are_not_detected_on_an_uncertain_receiver(source):

@@ -263,7 +263,9 @@ def test_a_method_that_goes_away_again_is_not_dated(corpus):
     assert typemethods._date_one_type("list") == {}
 
 
-@pytest.mark.parametrize("name", ["bytes.split", "bytearray.split", "range.index"])
+@pytest.mark.parametrize(
+    "name", ["bytes.split", "bytearray.split", "range.index", "memoryview.tolist"]
+)
 def test_the_types_2_x_had_under_another_name_are_left_out(name):
     """Silence about these is a decision rather than a gap.
 
@@ -271,6 +273,10 @@ def test_the_types_2_x_had_under_another_name_are_left_out(name):
     table for `bytes` would date `bytes.capitalize` to 1.6, five releases
     before anything could be spelled `b"..."`. 2.x `range` returns a
     list, so `range(3).index` in this era is `list.index`.
+
+    The dataset dates these all the same, from the types' own arrivals
+    rather than from any method table: see
+    `test_every_method_of_the_types_the_tables_miss_is_dated`.
     """
     assert not typemethods.type_is_covered(name)
 

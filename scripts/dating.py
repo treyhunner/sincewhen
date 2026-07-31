@@ -28,8 +28,10 @@ For a method of a builtin type it is the only witness at all. The docs
 index 397 of those and date 58, because a method older than the "Added
 in version" convention never got a marker, so `dict.setdefault` and
 `str.split` are answered by the type's own method table and by nothing
-else. Note that the head of such a name is deliberately never consulted:
-see `_date_the_module`.
+else. Note that the head of such a name is deliberately not consulted:
+see `_date_the_module`. The exception is the types no release in that
+corpus implements under a name anyone would call them by, where the head
+is the only floor there is: see `_date_the_type`.
 
 Usage:
 
@@ -51,7 +53,7 @@ from source import dated_builtins as source_builtins
 from source import dated_members as source_members
 from source import dated_modules as source_modules
 from sources import load_inventories
-from typemethods import dated_type_methods
+from typemethods import dated_type_methods, type_is_covered
 
 # The 3.x line, in release order: a single linear history.
 SPINE = (
@@ -215,6 +217,10 @@ class Verdict:
     module_added: str | None = None
     module_absent_in: str | None = None
     module_is_floor: bool = False
+    type_name: str | None = None
+    type_added: str | None = None
+    type_absent_in: str | None = None
+    type_is_floor: bool = False
     roles: set[str] = field(default_factory=set)
 
     @property
@@ -294,6 +300,46 @@ class Verdict:
             and self.module_added is not None
             and not self.module_is_floor
             and self.module_added == self.added
+        )
+
+    @property
+    def bounded_by_its_type(self) -> bool:
+        """Whether the type this hangs off closes the inventory's bound.
+
+        The same argument as `bounded_by_its_module`, one level down. A
+        method cannot predate the type that holds it, so a bound at
+        exactly the release the type arrived in is not a bound at all.
+        The inventory can only ever bound a type member, because
+        `stdtypes` grew per-name markup release by release, and
+        `memoryview.tolist` is first indexed in 2.7, which is the release
+        `memoryview` itself arrived in. There is nothing under that for
+        the method to have come from, so it is 2.7 rather than "2.7 or
+        earlier".
+
+        Only reached for the types `typemethods` does not speak for: see
+        `_date_the_type`. It also needs a release that demonstrably lacks
+        the type, since that is what the evidence points at, and that
+        release has to be older than the type's own arrival. `bytearray`
+        is why the comparison is strict rather than loose: the 2.7
+        inventory is the first to list it and the 2.7 docs date it to
+        2.6, so its verdict brackets on 2.6 from both sides and there is
+        no older release to cite.
+
+        What this does not do is cross-check the bound against anything.
+        It reads "indexed in release R" as "existed in R", which
+        `BUILTIN_TYPES` says is false in general: `frozenset.add` is
+        indexed in 2.7 and no `frozenset` has ever had it. That is safe
+        only because the bound has to land on the type's own arrival,
+        which is a release the type demonstrably shipped in.
+        """
+        return (
+            self.inventory is None
+            and self.floor is not None
+            and self.type_added is not None
+            and not self.type_is_floor
+            and self.type_added == self.floor
+            and self.type_absent_in is not None
+            and version_key(self.type_absent_in) < version_key(self.type_added)
         )
 
     @property
@@ -380,6 +426,10 @@ class Verdict:
             case "early-inventory":
                 # The docs described it before the inventory indexed it.
                 return annotation
+            case "type":
+                # The inventory bounds a type member and the type's own
+                # arrival closes the bound: see `bounded_by_its_type`.
+                return self.type_added
         return inventory or annotation
 
     @property
@@ -569,6 +619,16 @@ class Verdict:
                 later = version_key(self.annotation) > version_key(self.archive)
                 return "docs-overstate" if later else "docs-predate"
             return "archive"
+
+        # A type member the inventory can only bound, whose type arrived
+        # in exactly the release that bound it. Checked before the
+        # annotation, because the marker nearest one of these is often
+        # not a claim about it: the one above `memoryview.tobytes` says
+        # "Added in version 3.8: *order* can be {'C', 'F', 'A'}", which
+        # dates an argument to a method the 2.7 inventory already lists.
+        if self.bounded_by_its_type:
+            return "type"
+
         if self.inventory and self.annotation:
             if self.inventory == self.annotation:
                 return "agree"
@@ -722,6 +782,23 @@ class Verdict:
                     "documentation already lists it."
                 )
             return evidence | {"checked": checked}
+        if self.status == "type":
+            return {
+                "method": "objects.inv",
+                "symbol": f"{sorted(self.roles)[0]} {self.name}"
+                if self.roles
+                else self.name,
+                "absent_in": self.type_absent_in,
+                "present_in": self.type_added,
+                "note": (
+                    f"The inventory only bounds a member of a builtin type, and "
+                    f"{self.floor} is the oldest one that indexes this. "
+                    f"{self.type_name} is absent from {self.type_absent_in} and "
+                    f"arrived in {self.type_added}, so nothing in it can be "
+                    "older and the bound closes."
+                ),
+                "checked": checked,
+            }
         if self.added == self.inventory:
             evidence = {
                 "method": "objects.inv",
@@ -888,6 +965,10 @@ def _date_the_module(verdict: Verdict) -> None:
     dates is availability on instances, which is what the dataset's
     pre-2.6 method entries have always claimed: `"x".encode()` is 2.0
     and `str.encode` as an unbound attribute is 2.2.
+
+    The narrow exception is `_date_the_type`, for the types whose method
+    tables no release in the corpus carries, where the head is the only
+    floor there is and none of the above applies.
     """
     module, _, member = verdict.name.rpartition(".")
     if not (module and member) or is_type_member(verdict.name):
@@ -897,6 +978,49 @@ def _date_the_module(verdict: Verdict) -> None:
     verdict.module_added = found.added
     verdict.module_absent_in = found.absent_from
     verdict.module_is_floor = found.or_earlier
+
+
+# The one head this refuses to read. `range` names a builtin function
+# that returns a list until 3.0, and the source dates that function to
+# 0.9, so asking about the head answers about `range()` and not about the
+# `range` type, which is 3.0. That is exactly the `dict` gap below, and
+# the only one of these four types that falls into it: `bytes`,
+# `bytearray` and `memoryview` name the same thing throughout.
+HEAD_IS_NOT_THE_TYPE = frozenset({"range"})
+
+
+def _date_the_type(verdict: Verdict) -> None:
+    """Date the builtin type a method hangs off, where anything can.
+
+    A method cannot predate the type that holds it, which is the
+    argument `_date_the_module` makes about a module member one level
+    up. Unlike that one it is deliberately narrow: it is only taken for
+    the types `typemethods.py` does not speak for, because for every
+    other builtin type the head of the name answers a different
+    question. `dict` the builtin arrived in 2.2 and the `dict` type is
+    in 0.9.1, so a floor from the head would date `dict.keys` to 2.2.
+
+    For `bytes`, `bytearray` and `memoryview` the head is the only floor
+    there is, because no release in the source corpus implements a type
+    anyone would call by those names and nothing else in the corpus
+    reaches these methods. `range` is excluded outright: see
+    `HEAD_IS_NOT_THE_TYPE`.
+
+    A head the sources cannot date leaves the fields unset and the
+    member unanswered, which is what `bytes` does: the 3.x inventories
+    have it from 3.0, so they can only bound it, and no older source
+    names it at all.
+    """
+    if not is_type_member(verdict.name) or type_is_covered(verdict.name):
+        return
+    head = verdict.name.partition(".")[0]
+    if head in HEAD_IS_NOT_THE_TYPE:
+        return
+    found = date_symbol(head)
+    verdict.type_name = head
+    verdict.type_added = found.added
+    verdict.type_absent_in = found.absent_from
+    verdict.type_is_floor = found.or_earlier
 
 
 def _predates_module(verdict: Verdict, version: str) -> bool:
@@ -956,6 +1080,7 @@ def date_symbol(name: str) -> Verdict:
 
     verdict = Verdict(name=name)
     _date_the_module(verdict)
+    _date_the_type(verdict)
 
     presence = _inventory_index().get(name, {})
     _date_from_interpreters(verdict)
@@ -1026,6 +1151,15 @@ def main(argv: list[str]) -> int:
             )
         elif verdict.floor:
             print(f"  objects.inv already documented in {verdict.floor}")
+        if verdict.type_added:
+            bound = (
+                f"{verdict.type_added} or earlier"
+                if verdict.type_is_floor
+                else verdict.type_added
+            )
+            print(
+                f"  type        {verdict.type_name} is {bound}, so nothing in it is older"
+            )
         if verdict.annotation:
             print(
                 f"  annotation  {verdict.annotation} "

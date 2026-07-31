@@ -25,6 +25,13 @@ Four more `dis` opcode constants moved the other way, to the release `Lib/dis.py
 Their markers date the opcode, which is older, and `minimum_version()` was reporting 3.11 for code that raises `AttributeError` until 3.14.
 Two entries keep their versions and gained `manual` evidence: `os.mknod` and `hashlib.scrypt` are absent from a build for reasons that are the toolchain's rather than the release's.
 
+- **46 entries for the methods of `bytes`, `bytearray`, `memoryview` and `range`**, the four type families the method-table work had to leave out.
+  `sincewhen --search bytes.split` used to come back empty while `str.split` answered 1.6; it now answers 2.6, along with the other 35 string methods the two byte types share and `bytearray`'s seven of its own.
+  `memoryview.tobytes()` and `.tolist()` are 2.7, `range.count()` and `.index()` are 3.2, and `bytes.fromhex()` is 3.0.
+  `bytes` had 5 dated methods against `str`'s 42, and now has 42 of its own.
+- **`bytes.fromhex()` is 3.0 where `bytearray.fromhex()` is 2.6.**
+  2.6 and 2.7 spell `bytes` as a synonym for `str`, and no 2.x `str` has `fromhex()`, so that one name waits for the real `bytes` type.
+
 ### Research pipeline
 
 - **The interpreter oracle reaches 3.14**, building thirty-one releases instead of fourteen, in a second pinned image.
@@ -41,6 +48,10 @@ Two entries keep their versions and gained `manual` evidence: `os.mknod` and `ha
   A Python 2 C module names itself in `Py_InitModule("dbm", ...)`, and grepping 2.7 for `PyInit_` dated `dbm` to 3.0.
 - **The re-add guard no longer covers the interpreter**, which detects a re-add from the mask itself.
   Guarding it fired on most of the 3.x line and hid two of the corrections above.
+- **A builtin type closes the bound on its own methods, as a module already did for its members.**
+  The inventory can only bound a method of a builtin type, so where that bound sits at exactly the release the type arrived in, `dating.py` reports a date: `memoryview.tolist` is 2.7 rather than "2.7 or earlier".
+  Taken only for the four types `type_is_covered` rules out, because elsewhere the head of the name answers a different question: `dict` the builtin is 2.2 and the `dict` type is in 0.9.1.
+- **`just whenadded bytearray.pop` shows the whole bracket**, the type's date under it as well as the inventory's bound over it.
 
 ### Tool
 
