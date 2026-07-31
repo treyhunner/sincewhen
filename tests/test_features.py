@@ -142,7 +142,18 @@ def test_every_dated_method_is_still_there():
 # The four types no release from 0.9.1 to 2.5 implements under a name
 # anyone would call them by, so `typemethods.LINEAGE` leaves them out.
 # What the tables cannot reach, the types' own arrivals answer for.
-UNCOVERED_TYPES = ("bytes", "bytearray", "memoryview", "range")
+#
+# Each maps to the release the type itself arrived in, which is the floor
+# under everything spelled `type.method`. Written out rather than read
+# off the dataset's own `builtins` entries, because two of the four
+# cannot be: `bytes` has no entry at all, and `range()` the builtin is
+# 0.9 while the `range` type is 3.0.
+UNCOVERED_TYPES = {
+    "bytes": Version(2, 6),
+    "bytearray": Version(2, 6),
+    "memoryview": Version(2, 7),
+    "range": Version(3, 0),
+}
 
 
 def test_every_method_of_the_types_the_tables_miss_is_dated():
@@ -155,7 +166,14 @@ def test_every_method_of_the_types_the_tables_miss_is_dated():
     it, which dates every one of these.
 
     Attributes are a different matcher and out of this: `range.start` and
-    `memoryview.itemsize` are not methods.
+    `memoryview.itemsize` are not methods, which is what `callable`
+    separates.
+
+    This asks the running interpreter, so a Python that adds a method to
+    one of these types fails the build until an entry exists for it. That
+    is deliberate and not rare: 3.7 added `isascii`, 3.9 `removeprefix`
+    and `removesuffix`, 3.14 `bytearray.resize`. The project already
+    needs a release per Python feature release.
     """
     dated = {name for feature in load_features() for name in feature.methods}
     for type_name in UNCOVERED_TYPES:
@@ -165,24 +183,65 @@ def test_every_method_of_the_types_the_tables_miss_is_dated():
                 continue
             if not callable(getattr(the_type, member)):
                 continue
-            assert f"{type_name}.{member}" in dated, f"{type_name}.{member}"
+            assert f"{type_name}.{member}" in dated, (
+                f"{type_name}.{member} has no entry; add one, or add its type "
+                "to UNCOVERED_TYPES if the tables now reach it"
+            )
 
 
 def test_no_method_of_a_modern_type_predates_that_type():
     """`bytearray` is 2.6, so nothing spelled `bytearray.x` is older.
 
-    Only for the types whose ancestors the source corpus has none of.
-    `dict.keys` is 0.9 and `dict` the builtin is 2.2, because a method
-    entry from that era is a claim about instances rather than about the
-    type, and `range()` the builtin is 0.9 while the `range` type is 3.0.
+    This is the guard on the one mistake AGENTS.md names by name: reading
+    the 2.x string table for `bytes` dates `bytes.capitalize` to 1.6,
+    five releases before anything could be spelled b"...". Those entries
+    carry `manual` evidence, which `verify-dataset` does not re-derive,
+    so nothing else checks the number.
+
+    Only for these four. `dict.keys` is 0.9 while `dict` the builtin is
+    2.2, because a method entry from that era is a claim about instances
+    rather than about the type.
     """
-    types_ = {name: feature for feature in load_features() for name in feature.builtins}
     for feature in load_features():
         for name in feature.methods:
-            head = name.partition(".")[0]
-            if head not in {"bytearray", "memoryview"}:
+            floor = UNCOVERED_TYPES.get(name.partition(".")[0])
+            if floor is None:
                 continue
-            assert types_[head].added <= feature.added, (feature.id, name)
+            assert floor <= feature.added, (feature.id, name)
+
+
+def test_a_byte_method_is_no_older_than_the_same_method_on_str():
+    """2.6's `bytes` is `str`, so `bytes.x` cannot beat `str.x` to it.
+
+    The other half of the argument the `bytes` entries rest on: the type
+    is the binding constraint only if every method it shares with `str`
+    is already dated at or before the type's own arrival.
+    """
+    dated = {
+        name: feature.added for feature in load_features() for name in feature.methods
+    }
+    for name, added in dated.items():
+        type_name, _, method = name.partition(".")
+        if type_name not in {"bytes", "bytearray"}:
+            continue
+        on_str = dated.get(f"str.{method}")
+        if on_str is not None:
+            assert on_str <= added, name
+
+
+def test_the_types_dated_from_their_head_are_the_ones_the_tables_miss():
+    """The exclusion list exists twice, and the two have to agree.
+
+    `dating._date_the_type` reads the head of a name for every builtin
+    type `typemethods` does not speak for, which is a set neither module
+    writes down. Adding a type to `BUILTIN_TYPES` without adding it to
+    `LINEAGE` would silently enrol it in head-based dating, and that
+    direction produces version numbers rather than failures.
+    """
+    import dating
+    import typemethods
+
+    assert dating.BUILTIN_TYPES - set(typemethods.LINEAGE) == set(UNCOVERED_TYPES)
 
 
 def test_lookup_finds_a_method_by_its_own_name():

@@ -347,8 +347,9 @@ def test_attribute_on_a_non_name_is_ignored():
         ("type.mro(int)", "type-mro"),
         # The four types the method tables cannot reach, dated from the
         # types themselves rather than from any release's source.
-        ('b"a b".split()', "bytes-split"),
         ('b"abc".decode()', "bytes-decode"),
+        ("memoryview.tobytes(view)", "memoryview-tobytes"),
+        ("range.count(numbers, 3)", "range-count"),
         ("bytearray.pop(data)", "bytearray-pop"),
         ("bytearray.fromhex(text)", "bytearray-fromhex"),
         ("bytes.fromhex(text)", "bytes-fromhex"),

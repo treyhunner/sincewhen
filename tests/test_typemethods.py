@@ -263,7 +263,9 @@ def test_a_method_that_goes_away_again_is_not_dated(corpus):
     assert typemethods._date_one_type("list") == {}
 
 
-@pytest.mark.parametrize("name", ["bytes.split", "bytearray.split", "range.index"])
+@pytest.mark.parametrize(
+    "name", ["bytes.split", "bytearray.split", "range.index", "memoryview.tolist"]
+)
 def test_the_types_2_x_had_under_another_name_are_left_out(name):
     """Silence about these is a decision rather than a gap.
 

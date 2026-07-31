@@ -42,6 +42,7 @@ def type_member(
     name: str = "memoryview.tolist",
     floor: str = "2.7",
     type_added: str = "2.7",
+    type_absent_in: str | None = "2.6",
     type_is_floor: bool = False,
     annotation: str | None = None,
 ) -> Verdict:
@@ -57,7 +58,7 @@ def type_member(
         annotation=annotation,
         type_name="memoryview",
         type_added=type_added,
-        type_absent_in="2.6",
+        type_absent_in=type_absent_in,
         type_is_floor=type_is_floor,
     )
 
@@ -76,20 +77,33 @@ def test_a_type_closes_the_bound_on_its_own_member():
 
 
 def test_a_bound_above_the_types_arrival_stays_open():
-    """`bytes` is 2.6 and its methods are first indexed in 3.4.
+    """A bound several releases above the type dates nothing.
 
-    Four releases separate the two, so the inventory bounds and the type
-    floors and neither dates. Those entries need a human.
+    This is the `bytes` and `bytearray` shape: the types are 2.6 and
+    most of their methods are first indexed in 3.4, so the inventory
+    bounds from above, the type floors from below, and the two do not
+    meet. Those entries need a human.
     """
     verdict = type_member(floor="3.4")
-    assert verdict.status != "type"
+    assert verdict.status == "unknown"
     assert verdict.added is None
 
 
 def test_a_bounded_type_passes_its_bound_along():
     """Only a dated type closes anything, exactly as for a module."""
     verdict = type_member(type_is_floor=True)
-    assert verdict.status != "type"
+    assert verdict.status == "unknown"
+
+
+def test_a_type_with_no_release_to_point_at_closes_nothing():
+    """The evidence needs a release that demonstrably lacks the type.
+
+    `bytearray` is the case: the 2.7 inventory is the first to list it
+    and the 2.7 docs date it to 2.6, so its verdict brackets on 2.6 from
+    both sides and there is no older release to cite.
+    """
+    assert type_member(type_absent_in=None).status == "unknown"
+    assert type_member(type_absent_in="2.7").status == "unknown"
 
 
 def test_a_marker_about_an_argument_does_not_reopen_the_bound():
@@ -112,5 +126,17 @@ def test_the_head_is_not_consulted_for_a_type_the_tables_reach():
     corpus implements under a name anyone would call them by.
     """
     verdict = Verdict(name="dict.keys")
+    _date_the_type(verdict)
+    assert verdict.type_added is None
+
+
+def test_the_head_is_not_consulted_for_range_either():
+    """`range()` the builtin is 0.9 and the `range` type is 3.0.
+
+    The same gap as `dict`, in one of the four types the tables miss, so
+    reading the head would report "range is 0.9, so nothing in it is
+    older" about a type that did not exist until 3.0.
+    """
+    verdict = Verdict(name="range.count")
     _date_the_type(verdict)
     assert verdict.type_added is None

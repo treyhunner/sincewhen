@@ -29,9 +29,9 @@ index 397 of those and date 58, because a method older than the "Added
 in version" convention never got a marker, so `dict.setdefault` and
 `str.split` are answered by the type's own method table and by nothing
 else. Note that the head of such a name is deliberately not consulted:
-see `_date_the_module`. The exception is the four types no release in
-that corpus implements under a name anyone would call them by, where the
-head is the only floor there is: see `_date_the_type`.
+see `_date_the_module`. The exception is the types no release in that
+corpus implements under a name anyone would call them by, where the head
+is the only floor there is: see `_date_the_type`.
 
 Usage:
 
@@ -316,12 +316,21 @@ class Verdict:
         the method to have come from, so it is 2.7 rather than "2.7 or
         earlier".
 
-        Only reached for the four types `typemethods` does not speak for:
-        see `_date_the_type`. It also needs a release that demonstrably
-        lacks the type, since that is what the evidence points at.
-        `bytearray` has none: the 2.7 inventory is the first to list it
-        and the 2.7 docs date it to 2.6, so its own bracket is closed
-        already and there is no older release to cite.
+        Only reached for the types `typemethods` does not speak for: see
+        `_date_the_type`. It also needs a release that demonstrably lacks
+        the type, since that is what the evidence points at, and that
+        release has to be older than the type's own arrival. `bytearray`
+        is why the comparison is strict rather than loose: the 2.7
+        inventory is the first to list it and the 2.7 docs date it to
+        2.6, so its verdict brackets on 2.6 from both sides and there is
+        no older release to cite.
+
+        What this does not do is cross-check the bound against anything.
+        It reads "indexed in release R" as "existed in R", which
+        `BUILTIN_TYPES` says is false in general: `frozenset.add` is
+        indexed in 2.7 and no `frozenset` has ever had it. That is safe
+        only because the bound has to land on the type's own arrival,
+        which is a release the type demonstrably shipped in.
         """
         return (
             self.inventory is None
@@ -956,6 +965,10 @@ def _date_the_module(verdict: Verdict) -> None:
     dates is availability on instances, which is what the dataset's
     pre-2.6 method entries have always claimed: `"x".encode()` is 2.0
     and `str.encode` as an unbound attribute is 2.2.
+
+    The narrow exception is `_date_the_type`, for the types whose method
+    tables no release in the corpus carries, where the head is the only
+    floor there is and none of the above applies.
     """
     module, _, member = verdict.name.rpartition(".")
     if not (module and member) or is_type_member(verdict.name):
@@ -967,25 +980,42 @@ def _date_the_module(verdict: Verdict) -> None:
     verdict.module_is_floor = found.or_earlier
 
 
+# The one head this refuses to read. `range` names a builtin function
+# that returns a list until 3.0, and the source dates that function to
+# 0.9, so asking about the head answers about `range()` and not about the
+# `range` type, which is 3.0. That is exactly the `dict` gap below, and
+# the only one of these four types that falls into it: `bytes`,
+# `bytearray` and `memoryview` name the same thing throughout.
+HEAD_IS_NOT_THE_TYPE = frozenset({"range"})
+
+
 def _date_the_type(verdict: Verdict) -> None:
     """Date the builtin type a method hangs off, where anything can.
 
     A method cannot predate the type that holds it, which is the
     argument `_date_the_module` makes about a module member one level
     up. Unlike that one it is deliberately narrow: it is only taken for
-    the four types `typemethods.py` does not speak for, because for
-    every other builtin type the head of the name answers a different
+    the types `typemethods.py` does not speak for, because for every
+    other builtin type the head of the name answers a different
     question. `dict` the builtin arrived in 2.2 and the `dict` type is
     in 0.9.1, so a floor from the head would date `dict.keys` to 2.2.
 
-    `bytes`, `bytearray`, `memoryview` and `range` have no such gap to
-    fall into, because no release in the source corpus implements a type
-    anyone would call by those names. There the head is the binding
-    constraint and the only floor there is.
+    For `bytes`, `bytearray` and `memoryview` the head is the only floor
+    there is, because no release in the source corpus implements a type
+    anyone would call by those names and nothing else in the corpus
+    reaches these methods. `range` is excluded outright: see
+    `HEAD_IS_NOT_THE_TYPE`.
+
+    A head the sources cannot date leaves the fields unset and the
+    member unanswered, which is what `bytes` does: the 3.x inventories
+    have it from 3.0, so they can only bound it, and no older source
+    names it at all.
     """
     if not is_type_member(verdict.name) or type_is_covered(verdict.name):
         return
     head = verdict.name.partition(".")[0]
+    if head in HEAD_IS_NOT_THE_TYPE:
+        return
     found = date_symbol(head)
     verdict.type_name = head
     verdict.type_added = found.added
