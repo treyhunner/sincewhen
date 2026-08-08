@@ -157,25 +157,49 @@ def is_type_member(name: str) -> bool:
     return head in BUILTIN_TYPES and bool(member)
 
 
+# The three keywords that are also objects. Every other keyword is a
+# piece of syntax whose only presence in the inventories is the
+# reference manual's anchor for it, which is what `is_keyword` refuses.
+# These three are documented values living in the builtins namespace:
+# each carries a `py:data` role and no `std:label` at all, and
+# `getattr(builtins, "True")` finds one. So asking the docs about them
+# answers about the constant rather than about a section heading, which
+# is the whole of the reason the refusal exists.
+#
+# `True` and `False` carry their own "New in version 2.3" marker in the
+# 2.7 docs. `None` predates the marker convention and carries none, so
+# nothing here dates it and `date_symbol` reports no version rather than
+# a wrong one.
+#
+# Deliberately not extended to the operators. `in` and `is` are also
+# real things with real ages, and the 0.9.1 grammar is what says so.
+CONSTANT_KEYWORDS = frozenset({"True", "False", "None"})
+
+
 def is_keyword(name: str) -> bool:
     """Whether asking about `name` here would answer about a doc anchor.
 
-    Every Python keyword is also a `std:label` in the inventories, since
-    the reference manual has a section for each one, and a label is
-    indexed whenever someone got around to writing the anchor. So `in`
-    reports as 3.2 and `if`, `for` and `while` all report as some 3.x
-    release, none of which is a fact about the language: `in` is in the
-    0.9.1 `comp_op` rule.
+    Almost every Python keyword is also a `std:label` in the
+    inventories, since the reference manual has a section for each one,
+    and a label is indexed whenever someone got around to writing the
+    anchor. So `in` reports as 3.2 and `if`, `for` and `while` all report
+    as some 3.x release, none of which is a fact about the language: `in`
+    is in the 0.9.1 `comp_op` rule.
 
-    This method dates symbols, and a keyword is not one. What settles a
-    keyword is CPython's own grammar, which `grammar.py` reads, so the
+    This method dates symbols, and such a keyword is not one. What
+    settles it is CPython's own grammar, which `grammar.py` reads, so the
     answer here is to refuse rather than to guess.
 
     Only the hard keywords. A soft keyword is a real name as well:
     `type` is a builtin this dataset dates to 0.9, and `match` and
     `case` are ordinary identifiers everywhere but a match statement.
+
+    And not the three that are objects: see `CONSTANT_KEYWORDS`. The
+    refusal is about what the sources have under a name, not about what
+    the tokenizer does with it, and what they have under `True` is the
+    constant.
     """
-    return keyword.iskeyword(name)
+    return keyword.iskeyword(name) and name not in CONSTANT_KEYWORDS
 
 
 # Python 3.0 and 3.1 do not count against continuity. Plenty of features

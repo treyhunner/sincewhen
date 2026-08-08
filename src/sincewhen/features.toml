@@ -1178,6 +1178,21 @@ present_in = "3.10"
 checked = "2026-07-28"
 
 [[features]]
+id = "true-false"
+name = "True and False"
+added = "2.3"
+category = "constant"
+pep = 285
+builtins = ["True", "False"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:library/constants.txt"
+quote = "New in version 2.3."
+note = "Python had no booleans for its first eleven years. PEP 285's bool type is 2.3, and the built interpreters agree: 2.2.0 resolves neither name and 2.3 resolves both. The names themselves are 2.2.1, a micro release this corpus does not build, where they were ints rather than bools; the 2.7 docs describe both as \"the true value of the bool type\" and date that to 2.3, which is what this entry claims. They became keywords in 3.0, which is why the parser folds them into constants and `detect.py` reads them there rather than as names."
+checked = "2026-08-08"
+
+[[features]]
 id = "exception-group"
 name = "ExceptionGroup and BaseExceptionGroup"
 added = "3.11"

@@ -28,6 +28,11 @@ Twenty-seven entries that could not exist before, twenty-six of them removed in 
   `=` is the only pre-1.0 removal in the dataset: 0.9.1 spelled equality `=`, and could without ambiguity, because assignment is a statement there and never an expression.
   1.0 replaced it with `==`.
 
+**`True` and `False` are now entries, dated 2.3.**
+Python had no booleans for its first eleven years.
+The names arrived in 2.2.1 as ints; PEP 285's `bool` type is 2.3, which is what the 2.7 docs describe and what the built interpreters find.
+`None` gets no entry: it predates the "New in version" convention and carries no marker, so nothing dates it.
+
 `callable()` is deliberately not among them.
 It went away in 3.0 and came back in 3.2, which under this dataset's own rule is a gap rather than a removal.
 

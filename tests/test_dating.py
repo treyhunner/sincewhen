@@ -28,8 +28,35 @@ def test_a_keyword_is_refused_rather_than_answered():
 
 
 def test_every_keyword_is_refused():
-    for name in ("if", "for", "while", "return", "lambda", "not", "None"):
+    for name in ("if", "for", "while", "return", "lambda", "not", "in", "is"):
         assert date_symbol(name).status == "keyword", name
+
+
+def test_the_three_keywords_that_are_objects_are_not_refused():
+    """`True`, `False` and `None` are values, not section headings.
+
+    The refusal exists because a keyword's only presence in the
+    inventories is the reference manual's anchor for it. These three
+    carry a `py:data` role and no `std:label` at all, so asking the docs
+    about them answers about the constant. `getattr(builtins, "True")`
+    finds one, and all three were names before 3.0 made them keywords.
+    """
+    for name in ("True", "False", "None"):
+        assert not is_keyword(name), name
+        assert date_symbol(name).status != "keyword", name
+
+
+def test_the_constant_keywords_the_docs_date_are_dated():
+    """Two of the three, and the third stays honestly unanswered.
+
+    `True` and `False` carry their own "New in version 2.3" marker.
+    `None` predates the marker convention and carries none, so nothing
+    dates it and the verdict reports no version rather than the age of
+    whichever inventory first listed it.
+    """
+    assert date_symbol("True").added == "2.3"
+    assert date_symbol("False").added == "2.3"
+    assert date_symbol("None").added is None
 
 
 def test_a_soft_keyword_is_still_a_name():
