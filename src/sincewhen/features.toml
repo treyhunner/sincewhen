@@ -1541,6 +1541,24 @@ note = "Removed in 3.0 in favour of open(), which returns one of several io type
 checked = "2026-08-08"
 
 [[features]]
+id = "cmp"
+name = "cmp()"
+added = "1.0"
+category = "builtin"
+removed = "3.1"
+builtins = ["cmp"]
+
+[features.evidence]
+method = "manual"
+note = "Two sources agree on 1.0 and neither is the one `dating.py` consults. The builtins table is absent `cmp` in 0.9.1's src/bltinmodule.c and carries it in 1.0's Python/bltinmodule.c, and the built interpreters resolve `cmp` from 1.0 onward and not in 0.9. What the arbiter answers instead is 0.9 or earlier, from lib/cmp.py: 0.9.1 through 1.5 ship a `cmp` module for comparing files, replaced by `filecmp` in 1.6, and a name that is also a module belongs to the module. That rule is right in general and is what keeps the builtins table from dating the `repr` module five releases early; it is wrong here because this entry claims the builtin. Fixing it properly means telling `date_symbol` which kind the entry asks about, which is a change to the arbiter that governs every name."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "manual"
+note = "3.1, not the 3.0 every other Python 2 builtin in this dataset got, and the 3.0 docs say as much in their own wording: they spell the rest \"Removed apply()\" and spell this one \"The cmp() function should be treated as gone\", alongside `__cmp__` losing support and `sort` losing its cmp argument. The built interpreters take that literally and so does this entry: 3.0 resolves `cmp` and 3.1 does not, so it outlived the other fourteen by one release. Recorded by hand for two reasons. `removal_of` asks the table about a `cmp` module that has not existed since 1.5, as the date above explains. And a last presence in 3.0 is one `removed()` refuses to date from, since 3.0 and 3.1 do not count towards availability in either direction, which makes \"gone in 3.1\" a claim about a release nobody shipped code on. Both readings are defensible; the literal one is recorded, because 3.0 demonstrably has the function."
+checked = "2026-08-08"
+
+[[features]]
 id = "basestring"
 name = "basestring()"
 added = "2.3"
@@ -6236,15 +6254,18 @@ checked = "2026-07-28"
 [[features]]
 id = "argparse"
 name = "argparse module"
-added = "3.2"
+added = "2.7"
 category = "module"
 pep = 389
 modules = ["argparse"]
 
 [features.evidence]
-method = "manual"
-note = "argparse shipped in 2.7 and again in 3.2, with 3.0 and 3.1 lacking it. 3.2 is the oldest release from which it is continuously available, so a 2.7 claim would be misleading for anyone on 3.x."
-checked = "2026-07-28"
+method = "interpreter"
+symbol = "argparse"
+absent_in = "2.6"
+present_in = "2.7"
+note = "Missing from 3.0 and 3.1 and back in 3.2. Those two do not count against continuity, so the date is 2.7. This is the entry that rule was written for."
+checked = "2026-08-08"
 
 [[features]]
 id = "concurrent-futures"

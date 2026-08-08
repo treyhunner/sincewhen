@@ -16,10 +16,12 @@ An entry can now say `removed` as well as `added`, so a feature Python took away
 The two are the same sentence with one word changed and are read off the same presence mask from the same end: `added` is the oldest release a name has been available in ever since, and `removed` is the oldest release it has been unavailable in ever since.
 A removal carries its own `[features.removed_evidence]` table, which only the built interpreters, the grammar and `manual` may fill in: a removal is an absence claim, and the methods whose absences prove nothing cannot make one.
 
-Twenty-seven entries that could not exist before, twenty-six of them removed in 3.0:
+Twenty-eight entries that could not exist before, twenty-six of them removed in 3.0:
 
-- **Fourteen builtins**: `apply`, `basestring`, `buffer`, `coerce`, `execfile`, `file`, `intern`, `long`, `raw_input`, `reduce`, `reload`, `unichr`, `unicode`, `xrange`.
+- **Fifteen builtins**: `apply`, `basestring`, `buffer`, `cmp`, `coerce`, `execfile`, `file`, `intern`, `long`, `raw_input`, `reduce`, `reload`, `unichr`, `unicode`, `xrange`.
   These are detected as well as searchable, at no cost: `apply(f, args)` parses under a 3.14 parser, so reading old code reports the whole story in one line.
+  Fourteen are removed in 3.0 and `cmp()` in 3.1, which the 3.0 docs already distinguish: they spell the rest "Removed apply()" and spell that one "The cmp() function should be treated as gone".
+  The 3.0 interpreter resolves it and the 3.1 interpreter does not.
 - **Eight methods**: `dict.has_key`, `dict.iterkeys`, `dict.itervalues`, `dict.iteritems`, `dict.viewkeys`, `dict.viewvalues`, `dict.viewitems`, `str.decode`.
   `dict.viewkeys` and its two siblings exist in exactly one release: added in 2.7, gone in 3.0.
 - **Five pieces of syntax**: the `print` statement, the `exec` statement, backticks, `<>`, and `=` as the equality operator.
@@ -27,6 +29,11 @@ Twenty-seven entries that could not exist before, twenty-six of them removed in 
   `sincewhen --search print` now tells the whole arc: the statement from 0.9 to 3.0, `from __future__ import print_function` in 2.6, the function in 3.0.
   `=` is the only pre-1.0 removal in the dataset: 0.9.1 spelled equality `=`, and could without ambiguity, because assignment is a statement there and never an expression.
   1.0 replaced it with `==`.
+
+**`argparse` is 2.7, not 3.2.**
+It shipped in 2.7 and again in 3.2, with 3.0 and 3.1 lacking it, and this dataset's own rule is that those two do not count against continuity.
+The entry had a `manual` override claiming 3.2 on the grounds that a 2.7 claim would mislead anyone on 3.x, which contradicted the rule everything else follows and the four places AGENTS.md states it.
+The built interpreters settle it: absent in 2.6, present in 2.7, and the entry is now re-derived rather than overridden.
 
 **`True` and `False` are now entries, dated 2.3.**
 Python had no booleans for its first eleven years.

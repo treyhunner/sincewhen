@@ -1603,11 +1603,13 @@ def removed(target: str) -> dict | None:
       claim, so `absence_is_real` has to hold for it: a name that stops
       resolving because the image lacks a library has stopped being
       evidence, not stopped existing.
-    - **A last presence in 3.0 or 3.1** is refused, because those two do
-      not count towards availability in the other direction either and
-      nothing in the corpus needs the answer. Reporting "removed in 3.2"
-      for a name whose last real release was 2.7 would name a release
-      two steps past where anyone stopped being able to use it.
+    - **A last presence in 3.0 or 3.1** is refused and handed to a human,
+      because those two do not count towards availability in this
+      direction either, so the two readings genuinely differ. `cmp` is
+      the case and the only one: it resolves in 3.0 and not in 3.1, so
+      "removed in 3.1" is literally true and true only of a release
+      nobody shipped code on, while "removed in 3.0" is what every other
+      Python 2 builtin gets and is false of the interpreter.
     - **A gap that `_forgiven` bridges** never reaches here, since a name
       present on both sides of 3.0 and 3.1 is present at the end.
     """
