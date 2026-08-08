@@ -667,6 +667,33 @@ def test_removed_syntax_is_search_only():
             assert feature.removed is not None, feature.id
 
 
+def test_the_boolean_constants_are_dated_together():
+    """Python had no booleans for its first eleven years.
+
+    Asserted against the bundled dataset rather than against the
+    pipeline, because asking `date_symbol` about a name it does not
+    refuse reads the 500 MB corpus and CI restores none. Whether 2.3 is
+    the right answer is `verify-dataset`'s question; whether the entry
+    still says it is this one's.
+    """
+    entries = [f for f in load_features() if "True" in f.builtins]
+    assert [(f.id, str(f.added), sorted(f.builtins)) for f in entries] == [
+        ("true-false", "2.3", ["False", "True"])
+    ]
+    assert entries[0].removed is None
+
+
+def test_none_has_no_entry():
+    """It predates the "Added in version" convention and carries no marker.
+
+    So nothing in the pipeline dates it, and an entry would have to
+    invent a version or borrow the age of whichever inventory first
+    listed it. `detect.py` still reads it as the builtin name it is, so
+    adding one later needs no change there.
+    """
+    assert not [f for f in load_features() if "None" in f.builtins]
+
+
 def test_a_removed_feature_reads_as_removed():
     feature = _build(entry(added="1.0", removed="3.0"))
     assert feature.since == "1.0, removed in 3.0"
