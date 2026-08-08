@@ -96,6 +96,81 @@ def _chain(versions: list[str], peg: bool) -> dict[str, dict[str, str]]:
     return dated
 
 
+def _removed(versions: list[str], peg: bool) -> dict[str, dict[str, str]]:
+    """Last release each token appears in, where that is not the last one.
+
+    The mirror of `_chain`, and the same argument: a grammar is the list
+    the parser is generated from rather than a description of one, so a
+    token missing from it is a token that release cannot parse.
+
+    Computed per chain and never across the pair. Python 3.9 ships both
+    grammars, and the PEG one spells a great deal differently, so
+    diffing pgen's 3.9 against PEG's 3.9 would report a few hundred
+    removals in a release that removed nothing. The end of a chain is
+    therefore silence rather than a removal: a token still present in
+    pgen's last release is a token this cannot speak about, and the PEG
+    chain is what answers for it.
+
+    Terminals only, and this is the load-bearing half. A quoted terminal
+    is a thing somebody writes, so its disappearance is a fact about the
+    language. A rule name is what the grammar file calls a piece of
+    itself, and CPython renames those freely: `dictmaker` is in no
+    grammar after 2.7 because 3.0 renamed it `dictorsetmaker`, and dict
+    displays are fine. Left unfiltered that reported a removal for
+    `{'k': 1}`, along with two dozen others of the same kind
+    (`listmaker`, `fpdef`, `old_lambdef`, `with_var`). Additions do not
+    need the distinction, because a renamed rule looks like a new one and
+    nothing in the dataset cites a rule it did not go and read.
+
+    What this cannot see is a token the grammar keeps and the compiler
+    rejects, which is not hypothetical: `<>` is in every 3.x pgen grammar
+    up to 3.9 and is a syntax error in all of them, because PEP 401 left
+    it in for `from __future__ import barry_as_FLUFL`. So a removal here
+    is the release the parser stopped knowing the token, and where
+    something else stopped accepting it first, that is a question for a
+    human.
+    """
+    last: dict[str, str] = {}
+    for version in versions:
+        for name in vocabulary(version, peg):
+            if name.startswith("'"):
+                last[name] = version
+    newest = versions[-1]
+    gone = {}
+    for name, present_in in last.items():
+        if present_in == newest:
+            continue
+        # The release after the last one that has it, which is both the
+        # release it was removed in and the absent half of the bracket.
+        # A token that went away and came back has its *last* run read
+        # here, so 3.0 and 3.1 need no forgiving on this side: a token
+        # missing from those two and back in 3.2 ends its run at the
+        # newest release and is reported as removed by nobody.
+        absent_in = versions[versions.index(present_in) + 1]
+        gone[name] = {
+            "removed": absent_in,
+            "present_in": present_in,
+            "absent_in": absent_in,
+        }
+    return gone
+
+
+@cache
+def removed_syntax() -> dict[str, dict[str, str]]:
+    """The release each grammar token stopped being parsed in.
+
+    The pgen chain answers for everything it can see, since it is the one
+    that reaches back to 0.9.1 and covers every removal Python 3 made.
+    The PEG chain only speaks about tokens pgen never had, so that a
+    token the PEG grammar spells differently is not reported as removed
+    from a release that still parses it.
+    """
+    pgen = _removed(["0.9", *GRAMMAR_TAGS], peg=False)
+    peg = _removed(list(PEG_TAGS), peg=True)
+    known = set(dated_syntax())
+    return pgen | {name: record for name, record in peg.items() if name not in known}
+
+
 @cache
 def dated_syntax() -> dict[str, dict[str, str]]:
     """First release each grammar token appears in.
@@ -118,13 +193,26 @@ def main() -> int:
     parser.add_argument("--grep", help="tokens containing this")
     parser.add_argument("--version", help="tokens first seen in this release")
     parser.add_argument("--token", help="one exact token, quoted as in the grammar")
+    parser.add_argument(
+        "--removed", action="store_true", help="tokens no current grammar has"
+    )
     args = parser.parse_args()
 
     dated = dated_syntax()
+    gone = removed_syntax()
+
+    if args.removed:
+        for name, record in sorted(gone.items()):
+            print(f"{name:<28} {describe(dated[name])} to {record['present_in']}")
+        print(f"\n{len(gone)} tokens removed")
+        return 0
 
     if args.token:
         record = dated.get(args.token)
-        print(f"{args.token}: {describe(record) if record else 'not in any grammar'}")
+        detail = describe(record) if record else "not in any grammar"
+        if (removal := gone.get(args.token)) is not None:
+            detail += f", removed in {removal['removed']}"
+        print(f"{args.token}: {detail}")
         return 0 if record else 1
 
     if args.version:

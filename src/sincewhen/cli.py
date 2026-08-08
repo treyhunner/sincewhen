@@ -97,6 +97,7 @@ def _feature_data(feature: Feature) -> dict:
         "name": feature.name,
         "added": str(feature.added),
         "or_earlier": feature.or_earlier,
+        "removed": str(feature.removed) if feature.removed else None,
         "released": released.isoformat()
         if (released := feature.added.released)
         else None,
@@ -147,13 +148,29 @@ def _member_data(answer: MemberAnswer) -> dict:
     }
 
 
+def _when(version: Version) -> str:
+    released = _released(version)
+    return f" (released {released})" if released else ""
+
+
 def _print_features(term: str, features: list[Feature]) -> None:
+    """Search's long form, where each half of the answer gets its date.
+
+    The compact `since` phrase is not reused here, because appending one
+    release date to it would attach the wrong one: "Python 0.9, removed
+    in 3.0 (released 1991-02-20)" dates the removal to seventeen years
+    before it happened. Both dates are worth having anyway, since how
+    long ago a name went away is the same kind of question as how long
+    ago it arrived.
+    """
     if features == enclosing_module(term.casefold().strip()):
         print(f"No entry for {term}, but it lives in:")
     for feature in features:
-        released = _released(feature.added)
-        when = f" (released {released})" if released else ""
-        print(f"{feature.name} - Python {feature.since}{when}")
+        arrived = f"{feature.added} or earlier" if feature.or_earlier else feature.added
+        line = f"{feature.name} - Python {arrived}{_when(feature.added)}"
+        if feature.removed is not None:
+            line += f", removed in {feature.removed}{_when(feature.removed)}"
+        print(line)
         for label, url in (("PEP", feature.pep_url), ("Docs", feature.docs_url)):
             if url:
                 print(f"  {label}: {url}")

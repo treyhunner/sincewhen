@@ -9,8 +9,35 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ## Unreleased
 
+### Dataset
+
+**A removal axis.**
+An entry can now say `removed` as well as `added`, so a feature Python took away has somewhere to go instead of being left out by rule.
+The two are the same sentence with one word changed and are read off the same presence mask from the same end: `added` is the oldest release a name has been available in ever since, and `removed` is the oldest release it has been unavailable in ever since.
+A removal carries its own `[features.removed_evidence]` table, which only the built interpreters, the grammar and `manual` may fill in: a removal is an absence claim, and the methods whose absences prove nothing cannot make one.
+
+Twenty-seven entries that could not exist before, twenty-six of them removed in 3.0:
+
+- **Fourteen builtins**: `apply`, `basestring`, `buffer`, `coerce`, `execfile`, `file`, `intern`, `long`, `raw_input`, `reduce`, `reload`, `unichr`, `unicode`, `xrange`.
+  These are detected as well as searchable, at no cost: `apply(f, args)` parses under a 3.14 parser, so reading old code reports the whole story in one line.
+- **Eight methods**: `dict.has_key`, `dict.iterkeys`, `dict.itervalues`, `dict.iteritems`, `dict.viewkeys`, `dict.viewvalues`, `dict.viewitems`, `str.decode`.
+  `dict.viewkeys` and its two siblings exist in exactly one release: added in 2.7, gone in 3.0.
+- **Five pieces of syntax**: the `print` statement, the `exec` statement, backticks, `<>`, and `=` as the equality operator.
+  A 3.14 parser cannot produce a node for any of these, so they use a new `spellings` matcher that puts a name in the search index and builds no detector.
+  `sincewhen --search print` now tells the whole arc: the statement from 0.9 to 3.0, `from __future__ import print_function` in 2.6, the function in 3.0.
+  `=` is the only pre-1.0 removal in the dataset: 0.9.1 spelled equality `=`, and could without ambiguity, because assignment is a statement there and never an expression.
+  1.0 replaced it with `==`.
+
+`callable()` is deliberately not among them.
+It went away in 3.0 and came back in 3.2, which under this dataset's own rule is a gap rather than a removal.
+
+`minimum_version()` is unchanged, and there is no `maximum_version()` to go with it.
+
 ### Tool
 
+- **Search and the report say when something went away.**
+  `dict.has_key` reads "Python 0.9 (released 1991-02-20), removed in 3.0 (released 2008-12-03)", with a release date on each half, and a report line reads "0.9, removed in 3.0".
+  `--json` gains a `removed` key, null for everything still here.
 - **A misspelled module no longer swallows the search.**
   `sincewhen --search suprocess.Popen` reported "No feature matches" and stopped, throwing away the half of the name that was spelled right.
   A dotted name that matches nothing at all, not even a module, now gets the same suggestions a bare name would: `suprocess.Popen` offers `subprocess.Popen`.

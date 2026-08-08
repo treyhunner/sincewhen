@@ -9,7 +9,20 @@ from .versions import Version
 
 DATA_FILE = "features.toml"
 
-MATCHER_FIELDS = ("nodes", "builtins", "modules", "attributes", "methods")
+MATCHER_FIELDS = ("nodes", "builtins", "modules", "attributes", "methods", "spellings")
+
+# The one matcher kind that matches nothing. A `spellings` entry names a
+# way of writing something that a Python 3.14 parser cannot produce a
+# node for, because 3.0 took the syntax away: `<>`, the `print`
+# statement, the `exec` statement. Detecting those would mean shipping
+# old parsers, which is a different project, so the entry is searchable
+# and never detectable.
+#
+# It is a matcher field rather than an absence of one so that the "exactly
+# one matcher kind" rule keeps holding, and so that the spelling lands in
+# `targets` and search can find it. `detect.py` builds no index from it,
+# which is the whole of how it stays undetectable.
+SEARCH_ONLY_FIELDS = frozenset({"spellings"})
 
 # How a version claim was established. Each method says what a reviewer
 # has to do to check it: the first three are machine-checkable against
@@ -72,6 +85,43 @@ EVIDENCE_REQUIRED = {
     "manual": ("note",),
 }
 
+# Which methods may settle a *removal*, which is a much shorter list, and
+# short for two separate reasons.
+#
+# Three of them cannot see one at all. `source`, `archive` and the type
+# method tables all stop at 2.5, and every removal this dataset records
+# happened in 3.0 or later, so a corpus that ends before the removal has
+# nothing to say about it.
+#
+# `objects.inv` and `annotation` can see the releases in question and are
+# still refused, because of the rule the whole project turns on: presence
+# is strong evidence and absence is weak. A removal *is* an absence
+# claim, so the two methods whose absences prove nothing are exactly the
+# two that cannot make it. The archives are full of names that vanish
+# from an index because the markup changed, and a doc build that stops
+# mentioning something has not thereby removed it.
+#
+# That leaves the two methods whose absences are proof. A built
+# interpreter is the thing itself: a name it cannot resolve is a name
+# that build did not have. A grammar is the list the parser is generated
+# from rather than a description of one, which is the `builtin_methods[]`
+# argument applied to syntax. `manual` remains the escape hatch, and
+# `<>` is why it has to: see `barry_as_FLUFL` in AGENTS.md.
+REMOVAL_EVIDENCE_METHODS = frozenset({"interpreter", "grammar", "manual"})
+
+# Both fields are required, unlike the addition side, because a removal
+# is always bracketed. `added` can be a floor, since the corpus may not
+# reach far enough back to find a release without the name; `removed`
+# never can, since the corpus ends at the newest Python and a name absent
+# from that end has a last release somewhere inside the corpus. So there
+# is no "or later" to match `or_earlier`, and both sides of the bracket
+# are always known.
+REMOVAL_EVIDENCE_REQUIRED = {
+    "interpreter": ("symbol", "present_in", "absent_in"),
+    "grammar": ("symbol", "present_in", "absent_in"),
+    "manual": ("note",),
+}
+
 
 @dataclass(frozen=True)
 class Evidence:
@@ -105,6 +155,7 @@ class Feature:
     added: Version
     category: str
     or_earlier: bool = False
+    removed: Version | None = None
     pep: int | None = None
     docs: str | None = None
     nodes: frozenset[str] = frozenset()
@@ -114,7 +165,9 @@ class Feature:
     modules: frozenset[str] = frozenset()
     attributes: frozenset[str] = frozenset()
     methods: frozenset[str] = frozenset()
+    spellings: frozenset[str] = frozenset()
     evidence: Evidence | None = None
+    removed_evidence: Evidence | None = None
 
     @property
     def since(self) -> str:
@@ -133,8 +186,19 @@ class Feature:
         released column saying how long ago that was. Their evidence
         still records that the name is at least that old and may predate
         the public record.
+
+        A feature that was taken away says so at the end, and says it in
+        words rather than as a range. "0.9 to 3.0" is the tempting
+        spelling and it is wrong at both ends: it reads as inclusive,
+        when 3.0 is precisely the release that does *not* have
+        `dict.has_key`, and it does not survive a bound on the other
+        side, where "1.5 or earlier to 3.0" stops being a sentence.
+        "removed in" composes with both.
         """
-        return f"{self.added} or earlier" if self.or_earlier else str(self.added)
+        arrived = f"{self.added} or earlier" if self.or_earlier else str(self.added)
+        if self.removed is None:
+            return arrived
+        return f"{arrived}, removed in {self.removed}"
 
     @property
     def pep_url(self) -> str | None:
@@ -157,22 +221,35 @@ class DatasetError(Exception):
     """The feature dataset is malformed."""
 
 
-def _build_evidence(feature_id: str, entry: dict) -> Evidence:
+def _build_evidence(feature_id: str, entry: dict, *, removal: bool = False) -> Evidence:
+    """Validate one evidence table, for whichever axis it justifies.
+
+    The two axes share the `Evidence` shape and read two of its fields
+    the same way round: `absent_in` and `present_in` are always the two
+    adjacent releases that bracket the change, and the entry's version is
+    whichever of them is on the far side of it. For an addition the far
+    side is presence, so `added` is `present_in`; for a removal it is
+    absence, so `removed` is `absent_in`. Nothing else needed a second
+    vocabulary.
+    """
+    label = "removal evidence" if removal else "evidence"
+    methods = REMOVAL_EVIDENCE_METHODS if removal else EVIDENCE_METHODS
+    required = REMOVAL_EVIDENCE_REQUIRED if removal else EVIDENCE_REQUIRED
     method = entry.get("method")
-    if method not in EVIDENCE_METHODS:
+    if method not in methods:
         raise DatasetError(
-            f"{feature_id!r} has evidence method {method!r}, "
-            f"expected one of {sorted(EVIDENCE_METHODS)}"
+            f"{feature_id!r} has {label} method {method!r}, "
+            f"expected one of {sorted(methods)}"
         )
-    missing = [field for field in EVIDENCE_REQUIRED[method] if not entry.get(field)]
+    missing = [field for field in required[method] if not entry.get(field)]
     if missing:
         raise DatasetError(
-            f"{feature_id!r} has {method} evidence missing {', '.join(missing)}"
+            f"{feature_id!r} has {method} {label} missing {', '.join(missing)}"
         )
     unknown = set(entry) - {field.name for field in fields(Evidence)}
     if unknown:
         raise DatasetError(
-            f"{feature_id!r} has unknown evidence fields: {', '.join(sorted(unknown))}"
+            f"{feature_id!r} has unknown {label} fields: {', '.join(sorted(unknown))}"
         )
     return Evidence(**entry)
 
@@ -186,13 +263,24 @@ def _build(entry: dict) -> Feature:
         )
     if entry.get("requires") and entry.get("check"):
         raise DatasetError(f"{entry['id']!r} sets both `requires` and `check`")
+    added = Version.parse(entry["added"])
+    removed = Version.parse(entry["removed"]) if entry.get("removed") else None
+    if removed is not None and removed <= added:
+        raise DatasetError(
+            f"{entry['id']!r} is removed in {removed} and added in {added}; "
+            "a feature cannot be taken away before it arrives"
+        )
+    removed_evidence = entry.get("removed_evidence")
+    if removed_evidence and removed is None:
+        raise DatasetError(f"{entry['id']!r} cites a removal it does not claim")
     evidence = entry.get("evidence")
     return Feature(
         id=entry["id"],
         name=entry["name"],
-        added=Version.parse(entry["added"]),
+        added=added,
         category=entry["category"],
         or_earlier=entry.get("or_earlier", False),
+        removed=removed,
         pep=entry.get("pep"),
         docs=entry.get("docs"),
         nodes=frozenset(entry.get("nodes", ())),
@@ -202,7 +290,11 @@ def _build(entry: dict) -> Feature:
         modules=frozenset(entry.get("modules", ())),
         attributes=frozenset(entry.get("attributes", ())),
         methods=frozenset(entry.get("methods", ())),
+        spellings=frozenset(entry.get("spellings", ())),
         evidence=_build_evidence(entry["id"], evidence) if evidence else None,
+        removed_evidence=_build_evidence(entry["id"], removed_evidence, removal=True)
+        if removed_evidence
+        else None,
     )
 
 

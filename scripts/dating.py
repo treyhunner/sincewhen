@@ -47,6 +47,7 @@ from annotations import ANNOTATION_BUILDS
 from annotations import collect as collect_annotations
 from interpreters import dated as interpreter_dated
 from interpreters import micro_explains
+from interpreters import removed as interpreter_removed
 from modindex import HTML_BUILDS, dated_builtins, dated_members, dated_modules
 from source import SOURCE_ORDER
 from source import dated_builtins as source_builtins
@@ -1136,6 +1137,41 @@ def date_symbol(name: str) -> Verdict:
     return verdict
 
 
+def removal_of(name: str) -> dict | None:
+    """When a name stopped being available, or `None` if it has not.
+
+    One method answers this and it is deliberate rather than a gap. The
+    doc-derived methods can see the releases in question and still may
+    not speak, because a removal is an absence claim and their absences
+    prove nothing: an inventory drops names when the markup changes and
+    a doc build that stops mentioning something has not removed it.
+    `source.py`, the archives and the type method tables all stop at 2.5
+    and every removal here is 3.0 or later, so they cannot see one at
+    all. That leaves the built interpreters, whose absences are the thing
+    itself. Syntax is the other half and `grammar.py` answers it.
+
+    The kind is chosen the way `_date_from_interpreters` chooses it, with
+    one addition: a method of a builtin type is asked for by its unbound
+    spelling, which answers this question correctly and the addition
+    question wrongly. See `KINDS` in interpreters.py.
+    """
+    if is_keyword(name):
+        return None
+    if is_type_member(name):
+        kinds = ("method",)
+    elif "." in name:
+        kinds = ("attribute", "module")
+    elif name in source_modules() or name in dated_modules():
+        kinds = ("module",)
+    else:
+        kinds = ("builtin", "module")
+    for kind in kinds:
+        found = interpreter_removed(f"{kind} {name}")
+        if found is not None:
+            return found | {"symbol": name, "kind": kind}
+    return None
+
+
 def main(argv: list[str]) -> int:
     if not argv:
         print(__doc__)
@@ -1180,6 +1216,11 @@ def main(argv: list[str]) -> int:
             print(
                 f"  annotation  {verdict.annotation} "
                 f"({verdict.annotation_build} docs, {verdict.annotation_file}): {verdict.quote}"
+            )
+        if (gone := removal_of(name)) is not None:
+            print(
+                f"  removed     {gone['removed']} "
+                f"(last resolves in {gone['present_in']})"
             )
         print()
     return 0

@@ -12,14 +12,28 @@
 #   methods     methods of builtin types (type.method), which are always
 #               searchable and are only detected on a receiver whose type
 #               is certain: a literal, or the type's own name
+#   spellings   ways of writing something that this parser cannot produce
+#               a node for, because a later Python took the syntax away.
+#               Searchable and never detectable: `<>`, the print
+#               statement, backticks
 #
 # Every entry needs exactly one matcher kind. Documentation links are
 # generated from `added` and `pep`, so only set `docs` to override.
 #
+# An entry that also carries `removed` is one Python has taken away, and
+# it makes two claims rather than one: `added` is the oldest release it
+# has been available in ever since, and `removed` is the oldest release
+# it has been unavailable in ever since. Both are read off the same
+# presence mask from the same end. See "The removal axis" in AGENTS.md.
+#
 # Every entry also carries a [features.evidence] table saying how its
 # version was established, and `just verify-dataset` re-derives all of
 # them from archived documentation. Do not edit a version without
-# editing its evidence: the two are checked against each other in CI.
+# editing its evidence: the two are checked against each other in CI. A
+# `removed` claim carries a [features.removed_evidence] table of its own,
+# and only three methods may fill it in: the built interpreters, the
+# grammar, and `manual`. A removal is an absence claim, so the methods
+# whose absences prove nothing cannot make one.
 #
 # The generated entries here came from `scripts/propose.py`, which reads
 # the version out of the docs rather than taking anyone's word for it.
@@ -823,6 +837,121 @@ python_version = "3.14"
 checked = "2026-07-28"
 
 
+# Removed syntax, which is searchable and never detectable.
+#
+# A 3.14 parser cannot produce a node for any of these, so there is
+# nothing for a matcher to fire on and `spellings` says so in the schema:
+# it puts the name in the search index and builds no detector. Shipping
+# old parsers to detect them is a separate project.
+#
+# What settles these is the grammar, which is the list the parser is
+# generated from rather than a description of one, so a token missing
+# from it is a token that release cannot parse. `<>` is the exception
+# that earns the `manual` escape hatch: see its note.
+
+[[features]]
+id = "print-statement"
+name = "print statement"
+added = "0.9"
+category = "syntax"
+removed = "3.0"
+spellings = ["print"]
+
+[features.evidence]
+method = "grammar"
+symbol = "'print'"
+present_in = "0.9"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "grammar"
+symbol = "'print'"
+present_in = "2.7"
+absent_in = "3.0"
+note = "PEP 3105. Searchable and not detectable: `print x` is a syntax error to the parser this tool runs on, so no node for it can ever reach the matcher. The print() function that replaced it has its own entry, dated 3.0."
+checked = "2026-08-08"
+
+[[features]]
+id = "backtick-repr"
+name = "backtick repr syntax"
+added = "0.9"
+category = "syntax"
+removed = "3.0"
+spellings = ["`"]
+
+[features.evidence]
+method = "grammar"
+symbol = "'`'"
+present_in = "0.9"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "grammar"
+symbol = "'`'"
+present_in = "2.7"
+absent_in = "3.0"
+note = "`x` was repr(x). The 3.0 whatsnew lists it under Removed Syntax: \"Removed backticks (use repr() instead)\"."
+checked = "2026-08-08"
+
+[[features]]
+id = "exec-statement"
+name = "exec statement"
+added = "1.0"
+category = "syntax"
+removed = "3.0"
+spellings = ["exec"]
+
+[features.evidence]
+method = "grammar"
+symbol = "'exec'"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "grammar"
+symbol = "'exec'"
+present_in = "2.7"
+absent_in = "3.0"
+note = "The keyword went away and the name did not: exec() is a builtin function from 3.0, and the function spelling was already accepted in 2.x. So this entry claims the statement, which is what the grammar token is."
+checked = "2026-08-08"
+
+[[features]]
+id = "angle-inequality"
+name = "<> inequality operator"
+added = "0.9"
+category = "syntax"
+removed = "3.0"
+spellings = ["<>"]
+
+[features.evidence]
+method = "manual"
+note = "0.9, not the 1.0 the grammar's vocabulary reports. 0.9.1 writes the rule `comp_op: '<'|'>'|'='|'>' '='|'<' '='|'<' '>'|...`, spelling this as two adjacent single-character terminals, and 1.0 rewrites it as `'<'|'>'|'=='|'>='|'<='|'<>'|'!='|...`. So `'<>'` first appears as a terminal in 1.0 and the diff dates the tokenizer change rather than the spelling. The 0.9.1 interpreter built from that release's own tarball accepts `1 <> 2`, which is what settles it. `>=` and `<=` are the same shape and are not in the dataset."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "manual"
+note = "The 3.0 whatsnew lists it under Removed Syntax: \"Removed <> (use != instead)\", and the built interpreters agree: 2.7 accepts `1 <> 2` and 3.0 rejects it. The grammar cannot settle this one and would answer wrongly if asked: PEP 401 put the token back into every 3.x pgen grammar from 3.1 to 3.9 so that `from __future__ import barry_as_FLUFL` could re-enable it, so the parser knows a token the compiler rejects. This is the counter-example to a grammar diff settling a removal, and the only one in this dataset."
+checked = "2026-08-08"
+
+[[features]]
+id = "single-equals-equality"
+name = "= as the equality operator"
+added = "0.9"
+category = "syntax"
+removed = "1.0"
+spellings = ["="]
+
+[features.evidence]
+method = "manual"
+note = "0.9.1 spells equality `=`, and could without ambiguity, because assignment is a statement there and never an expression: its `comp_op` rule is `'<'|'>'|'='|'>' '='|'<' '='|'<' '>'|...`. Dated from the first public release, so it is at least that old and may predate the public record."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "manual"
+note = "1.0 rewrote `comp_op` as `'<'|'>'|'=='|'>='|'<='|'<>'|'!='|...`, dropping `=` and adding `==`. The built interpreters confirm both halves: 0.9.1 accepts `1 = 1` and rejects `1 == 1`, and 1.0 does the reverse. No grammar diff can see this, because `'='` is still a terminal in every later grammar as the assignment operator, so what changed is the body of one rule rather than the vocabulary. This is the removal the terminal diff is structurally unable to reach, and the same limit keeps `raise E, v` and `except E, name` out of the dataset."
+checked = "2026-08-08"
+
 # --------------------------------------------------------------------
 # Builtins
 # --------------------------------------------------------------------
@@ -1063,6 +1192,361 @@ absent_in = "3.10"
 present_in = "3.11"
 checked = "2026-07-28"
 
+
+# Removed in Python 3.0, and dated on both axes.
+#
+# `added` and `removed` are read off the same presence mask, from the
+# same end: `added` is the oldest release a name has been available in
+# ever since, and `removed` is the oldest release it has been unavailable
+# in ever since. See "The removal axis" in AGENTS.md.
+#
+# Each of these is detectable for free. `apply(f, args)` parses under a
+# 3.14 parser and the builtins matcher fires on it exactly as it does for
+# a name that is still there, so old code reports the whole story in one
+# line. `callable()` is deliberately not here: it went away in 3.0 and
+# came back in 3.2, which under this dataset's own rule is a gap rather
+# than a removal.
+#
+# One caution about the inventories, which is why none of these cites
+# one. Ten of the fourteen are indexed by the 3.2 or 3.4 docs as
+# `std:2to3fixer`, the fixer that rewrites them, so an inventory diff
+# reports the removed builtin arriving in the release that documented its
+# obituary.
+
+[[features]]
+id = "raw-input"
+name = "raw_input()"
+added = "0.9"
+category = "builtin"
+removed = "3.0"
+builtins = ["raw_input"]
+
+[features.evidence]
+method = "source"
+symbol = "raw_input"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "raw_input"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Renamed input() in 3.0, which took the name the 2.x input() had."
+checked = "2026-08-08"
+
+[[features]]
+id = "reload"
+name = "reload()"
+added = "0.9"
+category = "builtin"
+removed = "3.0"
+builtins = ["reload"]
+
+[features.evidence]
+method = "source"
+symbol = "reload"
+file = "src/bltinmodule.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "reload"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Moved to imp.reload() in 3.0 and to importlib.reload() in 3.4."
+checked = "2026-08-08"
+
+[[features]]
+id = "apply"
+name = "apply()"
+added = "1.0"
+category = "builtin"
+removed = "3.0"
+builtins = ["apply"]
+
+[features.evidence]
+method = "source"
+symbol = "apply"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "apply"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Replaced by call unpacking: apply(f, args) is f(*args), which is 1.6 syntax and older than the removal by seven releases."
+checked = "2026-08-08"
+
+[[features]]
+id = "coerce"
+name = "coerce()"
+added = "1.0"
+category = "builtin"
+removed = "3.0"
+builtins = ["coerce"]
+
+[features.evidence]
+method = "source"
+symbol = "coerce"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "coerce"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Removed outright in 3.0, which the whatsnew ties to classic classes going away rather than to a replacement."
+checked = "2026-08-08"
+
+[[features]]
+id = "execfile"
+name = "execfile()"
+added = "1.0"
+category = "builtin"
+removed = "3.0"
+builtins = ["execfile"]
+
+[features.evidence]
+method = "source"
+symbol = "execfile"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "execfile"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Removed in 3.0 with no replacement of its own: the whatsnew spells it exec(open(fn).read())."
+checked = "2026-08-08"
+
+[[features]]
+id = "long"
+name = "long()"
+added = "1.0"
+category = "builtin"
+removed = "3.0"
+builtins = ["long"]
+
+[features.evidence]
+method = "source"
+symbol = "long"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "long"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Folded into int() in 3.0, when the two integer types became one."
+checked = "2026-08-08"
+
+[[features]]
+id = "reduce"
+name = "reduce()"
+added = "1.0"
+category = "builtin"
+removed = "3.0"
+builtins = ["reduce"]
+
+[features.evidence]
+method = "source"
+symbol = "reduce"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "reduce"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Moved to functools.reduce() in 3.0, where it had also been available since 2.6."
+checked = "2026-08-08"
+
+[[features]]
+id = "xrange"
+name = "xrange()"
+added = "1.0"
+category = "builtin"
+removed = "3.0"
+builtins = ["xrange"]
+
+[features.evidence]
+method = "source"
+symbol = "xrange"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "xrange"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Renamed range() in 3.0, which is why the range type is dated 3.0 and its methods with it."
+checked = "2026-08-08"
+
+[[features]]
+id = "buffer"
+name = "buffer()"
+added = "1.5"
+category = "builtin"
+removed = "3.0"
+builtins = ["buffer"]
+
+[features.evidence]
+method = "source"
+symbol = "buffer"
+file = "Python/bltinmodule.c"
+absent_in = "1.4"
+present_in = "1.5"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "buffer"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Replaced by memoryview, which is 2.7 and a different interface."
+checked = "2026-08-08"
+
+[[features]]
+id = "intern"
+name = "intern()"
+added = "1.5"
+category = "builtin"
+removed = "3.0"
+builtins = ["intern"]
+
+[features.evidence]
+method = "source"
+symbol = "intern"
+file = "Python/bltinmodule.c"
+absent_in = "1.4"
+present_in = "1.5"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "intern"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Moved to sys.intern() in 3.0."
+checked = "2026-08-08"
+
+[[features]]
+id = "unichr"
+name = "unichr()"
+added = "1.6"
+category = "builtin"
+removed = "3.0"
+builtins = ["unichr"]
+
+[features.evidence]
+method = "source"
+symbol = "unichr"
+file = "Python/bltinmodule.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "The 2.7 docs date it to 2.0, but the 1.5 interpreter does not register it."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "unichr"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Folded into chr() in 3.0, when str became the unicode type."
+checked = "2026-08-08"
+
+[[features]]
+id = "unicode"
+name = "unicode()"
+added = "1.6"
+category = "builtin"
+removed = "3.0"
+builtins = ["unicode"]
+
+[features.evidence]
+method = "source"
+symbol = "unicode"
+file = "Python/bltinmodule.c"
+absent_in = "1.5"
+present_in = "1.6"
+note = "The 2.7 docs date it to 2.0, but the 1.5 interpreter does not register it."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "unicode"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Renamed str() in 3.0. The 2.x str became bytes, which is why bytes is dated 2.6 and not from the string type's own lineage."
+checked = "2026-08-08"
+
+[[features]]
+id = "file"
+name = "file()"
+added = "2.2"
+category = "builtin"
+removed = "3.0"
+builtins = ["file"]
+
+[features.evidence]
+method = "archive"
+absent_in = "2.1"
+present_in = "2.2"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "file"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Removed in 3.0 in favour of open(), which returns one of several io types rather than the one file type."
+checked = "2026-08-08"
+
+[[features]]
+id = "basestring"
+name = "basestring()"
+added = "2.3"
+category = "builtin"
+removed = "3.0"
+builtins = ["basestring"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:library/functions.txt"
+quote = "New in version 2.3."
+note = "The 3.2 inventory lists this name as a std:2to3fixer rather than as a builtin, so the inventory diff is describing the fixer that rewrites it and not the function coming back."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "basestring"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Removed in 3.0, when str and unicode became one type and there was no longer a common base to name."
+checked = "2026-08-08"
 
 # --------------------------------------------------------------------
 # Builtin exceptions
@@ -26299,3 +26783,203 @@ symbol = "py:data uuid.NIL"
 absent_in = "3.13"
 present_in = "3.14"
 checked = "2026-07-28"
+
+# Removed in Python 3.0, and dated on both axes. See the note above the
+# builtin removals, and "The removal axis" in AGENTS.md.
+#
+# `added` here is a claim about instances and `removed` is a claim about
+# both spellings, which is not an inconsistency but the one place the two
+# axes read the same mask differently. `{}.has_key(k)` works from 0.9 and
+# `dict.has_key` as an unbound attribute needs 2.2, because `dict` was not
+# a type before then; the type method tables date the first and the
+# interpreters answer for the second. For the removal the two agree, and
+# agree for a reason: a type that loses a method loses it on instances and
+# as an unbound attribute in the same release, and every removal here is
+# 3.0.
+
+[[features]]
+id = "dict-has-key"
+name = "dict.has_key()"
+added = "0.9"
+category = "method"
+removed = "3.0"
+methods = ["dict.has_key"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.has_key"
+file = "src/dictobject.c"
+present_in = "0.9"
+note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "dict.has_key"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Replaced by the `in` operator, which works on a dict from 2.2."
+checked = "2026-08-08"
+
+[[features]]
+id = "dict-iterkeys"
+name = "dict.iterkeys()"
+added = "2.2"
+category = "method"
+removed = "3.0"
+methods = ["dict.iterkeys"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.iterkeys"
+file = "Objects/dictobject.c"
+absent_in = "2.1"
+present_in = "2.2"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "dict.iterkeys"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Removed in 3.0, where keys() is already lazy."
+checked = "2026-08-08"
+
+[[features]]
+id = "dict-itervalues"
+name = "dict.itervalues()"
+added = "2.2"
+category = "method"
+removed = "3.0"
+methods = ["dict.itervalues"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.itervalues"
+file = "Objects/dictobject.c"
+absent_in = "2.1"
+present_in = "2.2"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "dict.itervalues"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Removed in 3.0, where values() is already lazy."
+checked = "2026-08-08"
+
+[[features]]
+id = "dict-iteritems"
+name = "dict.iteritems()"
+added = "2.2"
+category = "method"
+removed = "3.0"
+methods = ["dict.iteritems"]
+
+[features.evidence]
+method = "source"
+symbol = "dict.iteritems"
+file = "Objects/dictobject.c"
+absent_in = "2.1"
+present_in = "2.2"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "dict.iteritems"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Removed in 3.0, where items() is already lazy."
+checked = "2026-08-08"
+
+[[features]]
+id = "str-decode"
+name = "str.decode()"
+added = "2.4"
+category = "method"
+removed = "3.0"
+methods = ["str.decode"]
+
+[features.evidence]
+method = "source"
+symbol = "str.decode"
+file = "Objects/unicodeobject.c"
+absent_in = "2.3"
+present_in = "2.4"
+note = "The 2.7 docs' nearest marker to this name says 2.2, which the method table contradicts: 2.3 does not carry the row and 2.4 does. str is str and unicode in 2.4, and both tables carry it: Objects/stringobject.c, Objects/unicodeobject.c."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "str.decode"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Removed in 3.0, where decoding is what you do to bytes and the method belongs to bytes.decode()."
+checked = "2026-08-08"
+
+[[features]]
+id = "dict-viewkeys"
+name = "dict.viewkeys()"
+added = "2.7"
+category = "method"
+removed = "3.0"
+methods = ["dict.viewkeys"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:library/stdtypes.txt"
+quote = "New in version 2.7."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "dict.viewkeys"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Removed in 3.0, which had shipped the view behaviour under keys() a year earlier. This name exists in exactly one release."
+checked = "2026-08-08"
+
+[[features]]
+id = "dict-viewvalues"
+name = "dict.viewvalues()"
+added = "2.7"
+category = "method"
+removed = "3.0"
+methods = ["dict.viewvalues"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:library/stdtypes.txt"
+quote = "New in version 2.7."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "dict.viewvalues"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Removed in 3.0, which had shipped the view behaviour under values() a year earlier. This name exists in exactly one release."
+checked = "2026-08-08"
+
+[[features]]
+id = "dict-viewitems"
+name = "dict.viewitems()"
+added = "2.7"
+category = "method"
+removed = "3.0"
+methods = ["dict.viewitems"]
+
+[features.evidence]
+method = "annotation"
+docs = "2.7:library/stdtypes.txt"
+quote = "New in version 2.7."
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "dict.viewitems"
+present_in = "2.7"
+absent_in = "3.0"
+note = "Removed in 3.0, which had shipped the view behaviour under items() a year earlier. This name exists in exactly one release."
+checked = "2026-08-08"

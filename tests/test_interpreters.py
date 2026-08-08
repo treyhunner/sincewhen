@@ -221,7 +221,7 @@ class TestDated:
         assert found["gap"] == ["1.0"]
 
     def test_a_name_that_goes_away_is_reported_as_removed(self, table, shipped):
-        """The schema cannot record a removal, so this is not dated."""
+        """`added` cannot say this, so `dated` hands it to `removed`."""
         table["builtin cmp"] = "##.."
         found = interpreters.dated("builtin cmp")
         assert found is not None
@@ -298,6 +298,117 @@ class TestForgivenReleases:
         found = interpreters.dated("module repr")
         assert found is not None
         assert found["removed_after"] == "2.7"
+
+
+class TestRemoved:
+    """The same mask read for the other end of a name's life."""
+
+    def test_gone_from_the_newest_release_is_a_removal(self, table, shipped):
+        table["builtin apply"] = "###."
+        assert interpreters.removed("builtin apply") == {
+            "removed": "1.2",
+            "present_in": "1.1",
+            "absent_in": "1.2",
+            "mask": "###.",
+        }
+
+    def test_a_name_still_here_was_not_removed(self, table, shipped):
+        table["builtin abs"] = "####"
+        assert interpreters.removed("builtin abs") is None
+
+    def test_a_name_no_release_resolves_gets_no_answer(self, table, shipped):
+        assert interpreters.removed("builtin nonesuch") is None
+
+    def test_the_last_run_is_what_counts(self, table, shipped):
+        """A name that came back and went away again is dated from the end.
+
+        "Unavailable ever since" is a claim about the end of the
+        timeline, exactly as "available ever since" is, so an earlier
+        absence is not the answer.
+        """
+        table["module repr"] = "#.#."
+        found = interpreters.removed("module repr")
+        assert found is not None
+        assert found["removed"] == "1.2"
+
+    def test_an_absence_the_build_caused_is_not_a_removal(self, table, shipped):
+        """The release right after the last presence carries the claim.
+
+        A name that stops resolving because the image lacks a library has
+        stopped being evidence rather than stopped existing, so this
+        refuses instead of naming that release.
+        """
+        table["module zlib"] = "##.."
+        shipped["1.1"] = {"zlib"}
+        assert interpreters.removed("module zlib") is None
+
+    def test_a_gap_at_3_0_and_3_1_is_not_a_removal(self, modern_table):
+        """`callable` went away in 3.0 and came back in 3.2.
+
+        Both axes read the same forgiven mask, so a name present on
+        either side of those two is present at the end and nothing was
+        removed.
+        """
+        modern_table["builtin callable"] = "##..##"
+        assert interpreters.removed("builtin callable") is None
+        assert interpreters.dated("builtin callable") == {
+            "floor": "2.6",
+            "mask": "##..##",
+        }
+
+    def test_a_removal_at_3_0_is_not_forgiven_into_3_2(self, modern_table):
+        """The exemption needs presence on both sides and there is none.
+
+        `dict.has_key` was removed in 3.0, which is the release anyone
+        who ever hit the error was on. Naming 3.2 would be two steps
+        past where it stopped working.
+        """
+        modern_table["method dict.has_key"] = "##...."
+        found = interpreters.removed("method dict.has_key")
+        assert found is not None
+        assert found["removed"] == "3.0"
+        assert found["present_in"] == "2.7"
+
+    def test_a_last_presence_in_a_forgiven_release_is_refused(self, modern_table):
+        """A name whose last run ends in 3.0 or 3.1 gets no answer.
+
+        Those two do not count towards availability in the other
+        direction either, so reporting "removed in 3.2" would name a
+        release two steps past where anyone stopped being able to use
+        it. Refused rather than guessed at.
+        """
+        modern_table["builtin oddity"] = "##.#.."
+        assert interpreters.removed("builtin oddity") is None
+
+
+class TestProbedKinds:
+    """What the probe asks about, and what `added` may be read from."""
+
+    def test_the_interpreters_never_date_a_type_method(self):
+        """`method` is probed and is not in the addition path.
+
+        `_ = dict.has_key` answers about the unbound spelling, which
+        needs 2.2 because `dict` was not a type before then, while the
+        entry claims 0.9 about instances. For a removal the two agree,
+        which is the only reason the column exists.
+        """
+        assert "methods" in interpreters.KINDS
+        assert "methods" not in interpreters.DATING_KINDS
+        assert set(interpreters.DATING_KINDS) < set(interpreters.KINDS)
+
+    def test_a_type_method_is_asked_for_by_its_unbound_spelling(self):
+        source = interpreters._probe_source(["method dict.has_key"], "3.14")
+        assert "_ = dict.has_key" in source
+        assert "import dict" not in source
+
+    def test_a_type_method_absence_is_always_real(self, table, shipped):
+        """Nothing external can take a builtin type's method away.
+
+        The same argument as a builtin: it is compiled into the
+        interpreter, so no library and no `Modules/Setup` line decides
+        whether it is there.
+        """
+        assert interpreters.absence_is_real("2.2", "method dict.has_key")
 
 
 class TestUnanswered:
