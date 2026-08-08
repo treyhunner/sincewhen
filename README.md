@@ -130,7 +130,7 @@ A search that answers from the member index emits member records, which carry `m
 
 ## History you can look up
 
-Dating 1,847 features against seven independent sources turns up a lot of history that is easy to misremember, and nearly all of it is one search away:
+Dating 1,876 features against seven independent sources turns up a lot of history that is easy to misremember, and nearly all of it is one search away:
 
 ```console
 $ sincewhen --search sorted
@@ -207,7 +207,7 @@ The Python 2.7 docs date `bisect` to 2.1, while `Lib/bisect.py` is already in th
 And a PEP records what was planned rather than what shipped: class decorators are headed `Python-Version: 3.0` by PEP 3129, and CPython's 2.6 grammar already has the rule.
 
 That is why every version here is checked against seven independent sources rather than trusted to any one of them.
-Twenty entries in the dataset carry an evidence note recording that the documentation dates them to a different release than the one they shipped in.
+Forty-one entries are dated by a source that contradicts the documentation, and each one's evidence records which source and why.
 
 
 ## Library
