@@ -100,8 +100,14 @@ changelog version:
     uv run scripts/changelog.py {{ version }}
 
 # Build the package
+#
+# `uv sync` resolves the lockfile before the build rather than after, so a
+# pyproject that no longer resolves fails here instead of halfway through a
+# wheel. It says nothing about the uv version: nothing here sets
+# `required-version`, and what constrains the backend is the `uv_build` pin in
+# `pyproject.toml`, which uv warns about when its own version falls outside.
 build:
-    uv sync  # Force uv version error if applicable
+    uv sync
     uv build --clear
 
 # Publish to PyPI (normally done by the release workflow instead)
