@@ -361,10 +361,33 @@ MODERN_HEALTH = (
     ),
 )
 
-# The matcher fields that name something an interpreter can be asked
-# about, and what one is called in the table. Anything else in the
-# dataset is syntax, which the grammar already settles.
-KINDS = {"modules": "module", "builtins": "builtin", "attributes": "attribute"}
+# The matcher fields whose masks may date an *addition*, and what one is
+# called in the table. Anything else in the dataset is syntax, which the
+# grammar already settles.
+DATING_KINDS = {"modules": "module", "builtins": "builtin", "attributes": "attribute"}
+
+# Everything the probe asks about, which is those three and one more.
+#
+# A method of a builtin type is asked for by its unbound spelling, `_ =
+# dict.has_key`, and that spelling answers the removal question and not
+# the addition one. `dict` the builtin arrived in 2.2 while the `dict`
+# type is in 0.9.1, so this column dates `dict.keys` to 2.2 where the
+# type's own method table says 0.9, and the method table is right about
+# what the dataset claims: a pre-2.6 method entry is a claim about
+# instances, so `{}.keys()` is 0.9 and `dict.keys` as an attribute is
+# 2.2.
+#
+# For a removal the two spellings agree, and they agree for a reason
+# rather than by luck: a type that loses a method loses it on instances
+# and as an unbound attribute in the same release. The 2.2 divergence
+# exists only because `str` and `dict` were not types before then, and
+# every removal in this dataset is 3.0 or later.
+#
+# So this set is probed and `DATING_KINDS` is what `added` is read from.
+# `test_the_interpreters_never_date_a_type_method` is the guard, because
+# wiring `method` into the addition path produces version numbers rather
+# than failures.
+KINDS = DATING_KINDS | {"methods": "method"}
 
 # Evidence methods that record a human's decision rather than a derived
 # one, so this table has no business overruling them.
@@ -915,6 +938,12 @@ def _probe_source(targets: list[str], version: str = RELEASES[0]) -> str:
                     attempts.append([f"import {head}", f"_ = {name}"])
             case "builtin":
                 attempts.append([f"_ = {name}"])
+            case "method":
+                # The head is a builtin type, so there is nothing to
+                # import and only one way to ask. A release that has no
+                # such type answers no, which is the right answer:
+                # `bytes.hex` is unreachable in 2.5 because `bytes` is.
+                attempts.append([f"_ = {name}"])
             case "attribute":
                 attempts.append([f"import {head}", f"_ = {name}"])
                 # `str.format` has no module to import: the head is a
@@ -1212,7 +1241,11 @@ def absence_is_real(version: str, target: str) -> bool:
         # not reported one.
         return False
     kind, _, name = target.partition(" ")
-    if kind == "builtin":
+    if kind in {"builtin", "method"}:
+        # Both are compiled into the interpreter, so no library and no
+        # `Modules/Setup` line can make either go missing. A method whose
+        # type the release does not have is absent for a reason that is
+        # still history rather than build configuration.
         return True
     module = name.partition(".")[0]
     if kind == "attribute" and _imported_in(version, module):
@@ -1501,6 +1534,108 @@ def dated(target: str) -> dict | None:
     return {"added": releases[first], "absent_in": releases[index], "mask": mask}
 
 
+def _compare_removal(entry: dict, findings: dict[str, list[str]]) -> None:
+    """Check one entry's `removed` claim, in both directions.
+
+    Both directions matter and only one of them is obvious. An entry
+    claiming a removal the interpreters do not show is the one anybody
+    would think to check. The other way round is the one that keeps the
+    dataset honest as Python moves: a name the newest interpreter has
+    stopped resolving, on an entry that says nothing about it, is a
+    feature that went away and an entry that has not noticed.
+
+    Every probed kind is asked, `methods` included, because a removal is
+    the one question the unbound spelling of a type method answers
+    correctly. See `KINDS`.
+    """
+    claimed = entry.get("removed")
+    for field, label in KINDS.items():
+        for name in sorted(entry.get(field, ())):
+            found = removed(f"{label} {name}")
+            said = f"{entry['id']:<34} {name}"
+            if found is None:
+                if claimed:
+                    findings.setdefault("removal-unseen", []).append(
+                        f"  {said:<70} dataset says removed in {claimed}, but the "
+                        "interpreters do not show it going away"
+                    )
+            elif not claimed:
+                findings.setdefault("removed", []).append(
+                    f"  {said:<70} last resolves in {found['present_in']} and is "
+                    f"gone from {found['removed']}; the entry claims no removal"
+                )
+            elif found["removed"] != claimed:
+                findings.setdefault("removal-disagrees", []).append(
+                    f"  {said:<70} dataset says removed in {claimed}, interpreters "
+                    f"say {found['removed']} (last in {found['present_in']})"
+                )
+            else:
+                findings.setdefault("removal-confirms", []).append(
+                    f"  {said:<70} removed in {claimed} confirmed"
+                )
+
+
+def removed(target: str) -> dict | None:
+    """When the built interpreters say `target` was taken away.
+
+    The mirror of `dated`, off the same mask, and read from the same end
+    for the same reason: both claims are about what is true *now*.
+    `added` walks back from 3.14 while the name is there; this one starts
+    from the name not being there at 3.14 and reports the release after
+    its last run. So `removed` is the oldest release the name has been
+    unavailable in ever since, which is the sentence `added` makes with
+    one word changed.
+
+    Nothing here can be a bound, which is the one place the two axes are
+    not symmetrical. `added` can only bound a name the corpus does not
+    reach far enough back to see arrive; the corpus ends at the newest
+    Python, so a name absent from that end has its last presence
+    somewhere inside the corpus and the bracket always closes. There is
+    no "or later" to match `or_earlier`.
+
+    Four things stop it answering, and each is a refusal rather than a
+    guess:
+
+    - **A name no release resolves** is not in the table at all, and a
+      name still in 3.14 was not removed.
+    - **An absence the build caused** is not a removal. The release right
+      after the last presence is the one whose absence carries the whole
+      claim, so `absence_is_real` has to hold for it: a name that stops
+      resolving because the image lacks a library has stopped being
+      evidence, not stopped existing.
+    - **A last presence in 3.0 or 3.1** is refused and handed to a human,
+      because those two do not count towards availability in this
+      direction either, so the two readings genuinely differ. `cmp` is
+      the case and the only one: it resolves in 3.0 and not in 3.1, so
+      "removed in 3.1" is literally true and true only of a release
+      nobody shipped code on, while "removed in 3.0" is what every other
+      Python 2 builtin gets and is false of the interpreter.
+    - **A gap that `_forgiven` bridges** never reaches here, since a name
+      present on both sides of 3.0 and 3.1 is present at the end.
+    """
+    table = load_table()
+    mask = table["presence"].get(target)
+    if mask is None:
+        return None
+    releases = table["releases"]
+    flags = _forgiven(mask, releases)
+    if flags[-1] == PRESENT:
+        return None
+    present = [index for index, flag in enumerate(flags) if flag == PRESENT]
+    if not present or releases[present[-1]] in FORGIVEN:
+        return None
+    last = present[-1]
+    gone_in = releases[last + 1]
+    if not absence_is_real(gone_in, target):
+        return None
+    return {
+        "removed": gone_in,
+        "present_in": releases[last],
+        "absent_in": gone_in,
+        "mask": mask,
+    }
+
+
 def report(grep: str | None = None) -> None:
     """What the table says, grouped by the shape of the answer."""
     table = load_table()
@@ -1524,7 +1659,19 @@ def report(grep: str | None = None) -> None:
                 f"back in {found['since']}"
             )
         elif "removed_after" in found:
-            shape, detail = "removed", f"last seen in {found['removed_after']}"
+            # Read through `removed` rather than off `dated`, so that the
+            # report and the check cannot disagree about the same name.
+            # It is the stricter of the two: an absence the build caused
+            # is not a removal, and shows here as one it declines to
+            # date rather than as a release number.
+            gone = removed(target)
+            shape = "removed"
+            detail = (
+                f"last seen in {found['removed_after']}, gone from {gone['removed']}"
+                if gone
+                else f"last seen in {found['removed_after']}, "
+                "and the absence after it is not this release's"
+            )
         else:
             shape, detail = "floor", f"{found['floor']} or earlier"
         buckets.setdefault(shape, []).append(f"  {target:<44} {detail}")
@@ -1618,6 +1765,12 @@ def compare() -> dict[str, list[str]]:
     entries = tomllib.loads(DATASET.read_text(encoding="utf-8"))["features"]
     findings: dict[str, list[str]] = {}
     for entry in entries:
+        # An override is per axis, because an entry can have one of each
+        # and they need not come from the same place: `<>` is dated by
+        # the grammar and its removal is a `manual` call the grammar
+        # cannot make.
+        if entry.get("removed_evidence", {}).get("method") not in OVERRIDES:
+            _compare_removal(entry, findings)
         if entry.get("evidence", {}).get("method") in OVERRIDES:
             # A deliberate override of what the automated methods say, and
             # the note is where the reason lives. `re.finditer` is dated
@@ -1626,7 +1779,7 @@ def compare() -> dict[str, list[str]]:
             continue
         claimed = entry["added"]
         bounded = entry.get("or_earlier", False)
-        for field, label in KINDS.items():
+        for field, label in DATING_KINDS.items():
             for name in sorted(entry.get(field, ())):
                 found = dated(f"{label} {name}")
                 if found is None:
@@ -1646,8 +1799,10 @@ def compare() -> dict[str, list[str]]:
                         f"dataset says {claimed}"
                     )
                 elif "removed_after" in found:
-                    kind = "removed"
-                    detail = f"last seen in {found['removed_after']}"
+                    # The removal pass above already has this name, and
+                    # a name the interpreters no longer resolve has no
+                    # `added` for this half to check.
+                    continue
                 elif "added" in found:
                     if found["added"] != claimed:
                         older = version_key(found["added"]) < version_key(claimed)
@@ -1688,8 +1843,11 @@ def compare() -> dict[str, list[str]]:
         "older",
         "gap",
         "removed",
+        "removal-disagrees",
+        "removal-unseen",
         "readded",
         "micro",
+        "removal-confirms",
         "confirms",
     ):
         rows = findings.get(kind, [])
@@ -1698,6 +1856,8 @@ def compare() -> dict[str, list[str]]:
         print(f"{kind.upper()} ({len(rows)})")
         if kind == "confirms":
             print(f"  {len(rows)} claims the interpreters agree with.")
+        elif kind == "removal-confirms":
+            print(f"  {len(rows)} removals the interpreters agree with.")
         elif kind == "micro":
             print(f"  {len(rows)} the docs date to a micro release this corpus")
             print("  does not build. The docs are right about the release.")
@@ -1765,7 +1925,13 @@ def main(argv: list[str]) -> int:
         findings = compare()
         unresolved = [
             row
-            for kind in ("closes", "disagrees", "older")
+            for kind in (
+                "closes",
+                "disagrees",
+                "older",
+                "removal-disagrees",
+                "removal-unseen",
+            )
             for row in findings.get(kind, [])
         ]
         if unresolved:

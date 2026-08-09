@@ -315,6 +315,37 @@ def test_relative_imports_are_skipped():
     assert features("from .statistics import fmean") == {"relative-import"}
 
 
+def test_the_boolean_constants_are_detected():
+    """`True` is a builtin name the parser folds into a constant.
+
+    All three of `True`, `False` and `None` are keywords, so no `Name`
+    node is ever produced for them and a `builtins` entry would
+    otherwise match nothing at all.
+    """
+    assert "true-false" in features("ok = True")
+    assert "true-false" in features("ok = False")
+
+
+def test_the_integer_one_is_not_the_boolean_true():
+    """`True == 1` and `hash(True) == hash(1)`.
+
+    Any mapping keyed on the constant's value therefore answers "True"
+    for the literal `1`, which would date every integer literal in
+    Python to 2.3. Compared by identity for that reason.
+    """
+    assert "true-false" not in features("n = 1")
+    assert "true-false" not in features("n = 0")
+
+
+def test_a_constant_with_no_entry_reports_nothing():
+    """`None` gets the same treatment and has no entry to report.
+
+    It predates the "New in version" convention and carries no marker,
+    so nothing in the pipeline dates it and no entry claims a version.
+    """
+    assert features("nothing = None") == set()
+
+
 def test_attribute_on_a_non_name_is_ignored():
     """`f().isclose` has no resolvable dotted path."""
     assert features("f().isclose(a, b)") == set()

@@ -5,11 +5,14 @@ import builtins
 import pytest
 
 from sincewhen import Version, load_features, lookup
-from sincewhen.detect import CHECKS
+from sincewhen.detect import CHECKS, _Index, minimum_version
 from sincewhen.features import (
     EVIDENCE_METHODS,
     EVIDENCE_REQUIRED,
     MATCHER_FIELDS,
+    REMOVAL_EVIDENCE_METHODS,
+    REMOVAL_EVIDENCE_REQUIRED,
+    SEARCH_ONLY_FIELDS,
     DatasetError,
     _build,
     build_features,
@@ -120,12 +123,21 @@ def test_methods_hang_off_a_builtin_type():
             assert isinstance(getattr(builtins, type_name, None), type), name
 
 
-def test_every_dated_method_is_still_there():
-    """`added` claims a method has been available ever since.
+def test_every_method_is_where_its_entry_says_it_is():
+    """`added` and `removed` are both claims the running Python can check.
 
-    So a method the running Python does not have is either a typo or a
-    Python 2 name that 3.0 removed, and neither belongs in the dataset:
-    the schema has no way to say "and then it was taken away".
+    An entry with no `removed` says the method has been available ever
+    since, so a method this Python does not have is either a typo or a
+    Python 2 name that 3.0 took away. An entry with `removed` says the
+    opposite, and has to mean it: a name that is still here is not a name
+    that went away, and an entry claiming otherwise would report a
+    removal for code that runs fine.
+
+    This is the cheapest check either claim gets, and the only one that
+    needs neither the cache nor the interpreter corpus. It is also the
+    one that will fail first when some future Python drops a method,
+    which is the point: the dataset should not be able to go stale
+    quietly in either direction.
 
     The special methods are exempt, because `object` documents most of
     them as a protocol rather than implementing them. Nothing has
@@ -136,7 +148,11 @@ def test_every_dated_method_is_still_there():
             type_name, _, method = name.partition(".")
             if method.startswith("__"):
                 continue
-            assert hasattr(getattr(builtins, type_name), method), name
+            here = hasattr(getattr(builtins, type_name), method)
+            if feature.removed is None:
+                assert here, name
+            else:
+                assert not here, (name, f"claims removal in {feature.removed}")
 
 
 # The four types no release from 0.9.1 to 2.5 implements under a name
@@ -499,6 +515,204 @@ def test_a_bound_above_the_oldest_release_still_reads_as_a_bound():
     (feature,) = [f for f in load_features() if f.id == "zlib"]
     assert feature.or_earlier
     assert feature.since == "1.5 or earlier"
+
+
+def removed_features():
+    """Every entry that claims Python took something away."""
+    return [feature for feature in load_features() if feature.removed is not None]
+
+
+def test_the_dataset_records_removals():
+    assert removed_features(), "the dataset should still have removed entries"
+
+
+def test_every_removal_cites_its_own_evidence():
+    """`added` evidence does not cover `removed`.
+
+    They are two claims settled by two different methods, and a source
+    diff that dates `apply` to 1.0 has nothing at all to say about 3.0
+    taking it away: its corpus stops at 2.5.
+    """
+    for feature in removed_features():
+        assert feature.removed_evidence is not None, feature.id
+        assert feature.removed_evidence.method in REMOVAL_EVIDENCE_METHODS, feature.id
+        assert feature.removed_evidence.checked, feature.id
+
+
+def test_removal_evidence_carries_what_its_method_requires():
+    for feature in removed_features():
+        evidence = feature.removed_evidence
+        assert evidence is not None, feature.id
+        for field in REMOVAL_EVIDENCE_REQUIRED[evidence.method]:
+            assert getattr(evidence, field), (feature.id, field)
+
+
+def test_diffed_removal_evidence_brackets_the_claimed_version():
+    """`present_in` then `absent_in`, and `absent_in` is the claim.
+
+    The mirror of the addition side and the same two fields read the
+    same way round: they are the adjacent releases that bracket the
+    change, and the version claimed is the one on the far side of it.
+    For an addition the far side is presence; for a removal it is
+    absence.
+    """
+    for feature in removed_features():
+        evidence = feature.removed_evidence
+        assert evidence is not None, feature.id
+        if evidence.method == "manual":
+            continue
+        assert evidence.absent_in == str(feature.removed), feature.id
+        assert evidence.present_in is not None, feature.id
+        assert Version.parse(evidence.present_in) < feature.removed, feature.id
+
+
+def test_a_removal_is_never_a_bound():
+    """There is no "or later", so `removed` is always an exact release.
+
+    The corpus ends at the newest Python, so a name absent from that end
+    has its last presence inside the corpus and the bracket closes. This
+    checks the consequence rather than the field: every removal names a
+    release the dataset also knows a date for.
+    """
+    for feature in removed_features():
+        assert feature.removed is not None
+        assert feature.removed.released is not None, feature.id
+
+
+def test_a_removal_cannot_predate_its_arrival():
+    with pytest.raises(DatasetError, match="cannot be taken away"):
+        _build(entry(added="3.9", removed="3.4"))
+
+
+def test_removal_evidence_without_a_removal_is_rejected():
+    with pytest.raises(DatasetError, match="cites a removal it does not claim"):
+        _build(entry(removed_evidence={"method": "manual", "note": "x"}))
+
+
+def test_a_doc_derived_method_cannot_settle_a_removal():
+    """The methods whose absences prove nothing are refused outright.
+
+    An inventory drops names when the markup changes and a doc build
+    that stops mentioning something has not removed it, so neither may
+    make an absence claim. Ten of the removed builtins are indexed by
+    the 3.2 or 3.4 docs as `std:2to3fixer`, which is what that failure
+    looks like in practice.
+    """
+    assert REMOVAL_EVIDENCE_METHODS < EVIDENCE_METHODS
+    assert not REMOVAL_EVIDENCE_METHODS & {"objects.inv", "annotation", "archive"}
+    with pytest.raises(DatasetError, match="removal evidence method"):
+        _build(
+            entry(
+                added="1.0",
+                removed="3.0",
+                removed_evidence={
+                    "method": "objects.inv",
+                    "symbol": "py:function apply",
+                    "absent_in": "3.0",
+                    "present_in": "2.7",
+                },
+            )
+        )
+
+
+def test_a_search_only_spelling_reaches_search_and_not_detection():
+    """`spellings` is a matcher kind that matches nothing on purpose.
+
+    It has to be a matcher kind so that "exactly one matcher" keeps
+    holding and a typo cannot produce an entry with nothing to find it
+    by, and it has to be absent from the detector so that `<>` is never
+    reported against source a 3.14 parser accepted.
+
+    Checked by identity rather than by name, because a spelling and a
+    detectable name can be the same word: the `print` statement and the
+    `print()` function are two entries dated eight releases apart, and
+    only the second of them has anything to detect.
+    """
+    assert SEARCH_ONLY_FIELDS <= set(MATCHER_FIELDS)
+    index = _Index(load_features())
+    indexes = (
+        index.by_builtin,
+        index.by_module,
+        index.by_attribute,
+        index.by_method,
+        index.by_node,
+    )
+    for feature in load_features():
+        for spelling in feature.spellings:
+            assert spelling in feature.targets, feature.id
+            assert lookup(spelling) != [], feature.id
+            for found in indexes:
+                assert feature not in _listed(found.get(spelling)), (
+                    feature.id,
+                    spelling,
+                )
+
+
+def _listed(found):
+    """One index entry as a list, since `by_node` holds several."""
+    if found is None:
+        return []
+    return found if isinstance(found, list) else [found]
+
+
+def test_removed_syntax_is_search_only():
+    """Nothing this parser can produce a node for belongs in `spellings`.
+
+    The other half of the rule: a spelling is there because 3.14 cannot
+    parse it, so an entry using the matcher has to be one Python took
+    away.
+    """
+    for feature in load_features():
+        if feature.spellings:
+            assert feature.removed is not None, feature.id
+
+
+def test_the_boolean_constants_are_dated_together():
+    """Python had no booleans for its first eleven years.
+
+    Asserted against the bundled dataset rather than against the
+    pipeline, because asking `date_symbol` about a name it does not
+    refuse reads the 500 MB corpus and CI restores none. Whether 2.3 is
+    the right answer is `verify-dataset`'s question; whether the entry
+    still says it is this one's.
+    """
+    entries = [f for f in load_features() if "True" in f.builtins]
+    assert [(f.id, str(f.added), sorted(f.builtins)) for f in entries] == [
+        ("true-false", "2.3", ["False", "True"])
+    ]
+    assert entries[0].removed is None
+
+
+def test_none_has_no_entry():
+    """It predates the "Added in version" convention and carries no marker.
+
+    So nothing in the pipeline dates it, and an entry would have to
+    invent a version or borrow the age of whichever inventory first
+    listed it. `detect.py` still reads it as the builtin name it is, so
+    adding one later needs no change there.
+    """
+    assert not [f for f in load_features() if "None" in f.builtins]
+
+
+def test_a_removed_feature_reads_as_removed():
+    feature = _build(entry(added="1.0", removed="3.0"))
+    assert feature.since == "1.0, removed in 3.0"
+
+
+def test_a_bounded_removed_feature_keeps_both_hedges():
+    feature = _build(entry(added="1.5", or_earlier=True, removed="3.0"))
+    assert feature.since == "1.5 or earlier, removed in 3.0"
+
+
+def test_removal_does_not_set_a_floor_for_minimum_version():
+    """A removed feature still says how old it is and nothing more.
+
+    `apply(f, args)` needs 1.0 and always did. That the name went away
+    in 3.0 is a fact about the name rather than a version requirement,
+    and this project deliberately has no `maximum_version()` for it to
+    feed.
+    """
+    assert minimum_version("apply(f, args)") == Version(1, 0)
 
 
 def test_unknown_evidence_field_is_rejected():

@@ -21,6 +21,14 @@ Syntax with no PEP, and anything the docs never dated, cannot be checked
 mechanically. Those entries have to carry `manual` evidence, and this
 script reports them as such rather than passing them silently.
 
+An entry that also claims `removed` gets a second line, because it is
+making a second claim that a different source settles: the built
+interpreters, or the grammar for syntax. That check runs in both
+directions. An entry claiming a removal nothing can see is a mismatch,
+and so is a name the newest interpreter has stopped resolving on an
+entry that says nothing about it, which is what keeps the dataset from
+going stale silently the next time Python drops something.
+
 Usage:
 
     uv run scripts/verify_dataset.py           # check everything
@@ -31,8 +39,8 @@ import argparse
 import sys
 import tomllib
 
-from dating import FIRST_PUBLIC_RELEASE, date_symbol
-from grammar import dated_syntax
+from dating import FIRST_PUBLIC_RELEASE, date_symbol, removal_of
+from grammar import dated_syntax, removed_syntax
 from sources import ROOT, load_peps
 
 DATASET = ROOT / "src" / "sincewhen" / "features.toml"
@@ -119,6 +127,91 @@ def check_symbols(entry: dict, names: list[str]) -> tuple[str, str]:
     if undated:
         return OK, f"{added} confirmed; {', '.join(undated)} undated by the docs"
     return OK, f"{added} confirmed by the docs"
+
+
+MATCHERS = ("modules", "attributes", "builtins", "methods", "spellings")
+
+
+def targets(entry: dict) -> list[str]:
+    """Every name one entry matches on, whichever matcher it uses."""
+    return [name for field in MATCHERS for name in entry.get(field, ())]
+
+
+def check_removal(entry: dict) -> tuple[str, str] | None:
+    """Re-derive a `removed` claim, or report a removal the entry misses.
+
+    `None` means "nothing to say", which is the answer for the great
+    majority of entries: no claim made and none derivable.
+
+    Both directions are checked, because the interesting failure is not
+    an entry claiming a removal that did not happen. It is an entry that
+    stays silent while the feature goes away underneath it, which is what
+    the dataset would do by default the next time Python drops something.
+
+    Grammar-evidenced entries go to `removed_syntax` and everything else
+    to the built interpreters, which are the only two methods whose
+    absences are proof: see `REMOVAL_EVIDENCE_METHODS` in features.py.
+
+    `manual` removal evidence short-circuits, for the reason `manual`
+    always does, and `<>` is why the escape hatch is needed here as well
+    as on the addition side.
+    """
+    claimed = entry.get("removed")
+    method = entry.get("removed_evidence", {}).get("method")
+    if method == "manual":
+        return MANUAL, entry["removed_evidence"]["note"]
+
+    if method == "grammar" or (
+        claimed is None and entry.get("evidence", {}).get("method") == "grammar"
+    ):
+        token = (entry.get("removed_evidence") or entry["evidence"])["symbol"]
+        record = removed_syntax().get(token)
+        if record is None:
+            if claimed is None:
+                return None
+            return (
+                MISMATCH,
+                f"claims removal in {claimed}, but {token} is in the newest grammar",
+            )
+        if claimed is None:
+            return (
+                MISMATCH,
+                f"{token} is in no grammar after {record['present_in']}; "
+                f"the entry claims no removal",
+            )
+        if record["removed"] != claimed:
+            return (
+                MISMATCH,
+                f"claims removal in {claimed}, but {token} was last parsed in "
+                f"{record['present_in']} and is gone from {record['removed']}",
+            )
+        return OK, f"removed in {claimed} confirmed by the grammar"
+
+    found = {name: removal_of(name) for name in targets(entry)}
+    gone = {name: record for name, record in found.items() if record is not None}
+    if claimed is None:
+        if not gone:
+            return None
+        detail = ", ".join(
+            f"{name} last resolves in {record['present_in']}"
+            for name, record in sorted(gone.items())
+        )
+        return MISMATCH, f"the interpreters no longer resolve it: {detail}"
+    if not gone:
+        return (
+            MISMATCH,
+            f"claims removal in {claimed}, but no interpreter shows it going away; "
+            "settle it with manual removal evidence",
+        )
+    wrong = {
+        name: record["removed"]
+        for name, record in gone.items()
+        if record["removed"] != claimed
+    }
+    if wrong:
+        detail = ", ".join(f"{name} is {when}" for name, when in sorted(wrong.items()))
+        return MISMATCH, f"claims removal in {claimed}, but {detail}"
+    return OK, f"removed in {claimed} confirmed by the interpreters"
 
 
 def check_pep(entry: dict) -> tuple[str, str]:
@@ -216,16 +309,30 @@ def main() -> int:
         entries = [entry for entry in entries if args.only in entry["id"]]
 
     counts = dict.fromkeys((OK, MISMATCH, UNCHECKABLE, MANUAL), 0)
+    removals = 0
     for entry in entries:
         status, detail = check(entry)
         counts[status] += 1
         if status != OK or args.verbose:
             print(f"{status.upper():<12} {entry['id']:<38} {detail}")
+        # The second claim gets its own line rather than its own entry.
+        # An entry that says a feature arrived in 1.0 and went away in
+        # 3.0 is making two statements that two different methods
+        # settle, and folding them into one status would let a verified
+        # `added` cover for an unchecked `removed`.
+        gone = check_removal(entry)
+        if gone is None:
+            continue
+        status, detail = gone
+        counts[status] += 1
+        removals += 1
+        if status != OK or args.verbose:
+            print(f"{status.upper():<12} {entry['id']:<38} removed: {detail}")
 
     print(
         f"\n{counts[OK]} verified, {counts[MANUAL]} manual, "
         f"{counts[MISMATCH]} mismatched, {counts[UNCHECKABLE]} unverifiable, "
-        f"{len(entries)} total",
+        f"{len(entries)} entries and {removals} removal claims",
         file=sys.stderr,
     )
     return 1 if counts[MISMATCH] or counts[UNCHECKABLE] else 0

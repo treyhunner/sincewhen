@@ -477,6 +477,31 @@ class _Detector(ast.NodeVisitor):
             case _:
                 return LITERAL_TYPES.get(type(node))
 
+    def visit_Constant(self, node: ast.Constant) -> None:
+        """`True`, `False` and `None` are builtin names, folded into constants.
+
+        The parser never produces a `Name` for one, because all three are
+        keywords, so `visit_Name` cannot see them and a `builtins` entry
+        for `True` would match nothing at all. They are ordinary members
+        of the builtins namespace otherwise: `getattr(builtins, "True")`
+        finds one, and `True` was a name before 3.0 made it a keyword.
+
+        Compared by identity rather than looked up in a dict, because
+        `True == 1` and `hash(True) == hash(1)`, so any mapping keyed on
+        the value reports `True` for the literal `1`.
+
+        Shadowing needs no check here, unlike every other builtin: all
+        three are keywords, so `True = 0` is a syntax error and nothing
+        can rebind them.
+        """
+        for value, name in ((True, "True"), (False, "False"), (None, "None")):
+            if node.value is value:
+                feature = self.index.by_builtin.get(name)
+                if feature is not None:
+                    self._record(feature)
+                break
+        self.generic_visit(node)
+
     def visit_Name(self, node: ast.Name) -> None:
         if isinstance(node.ctx, ast.Load):
             if node.id not in self.bound_names:

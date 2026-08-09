@@ -9,8 +9,50 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ## Unreleased
 
+### Dataset
+
+**A removal axis.**
+An entry can now say `removed` as well as `added`, so a feature Python took away has somewhere to go instead of being left out by rule.
+The two are the same sentence with one word changed, and both are read off the same presence mask from the same end: `added` is the oldest release a name has been available in ever since, and `removed` is the oldest release it has been unavailable in ever since.
+A removal carries its own `[features.removed_evidence]` table, and only three methods may fill it in: the built interpreters, the grammar, and `manual`.
+A removal is an absence claim, so the methods whose absences prove nothing cannot make one.
+
+Twenty-eight entries that could not exist before, twenty-six of them removed in 3.0:
+
+- **Fifteen builtins**: `apply`, `basestring`, `buffer`, `cmp`, `coerce`, `execfile`, `file`, `intern`, `long`, `raw_input`, `reduce`, `reload`, `unichr`, `unicode`, `xrange`.
+  These are detected as well as searchable, and for free: `apply(f, args)` parses under a 3.14 parser, so reading old code reports the whole story in one line.
+  Fourteen went in 3.0 and `cmp()` in 3.1, a distinction the 3.0 docs draw themselves: they spell the rest "Removed apply()" and spell that one "The cmp() function should be treated as gone".
+  The 3.0 interpreter resolves `cmp` and the 3.1 interpreter does not.
+- **Eight methods**: `dict.has_key`, `dict.iterkeys`, `dict.itervalues`, `dict.iteritems`, `dict.viewkeys`, `dict.viewvalues`, `dict.viewitems`, `str.decode`.
+  The three `view` spellings belong to exactly one release, and to a release newer than the one that lacks them: 3.0 gave the view behaviour to `keys`, `values` and `items` outright in 2008, and 2.7 added the `view` names in 2010 so code could be written for both lines.
+- **Five pieces of syntax**: the `print` statement, the `exec` statement, backticks, `<>`, and `=` as the equality operator.
+  A 3.14 parser cannot produce a node for any of these, so they use a new `spellings` matcher, which puts a name in the search index and builds no detector.
+  `sincewhen --search print` now tells the whole arc: the statement from 0.9 to 3.0, `from __future__ import print_function` in 2.6, the function in 3.0.
+  `=` is the only pre-1.0 removal in the dataset, and the oldest story in it: 0.9.1 spelled equality `=`, and could without ambiguity, because assignment is a statement there and never an expression.
+  1.0 replaced it with `==`.
+
+`callable()` is deliberately not among the removals.
+It went away in 3.0 and came back in 3.2, which under this dataset's own rule is a gap rather than a removal.
+
+`minimum_version()` is unchanged, and there is no `maximum_version()` to go with it.
+
+**One corrected version: `argparse` is 2.7, not 3.2.**
+It shipped in 2.7 and again in 3.2, with 3.0 and 3.1 lacking it, and this dataset's rule is that those two do not count against continuity.
+The entry carried a `manual` override claiming 3.2, on the grounds that a 2.7 claim would mislead anyone on 3.x.
+That contradicted the rule everything else follows, including `_forgiven`, whose docstring names this entry as the one the rule was written for.
+The built interpreters settle it: absent in 2.6, present in 2.7.
+The claim is now re-derived rather than overridden.
+
+**`True` and `False` are now entries, dated 2.3.**
+Python had no booleans for its first eleven years.
+The names arrived in 2.2.1 as ints, and PEP 285's `bool` type is 2.3, which is what the 2.7 docs describe and what the built interpreters find.
+`None` gets no entry: it predates the "Added in version" convention and carries no marker, so nothing dates it.
+
 ### Tool
 
+- **Search and the report say when something went away.**
+  `dict.has_key` reads "Python 0.9 (released 1991-02-20), removed in 3.0 (released 2008-12-03)", with a release date on each half, and a report line reads "0.9, removed in 3.0".
+  `--json` gains a `removed` key, null for everything still here.
 - **A misspelled module no longer swallows the search.**
   `sincewhen --search suprocess.Popen` reported "No feature matches" and stopped, throwing away the half of the name that was spelled right.
   A dotted name that matches nothing at all, not even a module, now gets the same suggestions a bare name would: `suprocess.Popen` offers `subprocess.Popen`.
@@ -20,6 +62,10 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 - **A "Try it in your browser" section**, pointing at [pym.dev/since](https://pym.dev/since), where the tool runs in the tab rather than on a server.
 - **A "History you can look up" section**, collecting the stories the dataset tells when read end to end: the arcs where one problem got a better answer every few years, the features that are younger than they feel, and what the mismatches between the sources look like in practice.
+- **Two more stories in that section**, both about names that went away: `print` as a statement, a `__future__` import and a function; and the three `dict.view*` methods that were added to a release newer than the one that lacks them.
+- **"The removal axis" in `AGENTS.md`**, recording how `removed` is read off the presence mask, what may settle it and why the list is so short, and what `errno` would need so both fields are designed together.
+- **Two counts the README quotes are refreshed.**
+  The number of entries whose evidence contradicts the documentation went stale at 0.6.0, when building the 3.x interpreters produced 26 such verdicts on its own, and the sentence now says what the pipeline can re-derive.
 
 
 ## 0.6.0 - 2026-07-30

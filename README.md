@@ -130,7 +130,7 @@ A search that answers from the member index emits member records, which carry `m
 
 ## History you can look up
 
-Dating 1,847 features against seven independent sources turns up a lot of history that is easy to misremember, and nearly all of it is one search away:
+Dating 1,876 features against seven independent sources turns up a lot of history that is easy to misremember, and nearly all of it is one search away:
 
 ```console
 $ sincewhen --search sorted
@@ -183,6 +183,17 @@ It arrived in 2003 (2.3), so `for i in range(len(items))` was simply how you num
 Dict literals date to 1994 (1.0).
 Sets arrived as a module in 2003 (2.3), became the `set()` and `frozenset()` builtins in 2004 (2.4), and finally got literals, and set comprehensions with them, in 2010 (2.7).
 
+**`print` has been three different things.**
+The statement was there in 1991 (0.9) and gone in 2008 (3.0).
+`from __future__ import print_function` arrived in 2.6, two months before 3.0 shipped, and the function itself in 3.0.
+`sincewhen --search print` prints the arc in order, which is what the second axis is for: a name that was taken away has a `removed` version as well as an `added` one.
+
+**Three dict methods were added to a release older than the one that lacks them.**
+`dict.viewkeys`, `dict.viewvalues` and `dict.viewitems` arrived in 2.7, which shipped in 2010, and Python 3.0 had already shipped without them in 2008.
+That is not a contradiction: 3.0 gave the view behaviour to `keys`, `values` and `items` outright, and 2.7 added the `view` spellings so that code could be written for both lines.
+So they belong to exactly one release, and reading `added` and `removed` as a range would put them in the wrong order.
+`dict.has_key` is the other extreme: it is in the 0.9.1 method table, so it was there for the whole of Python's first seventeen years.
+
 **String methods did not exist for Python's first nine years.**
 Until 2000 (1.6), splitting a string meant `string.split(line)` rather than `line.split()`.
 That release added twenty-nine string methods at once, and the `string` module kept growing anyway: `string.ascii_lowercase` is from 2001 (2.2) and `string.Template` from 2004 (2.4), both newer than the methods that took away the module's original job.
@@ -196,7 +207,7 @@ The Python 2.7 docs date `bisect` to 2.1, while `Lib/bisect.py` is already in th
 And a PEP records what was planned rather than what shipped: class decorators are headed `Python-Version: 3.0` by PEP 3129, and CPython's 2.6 grammar already has the rule.
 
 That is why every version here is checked against seven independent sources rather than trusted to any one of them.
-Twenty entries in the dataset carry an evidence note recording that the documentation dates them to a different release than the one they shipped in.
+Forty-one entries are dated by a source that contradicts the documentation, and each one's evidence records which source and why.
 
 
 ## Library
@@ -260,6 +271,14 @@ The Python version you *run* `sincewhen` on has nothing to do with the versions 
   A member the index has never heard of falls back to the module it lives in, as before.
 - A method of a builtin type is dated for searching but is mostly not detected, because `value.removeprefix(...)` says nothing about what `value` is.
   Only a receiver whose type is certain reports one: a literal, as in `"Mr. Smith".removeprefix("Mr. ")`, or the type's own name, as in `dict.fromkeys(keys)`.
+- `removed` says when a feature was taken away, and it is the mirror of `added`: the oldest release from which it has been *un*available ever since.
+  A gap is not a removal, so `callable()` has none: it went away in 3.0 and came back in 3.2.
+  There is no "or later" to match "or earlier", because the corpus reaches the newest Python and a name that is gone has a last release somewhere inside it.
+- Removed syntax is searchable and never detectable.
+  A Python 3.14 parser cannot produce a node for `<>`, `print x`, a backtick or the `exec` statement, so nothing can spot them in your code, and looking them up still works.
+  Removed *names* are detected as usual: `apply(f, args)` parses fine, so old code reports it like anything else.
+- There is no `maximum_version()`.
+  It would be exactly as true as `minimum_version()` and exactly as beside the point: this tool answers how long something has been in Python, not what version you should target.
 
 
 ## Development
@@ -302,8 +321,39 @@ python_version = "3.8"
 checked = "2026-07-28"
 ```
 
-The matcher kinds are `nodes` (AST node class names), `builtins`, `modules`, `attributes` (dotted `module.name` paths), and `methods` (dotted `type.method` paths for the builtin types).
+The matcher kinds are `nodes` (AST node class names), `builtins`, `modules`, `attributes` (dotted `module.name` paths), `methods` (dotted `type.method` paths for the builtin types), and `spellings` (ways of writing something this parser can no longer produce a node for, which are searchable and never detected).
 Node matchers can be narrowed with `requires` (a node attribute that must be truthy) or `check` (a predicate registered in `detect.py`).
+
+A feature Python has taken away adds `removed` and a `[features.removed_evidence]` table of its own:
+
+```toml
+[[features]]
+id = "apply"
+name = "apply()"
+added = "1.0"
+category = "builtin"
+removed = "3.0"
+builtins = ["apply"]
+
+[features.evidence]
+method = "source"
+symbol = "apply"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+checked = "2026-08-08"
+
+[features.removed_evidence]
+method = "interpreter"
+symbol = "apply"
+present_in = "2.7"
+absent_in = "3.0"
+checked = "2026-08-08"
+```
+
+Only three methods may settle a removal: `interpreter`, `grammar` and `manual`.
+A removal is an absence claim, and the methods whose absences prove nothing cannot make one.
+`just verify-dataset` re-derives it in both directions, so an entry that stays silent while its feature goes away fails as loudly as one that invents a removal.
 
 Documentation links are generated from `added` and `pep`, so only set `docs` when you have a better link than the "What's New" page.
 

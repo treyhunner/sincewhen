@@ -120,6 +120,76 @@ def test_search(capsys):
     assert "https://peps.python.org/pep-0572/" in out
 
 
+def test_search_reports_a_removal_with_both_dates(capsys):
+    """How long ago a name went away is worth as much as when it arrived.
+
+    Both halves get their own release date, because appending one date
+    to "0.9, removed in 3.0" would attach 1991 to the removal.
+    """
+    assert main(["--search", "dict.has_key"]) == 0
+    output = capsys.readouterr().out
+    assert (
+        "dict.has_key() - Python 0.9 (released 1991-02-20), "
+        "removed in 3.0 (released 2008-12-03)" in output
+    )
+
+
+def test_search_finds_syntax_that_no_longer_parses(capsys):
+    """`<>` has no node to detect and is still a thing to look up."""
+    assert main(["--search", "<>"]) == 0
+    output = capsys.readouterr().out
+    assert "<> inequality operator - Python 0.9" in output
+    assert "removed in 3.0" in output
+
+
+def test_search_finds_a_removal_older_than_python_1(capsys):
+    """The only entry that went away before 1.0, and the oldest story here.
+
+    0.9.1 spelled equality `=`, and could without ambiguity, because
+    assignment is a statement there and never an expression. 1.0 replaced
+    it with `==`.
+    """
+    assert main(["--search", "= as the equality operator"]) == 0
+    output = capsys.readouterr().out
+    assert "= as the equality operator - Python 0.9" in output
+    assert "removed in 1.0 (released 1994-02-15)" in output
+
+
+def test_search_reports_a_removal_in_json(capsys):
+    assert main(["--search", "xrange", "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert [found["removed"] for found in payload] == ["3.0"]
+
+
+def test_search_reports_no_removal_for_what_is_still_here(capsys):
+    assert main(["--search", "walrus", "--json"]) == 0
+    payload = json.loads(capsys.readouterr().out)
+    assert payload[0]["removed"] is None
+
+
+def test_a_removed_builtin_is_detected_in_source(tmp_path, capsys):
+    """These cost nothing to detect: they still parse.
+
+    `apply(f, args)` is a `Name` load like any other, so the builtins
+    matcher fires on it exactly as it does for a name that is still
+    there, and reading old code reports the whole story in one line.
+    """
+    path = tmp_path / "old.py"
+    path.write_text("apply(f, args)\n", encoding="utf-8")
+    assert main([str(path)]) == 0
+    output = capsys.readouterr().out
+    assert "apply()" in output
+    assert "1.0, removed in 3.0" in output
+
+
+def test_a_shadowed_removed_builtin_is_not_detected(tmp_path, capsys):
+    """The shadowing rule is not relaxed for a name Python 3 dropped."""
+    path = tmp_path / "own.py"
+    path.write_text("def apply(f, args): pass\napply(f, args)\n", encoding="utf-8")
+    assert main([str(path)]) == 0
+    assert "apply()" not in capsys.readouterr().out
+
+
 def test_search_with_no_match(capsys):
     assert main(["--search", "no-such-feature"]) == 1
     assert "No feature matches" in capsys.readouterr().err

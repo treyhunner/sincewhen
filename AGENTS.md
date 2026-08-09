@@ -227,10 +227,125 @@ Do not restate a dating rule here; the cost of maintaining it twice is a wrong v
 - **`__future__` and `errno` are left out whole.** `__future__` documents its features as a table of `_Feature` objects, so no name in it carries a marker and none was indexed until 3.13: `division` would read as 3.13 rather than 2.2. `errno` is the curation rule from above, applied one level down; its members are a schema question and stay out of the index for the same reason they stay out of the dataset.
 - **The check that earns it is the dataset.** 1269 members have both an entry and an index answer, and every one agrees. `test_the_index_agrees_with_the_dataset_where_both_speak` is that check and its exception list should stay empty: any disagreement means the index is reading the pipeline differently from the way the dataset was built.
 - **It carries no evidence, so it is never a source for an entry.** A name it answers is still a name that goes through `propose.py`. What it is good for on that side is finding candidates: a member it can only bound is a member some better method might date.
+- **A third, of the same shape, that the removal work exposed.** `date_symbol` and `removal_of` both take a bare name and have to guess what kind of thing it is, and the dataset already knows: the matcher field says so. Where the two disagree the guess wins and the entry is wrong. `cmp` is the case: it is a builtin from 1.0 and a module from 0.9 to 1.5, the module rule means the module answers, and a `builtins` entry then reads as "0.9 or earlier" from `lib/cmp.py`. Both of its evidence tables are `manual` for that reason. The fix is to pass the kind in, which touches `verify_dataset`, `memberindex` and `propose`, so it wants its own pass like the two below.
 - **Two known pipeline bugs the index exposed, neither fixed here.** `dating.py` reads the 2.6 and 2.7 inventories only through branches that need a documentation marker, so a name they list with no marker anywhere is dated by the 3.x line alone: `curses.resetty` is in the 2.7 inventory and comes back 3.2. And `os.path` is under-read, because no tarball has a file by that name and `source.py` reads files, so 19 of its 34 members bound at "1.5 or earlier"; teaching `source.py` the alias is not enough on its own, since `_predates_module` then discards the result because `os.path` the module is itself only bounded. Both are changes to the arbiter that governs every member in the dataset, so they want their own pass with `verify-dataset` watching.
 
 The corpus pairs a source tarball and a doc build per feature release, and they have to describe the same build.
 `SOURCE_BUILDS` takes the x.y tarball exactly, except where the rest of the corpus means a micro: pairing the 1.5 source with the 1.5.2 docs manufactured fifty false 1.6 additions, because 1.5.1 and 1.5.2 predate the convention that a micro release adds nothing.
+
+## The removal axis
+
+`added` answers "since when".
+`removed` answers "and then it was taken away", which a whole class of names needs and which used to be excluded by rule: the Python 2 builtins, `dict.has_key`, `str.decode`, `<>`.
+This is the second axis and the last one.
+It is deliberately not a `maximum_version()` helper, which would be exactly as true and exactly as beside the point as `minimum_version()` is, and would re-import the "what version should I target" question this project is not about.
+
+**`removed` is the oldest release the name has been unavailable in ever since.**
+That is `added`'s own sentence with one word changed, and it is read off the same presence mask from the same end, because both claims are about what is true now rather than about what happened once.
+`dated()` walks back from 3.14 while the name is there and reports where the walk stops.
+`removed()` starts from the name not being there at 3.14 and reports the release after its last run.
+Same mask, same guards, same `_forgiven`.
+
+**Nothing on this axis can be a bound, and that is the one place the two are not symmetrical.**
+`added` can be a floor because the corpus may not reach far enough back to watch a name arrive, which is what `or_earlier` records.
+The corpus ends at the newest Python, so a name absent from that end has its last presence somewhere inside the corpus and the bracket always closes.
+There is no "or later" and there should not be.
+
+**The 3.0/3.1 exemption applies unchanged, which turns out to mean it almost never fires.**
+`_forgiven` bridges those two releases only where the name is present on both sides, and a removal has no far side, so a name gone from 3.0 onwards is not forgiven into being gone from 3.2.
+`dict.has_key` is removed in 3.0 and not in 3.2, which is the release anyone who ever hit the error was on.
+The exemption still matters for telling the two apart: `callable` went away in 3.0 and came back in 3.2, and under this dataset's rule that is a gap rather than a removal, so it gets no `removed` at all.
+The one shape that is refused rather than answered is a name whose last presence is *in* 3.0 or 3.1, because those two do not count towards availability in this direction either and the two readings genuinely differ.
+`cmp` is the entry that hits it, and it is the only one.
+Fourteen of the fifteen Python 2 builtins here last resolve in 2.7 and are removed in 3.0; `cmp` resolves in 3.0 and not in 3.1, so "removed in 3.1" is literally true and true only of a release nobody shipped code on, while "removed in 3.0" is what the rest get and is false of the interpreter.
+The 3.0 docs make the same distinction in their own wording, spelling the others "Removed apply()" and this one "The cmp() function should be treated as gone".
+The entry records 3.1 with `manual` evidence saying why, which is what a refusal is for.
+
+### What may settle a removal
+
+Three of the eight methods, and the shortness of the list is the argument.
+
+Presence is strong evidence and absence is weak, and a removal is an absence claim, so the methods whose absences prove nothing cannot make one.
+That rules out `objects.inv` and `annotation`, which can both see the releases in question: an inventory drops names whenever the markup changes, and a doc build that stops mentioning something has not removed it.
+It rules out `archive` for the same reason one level back.
+`source` and the type method tables are ruled out by arithmetic rather than by principle, since they stop at 2.5 and every removal in this dataset is 3.0 or later.
+
+What is left is the two methods whose absences are proof, plus the escape hatch.
+A built interpreter is the thing itself, so a name it cannot resolve is a name that build did not have, and `absence_is_real` guards it exactly as on the addition side.
+A grammar is the list the parser is generated from rather than a description of one, which is `builtin_methods[]`'s argument applied to syntax.
+`manual` is the third, and `<>` is why it has to exist.
+
+Three failure modes, all of which happened while this was being built:
+
+- **A rule is a name the grammar gives itself, and CPython renames those freely.** `dictmaker` is in no grammar after 2.7 because 3.0 renamed it `dictorsetmaker`, and dict displays are fine. Unfiltered that reported a removal for `{'k': 1}`, along with two dozen of the same kind: `listmaker`, `fpdef`, `old_lambdef`, `with_var`. So removals are read from quoted terminals only, which are the things somebody writes. The addition side never needed the distinction, because a renamed rule looks like a new one and nothing in the dataset cites a rule it did not go and read.
+- **A token can outlive the syntax.** `<>` is in every 3.x pgen grammar from 3.1 to 3.9 and is a syntax error in all of them, because PEP 401 left it in so `from __future__ import barry_as_FLUFL` could re-enable it. The grammar knows a token the compiler rejects, so it dates the parser and not the language.
+- **A token can also be younger than the syntax, which is the same failure on the addition side.** 0.9.1 writes `comp_op: '<'|'>'|'='|'>' '='|'<' '='|'<' '>'|...`, spelling `<>`, `>=` and `<=` as two adjacent single-character terminals, and 1.0 rewrites the rule with `'<>'`, `'>='` and `'<='` as terminals of their own. So the vocabulary first contains `'<>'` in 1.0 and the diff dates the *tokenizer* change, while the 0.9.1 interpreter accepts `1 <> 2` perfectly well. `<>` is 0.9, and it is the one entry in the dataset where the grammar is wrong in both directions at once, which is why both of its evidence tables are `manual`.
+- **What changes inside a rule's body is invisible here.** `=` was the equality operator in 0.9.1 and 1.0 replaced it with `==`, and no vocabulary diff can see that, because `'='` is still a terminal in every later grammar as the assignment operator. Only the rule it sits in changed. That entry is `manual` for this reason rather than for `<>`'s, and it is the same limit that keeps `raise E, v`, `except E, name` and string exceptions out of the dataset: all of them leave the terminal in place and move it. Reaching them needs a diff of rule bodies, which is a real thing to build and is not this.
+- **The 2to3 documentation indexes the names it rewrites.** Ten of the fourteen removed builtins carry a `std:2to3fixer` role in the 3.2 or 3.4 inventory, so an inventory diff reports `apply`, `reduce` and `xrange` arriving in the release that documented their obituary. This costs nothing on the addition side, where the source method wins every one of them, and it is the concrete reason the inventories are refused here rather than merely deprecated.
+
+`verify-dataset` re-derives a `removed` claim the way it re-derives `added`, and checks it in both directions.
+An entry claiming a removal the sources cannot see is a mismatch.
+So is a name the newest interpreter has stopped resolving on an entry that says nothing about it, which is the check that matters as Python keeps moving: without it the dataset goes stale silently the next time something is dropped.
+`interpreters.py --check` makes the same two comparisons against the table, and `test_every_method_is_where_its_entry_says_it_is` makes the cheapest version of it against the running interpreter, needing neither the cache nor Docker.
+
+### What a type method's unbound spelling can settle
+
+The probe asks about a method of a builtin type by writing `_ = dict.has_key`, and that spelling answers the removal question and not the addition one.
+`dict` the builtin arrived in 2.2 while the `dict` type is in 0.9.1, so this column dates `dict.keys` to 2.2 where the type's own method table says 0.9, and the method table is right about what the dataset claims: a pre-2.6 method entry is a claim about instances, so `{}.keys()` is 0.9 and `dict.keys` as an attribute is 2.2.
+
+For a removal the two spellings agree, and they agree for a reason rather than by luck.
+A type that loses a method loses it on instances and as an unbound attribute in the same release.
+The 2.2 divergence exists only because `str` and `dict` were not types before then, and every removal here is 3.0 or later.
+
+So `KINDS` is what the probe asks about and `DATING_KINDS` is what `added` is read from, and the two differ by exactly this one kind.
+`test_the_interpreters_never_date_a_type_method` is the guard, because wiring `method` into the addition path produces version numbers rather than failures.
+
+### Removed syntax is searchable and never detectable
+
+A 3.14 parser cannot produce a node for `<>`, `print x`, a backtick or the `exec` statement, so there is nothing for a matcher to fire on.
+`spellings` is the matcher kind that says so: it puts the name in the search index and builds no detector.
+It is a matcher field rather than an absence of one so that the "exactly one matcher kind" rule keeps holding and a typo cannot quietly produce an entry that matches nothing.
+Shipping old parsers to detect these is a separate project.
+
+Everything else is detectable for free, which is most of the value.
+`apply(f, args)` parses under a 3.14 parser and the builtins matcher fires on it exactly as it does for a name that is still there, so reading old code reports the whole story in one line.
+The methods are the usual half-measure and for the usual reason: `d.has_key(k)` says nothing about `d`, so only a receiver whose type is certain reports one, and `dict.has_key` stays searchable everywhere else.
+Relaxing that for removed names is tempting, since no Python 3 type has `has_key`, and it is still wrong: somebody's own class may, and a false positive is worse than a missing entry.
+
+Three things the Mastodon thread asked for that this cannot reach, all for the same reason: they are shapes rather than names.
+String exceptions (`raise "Bad argument"`, disallowed in 2.6), the two-argument `raise E, v`, and `except E, name` all leave the `'raise'` and `'except'` terminals in place, so the grammar diff has nothing to point at, and none of them is a name an interpreter can be asked about.
+Old-style classes are the same.
+Dating those needs a method that diffs a grammar *rule's body* rather than the vocabulary, which is a real thing to build and is not this.
+`=` as the equality operator is in the dataset anyway, with `manual` evidence on both axes, because it is the only pre-1.0 removal there is and the rule bodies either side of it are two lines long.
+
+### How a removal reads
+
+`since` is "0.9, removed in 3.0", in words rather than as a range.
+"0.9 to 3.0" is the tempting spelling and it is wrong at both ends: it reads as inclusive when 3.0 is precisely the release that does not have `dict.has_key`, and it does not survive a bound on the other side, where "1.5 or earlier to 3.0" stops being a sentence.
+"removed in" composes with both.
+
+Search prints each half with its own release date, because how long ago a name went away is the same kind of question as how long ago it arrived, and appending one date to the compact phrase attaches the wrong one.
+The report reuses the compact phrase and keeps the released column meaning `added`, as it does for every other row.
+`--json` gains a `removed` key that is null for everything else.
+
+`minimum_version()` is untouched.
+A removed feature still contributes its `added` as a floor, which is true and usually vacuous, and it contributes nothing else.
+The tool says how long something has been in Python, and for these it now also says when that stopped.
+
+### What `errno` needs, and why it is a different field
+
+`errno`'s 122 members are each behind an `#ifdef`, so the honest answer is "since 1.5, where the platform provides it".
+That is an availability *condition* and not a removal, and the two are designed together here only so that they do not end up overlapping.
+
+They must be separate fields rather than two values of one.
+A removal says the timeline ended; a condition says the claim holds only where something else is true, and says nothing about when.
+They compose: a name could be platform-conditional and later removed, and a schema that spelled the condition as a kind of removal could not express that.
+So `removed` stays a version, and the condition wants its own flag rendering as "1.5 or earlier, where the platform provides it", sitting beside `or_earlier` rather than beside `removed`.
+
+The schema is the smaller half of `errno`'s problem and it is worth being clear about that before anyone starts.
+The interpreter corpus builds on Linux, so what it settles about `errno.EACCES` is availability on Linux, and the dataset's claim is portable availability.
+Dating these needs either a second platform in the corpus or a doc-derived claim that says which platforms, and neither exists yet.
+122 names is still the single largest block outside the dataset, and the field is the cheap part.
 
 ## Curation rules for the dataset
 
@@ -239,6 +354,7 @@ Getting a version wrong is the worst bug this project can have, because the whol
 
 - **Cite the evidence.** Every entry carries a `[features.evidence]` table saying how its version was established, and `just verify-dataset` re-derives all of them. Never write a version number from memory: run `just whenadded <symbol>` and let the archived docs answer. An LLM is useful for proposing *which* features are worth having and useless as a source for *when* they arrived.
 - **`added` is the oldest release it has been available in ever since, ignoring 3.0 and 3.1.** Not the oldest release that ever had it. Nobody shipped code on 3.0 or 3.1, so a gap there does not count: `argparse` shipped in 2.7 and again in 3.2 and is dated 2.7. A gap that reaches 3.2 is real, and takes the later date. When the dates differ, say so in the evidence.
+- **`removed` is the oldest release it has been unavailable in ever since**, which is the same sentence with one word changed, and it carries its own `[features.removed_evidence]` table. Only three methods may fill that in, because a removal is an absence claim: see "The removal axis". A gap is not a removal, so `callable` gets none. Neither is a rename: an entry claims the name as spelled, so `xrange` is removed in 3.0 and `range` is a separate entry, exactly as `copyreg` is separate from `copy_reg`.
 - **Say "or earlier" when that is all the sources support.** A feature already present in the oldest source that records it cannot be dated, only bounded. Those entries set `or_earlier = true` and report as "1.5 or earlier" for a module member no source can account for. `verify-dataset` rechecks the flag as well as the version, because "1.5" and "1.5 or earlier" are different claims. Before adding one, check whether a method that reaches further back can date it outright.
 - **The first public release is a date, not a bound.** A bound says which releases are still candidates, and at 0.9 there are none: nothing older than Python 0.9.1 was ever released, so "0.9 or earlier" leaves open a range that does not exist. Those entries carry `added = "0.9"` with no `or_earlier`, report as a plain "0.9" dated 1991-02-20, and keep an evidence note saying the name is at least that old and may predate the public record.
   The release date is Wikipedia's for the 0.9 line, the same source `UNTAGGED` uses for 1.6, and it is an approximation of 0.9.1 by a few days; a blank column was the worse error, because it read as "this release has no date" rather than as "dated from the one source that reaches it". `dating.py` applies this to every method, and `verify_dataset.check_grammar` repeats it because the grammar is checked without going through `dating.py`.

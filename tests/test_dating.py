@@ -8,7 +8,9 @@ and `or_earlier` are pure properties, so a verdict can be built by hand
 and the ranking checked without reading anything.
 """
 
-from dating import Verdict, _date_the_type, date_symbol, is_keyword
+import dating
+import pytest
+from dating import Verdict, _date_the_type, date_symbol, is_keyword, removal_of
 
 
 def test_a_keyword_is_refused_rather_than_answered():
@@ -26,8 +28,27 @@ def test_a_keyword_is_refused_rather_than_answered():
 
 
 def test_every_keyword_is_refused():
-    for name in ("if", "for", "while", "return", "lambda", "not", "None"):
+    for name in ("if", "for", "while", "return", "lambda", "not", "in", "is"):
         assert date_symbol(name).status == "keyword", name
+
+
+def test_the_three_keywords_that_are_objects_are_not_refused():
+    """`True`, `False` and `None` are values, not section headings.
+
+    The refusal exists because a keyword's only presence in the
+    inventories is the reference manual's anchor for it. These three
+    carry a `py:data` role and no `std:label` at all, so asking the docs
+    about them answers about the constant. `getattr(builtins, "True")`
+    finds one, and all three were names before 3.0 made them keywords.
+
+    Only the guard is asserted here, not what the sources then say.
+    Every other test in this file reaches `date_symbol` for a name it
+    refuses, which costs nothing; a name it accepts reads the 500 MB
+    corpus, and CI restores none. What `True` is dated to is
+    `verify-dataset`'s question and the dataset's own tests'.
+    """
+    for name in ("True", "False", "None"):
+        assert not is_keyword(name), name
 
 
 def test_a_soft_keyword_is_still_a_name():
@@ -38,6 +59,83 @@ def test_a_soft_keyword_is_still_a_name():
     """
     for name in ("type", "match", "case", "_"):
         assert not is_keyword(name), name
+
+
+@pytest.fixture
+def asked(monkeypatch):
+    """Record which table keys `removal_of` reaches for, and answer none.
+
+    The kind is the whole of what this function decides, and getting it
+    wrong is silent: asking about `builtin dict.has_key` finds nothing
+    and reports no removal, which looks exactly like a name that is
+    still here.
+
+    The two module indexes are stubbed as well as the table, because the
+    branch that picks between "builtin" and "module" consults them and
+    they read the 500 MB corpus. Empty is the right stand-in: it is the
+    ordinary case, and the name that is also a module has a test of its
+    own further down.
+    """
+    seen: list[str] = []
+    monkeypatch.setattr(dating, "source_modules", dict)
+    monkeypatch.setattr(dating, "dated_modules", dict)
+
+    def fake(target):
+        seen.append(target)
+        return None
+
+    monkeypatch.setattr(dating, "interpreter_removed", fake)
+    return seen
+
+
+def test_a_type_method_is_asked_for_as_a_method(asked):
+    """The unbound spelling, which is the one that settles a removal.
+
+    `added` deliberately never reads this column: `dict` the builtin is
+    2.2 and the `dict` type is in 0.9.1, so it would date `dict.keys` to
+    2.2 against the method table's 0.9. For a removal the two spellings
+    agree, because a type loses a method on instances and as an unbound
+    attribute in the same release.
+    """
+    assert removal_of("dict.has_key") is None
+    assert asked == ["method dict.has_key"]
+
+
+def test_a_module_member_is_asked_for_as_an_attribute_then_a_module(asked):
+    """A dotted name is usually a member and sometimes a submodule."""
+    assert removal_of("os.getcwdu") is None
+    assert asked == ["attribute os.getcwdu", "module os.getcwdu"]
+
+
+def test_a_bare_name_is_asked_for_as_a_builtin(asked):
+    assert removal_of("apply") is None
+    assert asked == ["builtin apply", "module apply"]
+
+
+def test_a_name_that_is_also_a_module_is_asked_for_as_one(asked, monkeypatch):
+    """`cmp` is a builtin from 1.0 and a module from 0.9 to 1.5.
+
+    A name that is both belongs to the module, which is the rule that
+    stops the builtins table dating the `repr` module five releases
+    early. It is also why the `cmp` entry carries `manual` evidence on
+    both axes: this asks about a module that has not existed since 1.5,
+    and the entry claims the builtin.
+    """
+    monkeypatch.setattr(dating, "source_modules", lambda: {"cmp": {}})
+    assert removal_of("cmp") is None
+    assert asked == ["module cmp"]
+
+
+def test_a_keyword_is_refused_here_too(asked):
+    """A keyword is not a symbol on this axis either.
+
+    The table is keyed by names an interpreter can be asked about, and
+    `_probe_source` cannot spell a keyword at all, so a keyword is
+    absent from every column for a reason that has nothing to do with
+    history. What settles syntax going away is `removed_syntax`.
+    """
+    assert removal_of("del") is None
+    assert asked == []
 
 
 def type_member(

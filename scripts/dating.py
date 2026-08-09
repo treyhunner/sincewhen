@@ -47,6 +47,7 @@ from annotations import ANNOTATION_BUILDS
 from annotations import collect as collect_annotations
 from interpreters import dated as interpreter_dated
 from interpreters import micro_explains
+from interpreters import removed as interpreter_removed
 from modindex import HTML_BUILDS, dated_builtins, dated_members, dated_modules
 from source import SOURCE_ORDER
 from source import dated_builtins as source_builtins
@@ -156,25 +157,49 @@ def is_type_member(name: str) -> bool:
     return head in BUILTIN_TYPES and bool(member)
 
 
+# The three keywords that are also objects. Every other keyword is a
+# piece of syntax whose only presence in the inventories is the
+# reference manual's anchor for it, which is what `is_keyword` refuses.
+# These three are documented values living in the builtins namespace:
+# each carries a `py:data` role and no `std:label` at all, and
+# `getattr(builtins, "True")` finds one. So asking the docs about them
+# answers about the constant rather than about a section heading, which
+# is the whole of the reason the refusal exists.
+#
+# `True` and `False` carry their own "New in version 2.3" marker in the
+# 2.7 docs. `None` predates the marker convention and carries none, so
+# nothing here dates it and `date_symbol` reports no version rather than
+# a wrong one.
+#
+# Deliberately not extended to the operators. `in` and `is` are also
+# real things with real ages, and the 0.9.1 grammar is what says so.
+CONSTANT_KEYWORDS = frozenset({"True", "False", "None"})
+
+
 def is_keyword(name: str) -> bool:
     """Whether asking about `name` here would answer about a doc anchor.
 
-    Every Python keyword is also a `std:label` in the inventories, since
-    the reference manual has a section for each one, and a label is
-    indexed whenever someone got around to writing the anchor. So `in`
-    reports as 3.2 and `if`, `for` and `while` all report as some 3.x
-    release, none of which is a fact about the language: `in` is in the
-    0.9.1 `comp_op` rule.
+    Almost every Python keyword is also a `std:label` in the
+    inventories, since the reference manual has a section for each one,
+    and a label is indexed whenever someone got around to writing the
+    anchor. So `in` reports as 3.2 and `if`, `for` and `while` all report
+    as some 3.x release, none of which is a fact about the language: `in`
+    is in the 0.9.1 `comp_op` rule.
 
-    This method dates symbols, and a keyword is not one. What settles a
-    keyword is CPython's own grammar, which `grammar.py` reads, so the
+    This method dates symbols, and such a keyword is not one. What
+    settles it is CPython's own grammar, which `grammar.py` reads, so the
     answer here is to refuse rather than to guess.
 
     Only the hard keywords. A soft keyword is a real name as well:
     `type` is a builtin this dataset dates to 0.9, and `match` and
     `case` are ordinary identifiers everywhere but a match statement.
+
+    And not the three that are objects: see `CONSTANT_KEYWORDS`. The
+    refusal is about what the sources have under a name, not about what
+    the tokenizer does with it, and what they have under `True` is the
+    constant.
     """
-    return keyword.iskeyword(name)
+    return keyword.iskeyword(name) and name not in CONSTANT_KEYWORDS
 
 
 # Python 3.0 and 3.1 do not count against continuity. Plenty of features
@@ -1136,6 +1161,41 @@ def date_symbol(name: str) -> Verdict:
     return verdict
 
 
+def removal_of(name: str) -> dict | None:
+    """When a name stopped being available, or `None` if it has not.
+
+    One method answers this and it is deliberate rather than a gap. The
+    doc-derived methods can see the releases in question and still may
+    not speak, because a removal is an absence claim and their absences
+    prove nothing: an inventory drops names when the markup changes and
+    a doc build that stops mentioning something has not removed it.
+    `source.py`, the archives and the type method tables all stop at 2.5
+    and every removal here is 3.0 or later, so they cannot see one at
+    all. That leaves the built interpreters, whose absences are the thing
+    itself. Syntax is the other half and `grammar.py` answers it.
+
+    The kind is chosen the way `_date_from_interpreters` chooses it, with
+    one addition: a method of a builtin type is asked for by its unbound
+    spelling, which answers this question correctly and the addition
+    question wrongly. See `KINDS` in interpreters.py.
+    """
+    if is_keyword(name):
+        return None
+    if is_type_member(name):
+        kinds = ("method",)
+    elif "." in name:
+        kinds = ("attribute", "module")
+    elif name in source_modules() or name in dated_modules():
+        kinds = ("module",)
+    else:
+        kinds = ("builtin", "module")
+    for kind in kinds:
+        found = interpreter_removed(f"{kind} {name}")
+        if found is not None:
+            return found | {"symbol": name, "kind": kind}
+    return None
+
+
 def main(argv: list[str]) -> int:
     if not argv:
         print(__doc__)
@@ -1180,6 +1240,11 @@ def main(argv: list[str]) -> int:
             print(
                 f"  annotation  {verdict.annotation} "
                 f"({verdict.annotation_build} docs, {verdict.annotation_file}): {verdict.quote}"
+            )
+        if (gone := removal_of(name)) is not None:
+            print(
+                f"  removed     {gone['removed']} "
+                f"(last resolves in {gone['present_in']})"
             )
         print()
     return 0
