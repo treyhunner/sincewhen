@@ -289,7 +289,7 @@ def test_search_caps_a_long_suggestion_list(capsys):
     """A name in fifty modules is not an answer, it is a directory."""
     answers = [
         MemberAnswer(
-            module=f"m{n}",
+            owner=f"m{n}",
             name="thing",
             added=Version(3, 9),
             or_earlier=False,
@@ -309,7 +309,7 @@ def test_search_member_json(capsys):
     assert not rest
     assert entry == {
         "name": "platform.system",
-        "module": "platform",
+        "owner": "platform",
         "added": "2.3",
         "or_earlier": False,
         "released": "2003-07-29",

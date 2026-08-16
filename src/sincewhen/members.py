@@ -1,9 +1,15 @@
-"""The member index: which members each stdlib module has, and since when.
+"""The member index: what each stdlib module and class has, and since when.
 
 The dataset has an entry for every member worth *detecting*, which is a
 few thousand names out of a stdlib with tens of thousands. This is the
 answer for the rest, and it sits strictly behind the dataset: a name with
 an entry of its own is answered by that entry and never gets here.
+
+An owner is a module or a class inside one, and both are asked the same
+question. `platform.system` is a member of a module and
+`unittest.TestCase.assertNotEndsWith` is a member of a class, and
+nothing here has to know which: the owner is whatever comes before the
+last dot, and it is the binding constraint on what it holds either way.
 
 It is not a second opinion about when things arrived. Every version in it
 is `scripts/dating.py`'s verdict, worked out once at build time by the
@@ -37,30 +43,33 @@ SUGGESTION_LIMIT = 12
 
 
 @dataclass(frozen=True)
-class ModuleMembers:
-    """One module's member list, as the index records it.
+class OwnerMembers:
+    """One owner's member list, as the index records it.
+
+    The owner is a module or a class inside one, and its members read
+    the same either way.
 
     `bounded` is the members whose version is a limit on what the sources
     could read rather than a date, which is the same "or earlier" the
     dataset uses and means the same thing.
     """
 
-    module: str
+    owner: str
     members: dict[str, Version]
     bounded: frozenset[str]
 
 
 @dataclass(frozen=True)
 class MemberAnswer:
-    """When one `module.member` arrived, as the index has it.
+    """When one `owner.member` arrived, as the index has it.
 
-    `added` already accounts for the module's own date, which `_answer`
+    `added` already accounts for the owner's own date, which `_answer`
     applies on the way in, so a caller holding both should not reconcile
     them a second time. `feature` is the entry that was applied, and is
-    `None` where the dataset does not date the module at all.
+    `None` where the dataset does not date the module it lives in.
     """
 
-    module: str
+    owner: str
     name: str
     added: Version
     or_earlier: bool
@@ -68,7 +77,7 @@ class MemberAnswer:
 
     @property
     def dotted(self) -> str:
-        return f"{self.module}.{self.name}"
+        return f"{self.owner}.{self.name}"
 
     @property
     def since(self) -> str:
@@ -85,20 +94,20 @@ def read_index() -> str:
     return files(__package__).joinpath(DATA_FILE).read_text(encoding="utf-8")
 
 
-def parse_index(text: str) -> dict[str, ModuleMembers]:
-    """Read the index file into one record per module.
+def parse_index(text: str) -> dict[str, OwnerMembers]:
+    """Read the index file into one record per owner.
 
-    The format is one module per line: its name, then a release and the
+    The format is one owner per line: its name, then a release and the
     members that arrived in it, over and over. A release spelled with a
     trailing `?` could only be bounded. Grouping by release is what keeps
-    the file to 48 KB, and being a text file is what keeps a regenerated
+    the file to 83 KB, and being a text file is what keeps a regenerated
     index reviewable as a diff.
     """
     index = {}
     for line in text.splitlines():
         if not line or line.startswith("#"):
             continue
-        module, *rest = line.split()
+        owner, *rest = line.split()
         members, bounded = {}, set()
         for tag, names in zip(rest[::2], rest[1::2], strict=True):
             version = Version.parse(tag.rstrip("?"))
@@ -106,14 +115,14 @@ def parse_index(text: str) -> dict[str, ModuleMembers]:
                 members[name] = version
                 if tag.endswith("?"):
                     bounded.add(name)
-        index[module] = ModuleMembers(
-            module=module, members=members, bounded=frozenset(bounded)
+        index[owner] = OwnerMembers(
+            owner=owner, members=members, bounded=frozenset(bounded)
         )
     return index
 
 
 @cache
-def load_index() -> dict[str, ModuleMembers]:
+def load_index() -> dict[str, OwnerMembers]:
     """Read the bundled member index."""
     return parse_index(read_index())
 
@@ -133,7 +142,7 @@ def _module_features() -> dict[str, Feature]:
     return found
 
 
-def _answer(module: str, name: str) -> MemberAnswer | None:
+def _answer(owner: str, name: str) -> MemberAnswer | None:
     """One member's answer, with its module's own date applied.
 
     A member cannot predate the module that holds it, so where the two
@@ -147,16 +156,20 @@ def _answer(module: str, name: str) -> MemberAnswer | None:
     "1.5 or earlier". That is the rename rule in `AGENTS.md` one level
     down, and letting it through would date `copyreg.pickle` five
     releases before the name existed.
+
+    The module is looked for by walking the owner back, because a class
+    member's owner is not one: `copyreg.SomeClass.method` has to reach
+    `copyreg` for the same rule to bite.
     """
-    record = load_index().get(module)
+    record = load_index().get(owner)
     if record is None or name not in record.members:
         return None
     added, or_earlier = record.members[name], name in record.bounded
-    feature = _module_features().get(module)
+    feature = _enclosing_feature(owner)
     if feature is not None and added < feature.added:
         added, or_earlier = feature.added, feature.or_earlier
     return MemberAnswer(
-        module=module,
+        owner=owner,
         name=name,
         added=added,
         or_earlier=or_earlier,
@@ -164,30 +177,44 @@ def _answer(module: str, name: str) -> MemberAnswer | None:
     )
 
 
+def _enclosing_feature(owner: str) -> Feature | None:
+    """The dataset entry for the module `owner` lives in, if there is one."""
+    prefix = owner
+    while prefix:
+        found = _module_features().get(prefix)
+        if found is not None:
+            return found
+        prefix = prefix.rpartition(".")[0]
+    return None
+
+
 def lookup_member(query: str) -> MemberAnswer | None:
     """What the index says about a dotted name, if anything.
 
-    The longest module prefix wins, so `os.path.join` is answered by
-    `os.path` rather than by `os`. Only a direct member is answered:
-    `logging.handlers.RotatingFileHandler.doRollover` is a question
-    about a class, and the index is about what a module binds.
+    The longest owner wins, and the owner is whatever comes before the
+    last dot, so `os.path.join` is answered by `os.path` and
+    `unittest.TestCase.subTest` by `unittest.TestCase`. A name whose
+    owner the index does not carry gets nothing:
+    `inspect.Parameter.kind.description` is a member of an attribute,
+    which is one level deeper than this goes.
     """
-    module, _, name = query.rpartition(".")
-    return _answer(module, name) if module and name else None
+    owner, _, name = query.rpartition(".")
+    return _answer(owner, name) if owner and name else None
 
 
 def find_members(name: str) -> list[MemberAnswer]:
-    """Every module with a member of this name, oldest first.
+    """Every owner with a member of this name, oldest first.
 
     This is what makes a bare name searchable. Nobody types
     `platform.system` into a search box, and until the index existed
     a bare `system` had nothing to match, since a module member is
     written dotted wherever it appears and the dataset looks its
     members up by the whole dotted name.
+
+    A method is more so, not less: `assertNotEndsWith` is written with
+    no owner in front of it at every call site there is.
     """
     answers = [
-        answer
-        for module in load_index()
-        if (answer := _answer(module, name)) is not None
+        answer for owner in load_index() if (answer := _answer(owner, name)) is not None
     ]
     return sorted(answers, key=lambda answer: (answer.added, answer.dotted))

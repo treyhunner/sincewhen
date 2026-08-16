@@ -103,8 +103,12 @@ def annotations_in(path: Path, module_root: Path) -> Iterator[dict]:
     """Every version marker in one file, tied to the name above it."""
     lines = path.read_text(encoding="utf-8", errors="replace").splitlines()
     relative = str(path.relative_to(module_root))
-    recent: list[tuple[int, str]] = []
+    recent: list[tuple[int, list[str]]] = []
     module = None
+    # Whether the last thing read was a signature. Adjacent signatures
+    # share one description, and prose between two of them is the only
+    # thing that separates a group from a sibling already described.
+    after_signature = False
 
     for number, line in enumerate(lines, start=1):
         if not line.strip():
@@ -117,6 +121,7 @@ def annotations_in(path: Path, module_root: Path) -> Iterator[dict]:
 
         marker = ANNOTATION.match(line)
         if marker is not None:
+            after_signature = False
             depth = len(marker["indent"])
             record = {
                 "added": marker["version"],
@@ -125,10 +130,11 @@ def annotations_in(path: Path, module_root: Path) -> Iterator[dict]:
                 "line": number,
                 "quote": " ".join(_paragraph(lines, number - 1)),
             }
-            name = _owner(recent, depth)
-            if name is None and depth == 0 and not recent:
-                name = module
-            if name is not None and is_name(name):
+            names = _singled_out(record["quote"], _owners(recent, depth))
+            if not names and depth == 0 and not recent:
+                names = [module] if module is not None else []
+            named = [name for name in names if is_name(name)]
+            for name in named:
                 yield record | {"name": name}
                 # Method pages write their signatures unqualified, as
                 # `Path.walk(...)` on a page whose module is `pathlib`.
@@ -136,7 +142,7 @@ def annotations_in(path: Path, module_root: Path) -> Iterator[dict]:
                 # so both spellings are recorded.
                 if module is not None and not name.startswith(f"{module}."):
                     yield record | {"name": f"{module}.{name}"}
-            elif module is not None:
+            if not named and module is not None:
                 # A marker with no owner of its own often names what it
                 # dates, in prose: `Added in version 3.6: SHA3 (Keccak)
                 # and SHAKE constructors "sha3_224()", ... were added.`
@@ -145,10 +151,16 @@ def annotations_in(path: Path, module_root: Path) -> Iterator[dict]:
             continue
 
         signature = SIGNATURE.match(line)
-        if signature is not None:
-            depth = len(signature["indent"])
+        if signature is None:
+            after_signature = False
+            continue
+        depth = len(signature["indent"])
+        if after_signature and recent and recent[-1][0] == depth:
+            recent[-1][1].append(signature["name"])
+        else:
             recent = [item for item in recent if item[0] < depth]
-            recent.append((depth, signature["name"]))
+            recent.append((depth, [signature["name"]]))
+        after_signature = True
 
 
 def _paragraph(lines: list[str], start: int) -> Iterator[str]:
@@ -157,6 +169,40 @@ def _paragraph(lines: list[str], start: int) -> Iterator[str]:
         if not line.strip():
             return
         yield line.strip()
+
+
+def _singled_out(quote: str, names: list[str]) -> list[str]:
+    """Which of a group's names a marker is actually about.
+
+    A marker under a group dates the whole group unless it says
+    otherwise, and sometimes it says otherwise. `typing.Never` and
+    `typing.NoReturn` share one directive and carry two markers between
+    them, each naming its own half:
+
+        Added in version 3.6.2: Added "NoReturn".
+
+        Added in version 3.11: Added "Never".
+
+    So a grouped marker that quotes at least one of the group's own
+    names is read as being about those and no others. Without this,
+    `typing.Never` inherits `NoReturn`'s 3.6.2 and the index loses the
+    name entirely, the interpreters having proved it is not in 3.6.
+
+    Only for a group, and only for a name the group already contains.
+    A marker under a lone signature dates that signature whatever its
+    prose mentions, which is the reading every existing entry rests on,
+    and a name quoted from somewhere else is prose rather than a
+    correction: `_mentioned` is what reads those, and only where a
+    marker has no signature above it at all.
+    """
+    if len(names) < 2:
+        return names
+    _, colon, text = quote.partition(":")
+    if not colon:
+        return names
+    quoted = {match["name"] for match in MENTION.finditer(text)}
+    picked = [name for name in names if name.rpartition(".")[2] in quoted]
+    return picked or names
 
 
 def _mentioned(quote: str, module: str) -> Iterator[str]:
@@ -174,23 +220,51 @@ def _mentioned(quote: str, module: str) -> Iterator[str]:
         yield name if name.startswith(f"{module}.") else f"{module}.{name}"
 
 
-def _owner(recent: list[tuple[int, str]], depth: int) -> str | None:
-    """The innermost enclosing signature for a marker at `depth`.
+def _owners(recent: list[tuple[int, list[str]]], depth: int) -> list[str]:
+    """Every enclosing signature a marker at `depth` belongs to.
 
-    Qualified by whatever encloses it, so a marker under `class
-    pathlib.Path` on a `read_text()` signature reads as
-    `pathlib.Path.read_text` rather than a bare `read_text` that
-    matches nothing.
+    Usually one. It is a list because a directive may carry several
+    signatures and one description, which the text build renders as
+    adjacent signature lines with nothing between them:
+
+        assertStartsWith(s, prefix, msg=None)
+
+        assertNotStartsWith(s, prefix, msg=None)
+
+           Test that the Unicode or byte string *s* starts (or does not
+           start) with a *prefix*.
+
+           Added in version 3.14.
+
+    The marker dates both, and keeping only the last one it saw left
+    four of the eight assertions Python 3.14 added reading as
+    `inventory-only`, dated by when the docs indexed them rather than by
+    what the docs say. `operator.iadd` and `operator.__iadd__` share a
+    directive the same way, and so do eight `os.spawn*` signatures under
+    one "New in version 1.6"; both read as bounds until this expanded.
+
+    Only the innermost group expands. Each enclosing level contributes
+    its last name, as it always did, since a group of *classes* sharing
+    one description is not a thing the docs do.
+
+    The name is qualified by whatever encloses it, so a marker under
+    `class pathlib.Path` on a `read_text()` signature reads as
+    `pathlib.Path.read_text` rather than a bare `read_text` that matches
+    nothing.
     """
-    enclosing = [name for indent, name in recent if indent < depth]
+    enclosing = [names for indent, names in recent if indent < depth]
     if not enclosing:
-        return None
-    qualified = enclosing[-1]
-    for outer in reversed(enclosing[:-1]):
-        if qualified.startswith(f"{outer}."):
+        return []
+    outer = [names[-1] for names in enclosing[:-1]]
+    return [_qualify(name, outer) for name in enclosing[-1]]
+
+
+def _qualify(name: str, outer: list[str]) -> str:
+    for enclosing in reversed(outer):
+        if name.startswith(f"{enclosing}."):
             break
-        qualified = f"{outer}.{qualified}"
-    return qualified
+        name = f"{enclosing}.{name}"
+    return name
 
 
 def collect(version: str = "3.14") -> list[dict]:

@@ -2,7 +2,7 @@
 
 from sincewhen.features import has_entry, load_features
 from sincewhen.members import (
-    ModuleMembers,
+    OwnerMembers,
     find_members,
     load_index,
     lookup_member,
@@ -22,8 +22,8 @@ operator 1.4? add,sub
 def test_parse_reads_one_record_per_module():
     index = parse_index(SAMPLE)
     assert set(index) == {"platform", "operator"}
-    assert index["platform"] == ModuleMembers(
-        module="platform",
+    assert index["platform"] == OwnerMembers(
+        owner="platform",
         members={
             "system": Version(2, 3),
             "uname": Version(2, 3),
@@ -59,7 +59,7 @@ def test_shipped_index_is_sorted_and_unrepeated():
 def test_lookup_takes_the_longest_module_prefix():
     found = lookup_member("os.path.join")
     assert found is not None
-    assert found.module == "os.path"
+    assert found.owner == "os.path"
     assert found.name == "join"
 
 
@@ -122,11 +122,82 @@ def test_a_member_carries_its_modules_entry_for_context():
     assert found.feature.id == "platform"
 
 
+def test_a_class_is_an_owner_like_a_module():
+    """The question that started the class tier off.
+
+    `unittest.TestCase.assertNotEndsWith` came back with nothing at all,
+    because the index stopped at what a module binds and a method
+    belongs to the class above it.
+    """
+    found = lookup_member("unittest.TestCase.assertNotEndsWith")
+    assert found is not None
+    assert found.owner == "unittest.TestCase"
+    assert found.name == "assertNotEndsWith"
+    assert found.since == "3.14"
+
+
+def test_a_class_member_is_searchable_by_its_own_name():
+    """Nobody types the class in front of the method they want."""
+    found = {answer.dotted for answer in find_members("subTest")}
+    assert found == {"unittest.TestCase.subTest"}
+
+
+def test_a_member_of_a_member_has_no_owner_to_be_indexed_under():
+    """`inspect.Parameter.kind.description` is one cut too deep.
+
+    A class is the last owner this index knows how to name, so an
+    attribute of an attribute is left out rather than filed under
+    something invented for it.
+    """
+    assert "inspect.Parameter.kind" not in load_index()
+
+
+def test_a_class_member_the_inventories_alone_date_is_left_out():
+    """The class tier's own version of the `_publish` rule.
+
+    A class page lists what the class inherits alongside what it
+    defines, and grows a member at a time, so the release that first
+    indexes one is often the age of the markup. `pathlib.Path.as_uri`
+    reads as 3.13, which is when the method moved down from `PurePath`;
+    `enum.Enum.name` reads as 3.11 against a class that is 3.4. Neither
+    is corroborated by a marker, so neither is published and search
+    falls back to the module.
+    """
+    for name in ("pathlib.Path.as_uri", "enum.Enum.name", "logging.Logger.name"):
+        assert lookup_member(name) is None, name
+
+
+def test_a_class_member_a_marker_corroborates_is_published():
+    """The other side of it: a marker is what makes one publishable.
+
+    `pathlib.Path.walk` is 3.12 in the inventory and the docs say so
+    too, so it survives the rule that drops `as_uri`.
+    """
+    found = lookup_member("pathlib.Path.walk")
+    assert found is not None
+    assert found.since == "3.12"
+
+
 def test_a_module_with_no_entry_still_answers():
-    found = lookup_member("curses.ascii.isalnum")
+    found = lookup_member("_thread.TIMEOUT_MAX")
     assert found is not None
     assert found.feature is None
     assert found.since
+
+
+def test_a_member_carries_the_entry_for_the_module_it_lives_in():
+    """The owner is not always the module, so the module is walked to.
+
+    `curses.ascii` has no entry and `curses` has one, and a member of a
+    submodule cannot predate the package any more than a method can
+    predate its class. Reaching only the owner meant a class member
+    never found its module at all, which is where `copyreg`'s rename
+    would have stopped applying.
+    """
+    found = lookup_member("curses.ascii.isalnum")
+    assert found is not None
+    assert found.feature is not None
+    assert found.feature.id == "curses"
 
 
 def test_the_unreadable_module_is_left_out():
@@ -191,7 +262,7 @@ def test_the_index_agrees_with_the_dataset_where_both_speak():
     both = [
         (feature, found)
         for feature in load_features()
-        for name in feature.attributes
+        for name in feature.attributes | feature.methods
         if (found := lookup_member(name)) is not None
     ]
     assert len(both) > 1200

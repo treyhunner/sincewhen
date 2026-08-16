@@ -137,9 +137,12 @@ def _report(results: list[tuple[str, list[Detection]]]) -> None:
 
 
 def _member_data(answer: MemberAnswer) -> dict:
+    # `owner` rather than `module`, because it is a class as often as
+    # one now and `"module": "unittest.TestCase"` would be a false
+    # statement in machine-readable output.
     return {
         "name": answer.dotted,
-        "module": answer.module,
+        "owner": answer.owner,
         "added": str(answer.added),
         "or_earlier": answer.or_earlier,
         "released": released.isoformat()
