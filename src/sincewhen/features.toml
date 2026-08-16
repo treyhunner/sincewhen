@@ -26849,9 +26849,11 @@ category = "method"
 methods = ["unittest.TestCase.assertStartsWith"]
 
 [features.evidence]
-method = "annotation"
-docs = "3.14:library/unittest.txt"
-quote = "Added in version 3.14."
+method = "objects.inv"
+symbol = "py:method unittest.TestCase.assertStartsWith"
+absent_in = "3.13"
+present_in = "3.14"
+note = "The docs write this pair as two adjacent `.. method::` directives with the shared description and the marker under the second, so the marker is attributable to assertNotStartsWith() alone and this spelling is dated by the inventory. CPython is inconsistent about which construct it uses: assertIsSubclass and assertNotIsSubclass are one directive with two signature lines and both carry the marker. See `_owners` in scripts/annotations.py."
 checked = "2026-08-16"
 
 [[features]]
@@ -26875,9 +26877,11 @@ category = "method"
 methods = ["unittest.TestCase.assertEndsWith"]
 
 [features.evidence]
-method = "annotation"
-docs = "3.14:library/unittest.txt"
-quote = "Added in version 3.14."
+method = "objects.inv"
+symbol = "py:method unittest.TestCase.assertEndsWith"
+absent_in = "3.13"
+present_in = "3.14"
+note = "The docs write this pair as two adjacent `.. method::` directives with the shared description and the marker under the second, so the marker is attributable to assertNotEndsWith() alone and this spelling is dated by the inventory. CPython is inconsistent about which construct it uses: assertIsSubclass and assertNotIsSubclass are one directive with two signature lines and both carry the marker. See `_owners` in scripts/annotations.py."
 checked = "2026-08-16"
 
 [[features]]
@@ -26901,9 +26905,11 @@ category = "method"
 methods = ["unittest.TestCase.assertHasAttr"]
 
 [features.evidence]
-method = "annotation"
-docs = "3.14:library/unittest.txt"
-quote = "Added in version 3.14."
+method = "objects.inv"
+symbol = "py:method unittest.TestCase.assertHasAttr"
+absent_in = "3.13"
+present_in = "3.14"
+note = "The docs write this pair as two adjacent `.. method::` directives with the shared description and the marker under the second, so the marker is attributable to assertNotHasAttr() alone and this spelling is dated by the inventory. CPython is inconsistent about which construct it uses: assertIsSubclass and assertNotIsSubclass are one directive with two signature lines and both carry the marker. See `_owners` in scripts/annotations.py."
 checked = "2026-08-16"
 
 [[features]]

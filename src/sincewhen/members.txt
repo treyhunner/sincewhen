@@ -11,7 +11,7 @@ annotationlib 3.14 Format,ForwardRef,annotations_to_string,call_annotate_functio
 annotationlib.Format 3.14 FORWARDREF,STRING,VALUE,VALUE_WITH_FAKE_GLOBALS
 annotationlib.ForwardRef 3.14 evaluate
 argparse 2.7? ArgumentDefaultsHelpFormatter,ArgumentParser,FileType,Namespace,RawDescriptionHelpFormatter,RawTextHelpFormatter 3.3 MetavarTypeHelpFormatter 3.4 Action 3.9 BooleanOptionalAction 3.11 ArgumentError,ArgumentTypeError
-argparse.ArgumentParser 3.2 add_argument,add_argument_group,convert_arg_line_to_args,error,exit,format_help,format_usage,get_default,parse_args,parse_known_args,print_help,print_usage,set_defaults 3.3 add_mutually_exclusive_group 3.7 parse_intermixed_args,parse_known_intermixed_args
+argparse.ArgumentParser 3.2 add_argument,add_argument_group,convert_arg_line_to_args,error,exit,format_help,format_usage,get_default,parse_args,parse_known_args,print_help,print_usage,set_defaults 3.3 add_mutually_exclusive_group 3.7 parse_known_intermixed_args
 array 1.0 array
 array.array 3.2 frombytes,tobytes 3.13 clear
 ast 2.6 AST 3.8 get_source_segment 3.9 unparse 3.10 Match,MatchAs,MatchClass,MatchMapping,MatchOr,MatchSequence,MatchSingleton,MatchStar,MatchValue,match_case 3.11 TryStar 3.12 ParamSpec,TypeAlias,TypeVar,TypeVarTuple 3.13 PyCF_OPTIMIZED_AST 3.14 Interpolation,TemplateStr,compare
@@ -186,7 +186,7 @@ functools 2.5 partial,update_wrapper,wraps 2.6 reduce 2.7 cmp_to_key,total_order
 gc 2.0 DEBUG_COLLECTABLE,DEBUG_LEAK,DEBUG_SAVEALL,DEBUG_STATS,DEBUG_UNCOLLECTABLE,collect,disable,enable,garbage,get_debug,get_threshold,isenabled,set_debug,set_threshold 2.2 get_objects,get_referrers 2.3 get_referents 2.5 get_count 2.7 is_tracked 3.3 callbacks 3.4 get_stats 3.7 freeze,get_freeze_count,unfreeze 3.9 is_finalized
 getopt 0.9 error,getopt 1.6 GetoptError 2.3 gnu_getopt
 getpass 1.5 getpass,getuser
-gettext 2.0 GNUTranslations,NullTranslations,bindtextdomain,dgettext,find,gettext,install,textdomain,translation 2.3 dngettext,ngettext 3.8 dnpgettext,dpgettext,npgettext,pgettext
+gettext 2.0 GNUTranslations,NullTranslations,bindtextdomain,dgettext,find,gettext,install,textdomain,translation 2.3 dngettext,ngettext 3.8 dnpgettext
 gettext.GNUTranslations 2.3 ngettext 3.8 npgettext,pgettext
 gettext.NullTranslations 2.3 ngettext 3.8 npgettext,pgettext
 glob 0.9 glob 2.5 iglob 3.4 escape 3.13 translate
@@ -251,7 +251,7 @@ ipaddress 3.3 AddressValueError,IPv4Address,IPv4Interface,IPv4Network,IPv6Addres
 ipaddress.IPv4Address 3.3 compressed,exploded,is_link_local,is_loopback,is_multicast,is_private,is_reserved,is_unspecified,max_prefixlen,packed,version 3.4 is_global 3.5 reverse_pointer 3.13 ipv6_mapped
 ipaddress.IPv4Interface 3.3 ip,network,with_hostmask,with_netmask,with_prefixlen
 ipaddress.IPv4Network 3.3 address_exclude,broadcast_address,compare_networks,compressed,exploded,hostmask,hosts,is_link_local,is_loopback,is_multicast,is_private,is_reserved,is_unspecified,max_prefixlen,network_address,num_addresses,overlaps,prefixlen,subnets,supernet,version,with_hostmask,with_netmask,with_prefixlen 3.7 subnet_of,supernet_of
-ipaddress.IPv6Address 3.3 compressed,exploded,ipv4_mapped,is_link_local,is_loopback,is_reserved,is_site_local,is_unspecified,sixtofour,teredo 3.4 is_global
+ipaddress.IPv6Address 3.3 compressed,exploded,ipv4_mapped,is_link_local,is_loopback,is_multicast,is_private,is_reserved,is_site_local,is_unspecified,max_prefixlen,packed,sixtofour,teredo,version 3.4 is_global
 ipaddress.IPv6Interface 3.3 ip,network,with_hostmask,with_netmask,with_prefixlen
 ipaddress.IPv6Network 3.3 address_exclude,broadcast_address,compare_networks,compressed,exploded,hostmask,hosts,is_link_local,is_loopback,is_multicast,is_private,is_reserved,is_site_local,is_unspecified,max_prefixlen,network_address,num_addresses,overlaps,prefixlen,subnets,supernet,version,with_hostmask,with_netmask,with_prefixlen
 itertools 2.3 chain,count,cycle,dropwhile,islice,repeat,starmap,takewhile 2.4 groupby,tee 2.6 combinations,permutations,product 2.7 combinations_with_replacement,compress 3.2 accumulate 3.10 pairwise 3.12 batched
@@ -542,7 +542,7 @@ typing.TypeVarTuple 3.13 has_default 3.14 evaluate_default
 unicodedata 1.6 bidirectional,category,combining,decimal,decomposition,digit,mirrored,numeric 2.1 lookup,name 2.3 normalize,unidata_version 2.4 east_asian_width 2.5 ucd_3_2_0 3.8 is_normalized
 unittest 2.1 FunctionTestCase,TestCase,TestLoader,TestResult,TestSuite,TextTestRunner,defaultTestLoader,main 2.7 TextTestResult,installHandler,registerResult,removeHandler,removeResult 2.7? SkipTest,expectedFailure,skip,skipIf,skipUnless 3.8 IsolatedAsyncioTestCase,addModuleCleanup,doModuleCleanups 3.11 enterModuleContext
 unittest.IsolatedAsyncioTestCase 3.8 asyncSetUp,asyncTearDown,run 3.13 loop_factory
-unittest.TestCase 2.7 addCleanup,addTypeEqualityFunc,assertDictEqual,assertGreater,assertGreaterEqual,assertIn,assertIs,assertIsInstance,assertIsNone,assertIsNot,assertIsNotNone,assertLess,assertLessEqual,assertListEqual,assertMultiLineEqual,assertNotIn,assertNotIsInstance,assertSequenceEqual,assertSetEqual,assertTupleEqual,doCleanups,longMessage,maxDiff,setUpClass,skipTest,tearDownClass 3.2 assertCountEqual,assertWarns,assertWarnsRegex 3.4 assertLogs,subTest 3.8 addClassCleanup,doClassCleanups 3.10 assertNoLogs 3.11 enterClassContext,enterContext 3.14 assertEndsWith,assertHasAttr,assertIsSubclass,assertNotEndsWith,assertNotHasAttr,assertNotIsSubclass,assertNotStartsWith,assertStartsWith
+unittest.TestCase 2.7 addCleanup,addTypeEqualityFunc,assertDictEqual,assertGreater,assertGreaterEqual,assertIn,assertIs,assertIsInstance,assertIsNone,assertIsNot,assertIsNotNone,assertLess,assertLessEqual,assertListEqual,assertMultiLineEqual,assertNotIn,assertNotIsInstance,assertSequenceEqual,assertSetEqual,assertTupleEqual,doCleanups,longMessage,maxDiff,setUpClass,skipTest,tearDownClass 3.2 assertCountEqual,assertNotRegex,assertWarns,assertWarnsRegex 3.4 assertLogs,subTest 3.8 addClassCleanup,doClassCleanups 3.10 assertNoLogs 3.11 enterClassContext,enterContext 3.14 assertIsSubclass,assertNotEndsWith,assertNotHasAttr,assertNotIsSubclass,assertNotStartsWith
 unittest.TestLoader 2.7 discover 3.5 errors 3.7 testNamePatterns
 unittest.TestResult 2.7 buffer,failfast,skipped,startTestRun,stopTestRun 2.7? addExpectedFailure,addSkip,addUnexpectedSuccess,expectedFailures,shouldStop,unexpectedSuccesses 3.4 addSubTest 3.5 tb_locals 3.12 addDuration,collectedDurations
 unittest.mock 3.3 ANY,DEFAULT,FILTER_DIR,MagicMock,NonCallableMagicMock,NonCallableMock,PropertyMock,call,create_autospec,mock_open,patch,sentinel 3.7 seal 3.8 AsyncMock 3.13 ThreadingMock

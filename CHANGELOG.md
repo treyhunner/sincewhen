@@ -13,20 +13,21 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 - **The member index reaches inside a class.**
   An owner is now a module or a class in one, so `unittest.TestCase.assertNotEndsWith`, `pathlib.Path.walk` and `datetime.date.fromisoformat` have answers where they had none at all.
-  2,098 class members join 3,921 module members, and the file goes from 48 KB to 83 KB.
+  2,097 class members join 3,921 module members, and the file goes from 48 KB to 83 KB.
   A member of an attribute is still out: `inspect.Parameter.kind.description` is one level deeper than the index goes.
 - **Half of what is asked about a class member is still unanswered, on purpose.**
   A class page grows a member at a time and lists what the class *inherits* alongside what it defines, so the release that first indexes one is often the age of the markup rather than the age of the method.
   An inventory diff alone therefore publishes a class member only where it was indexed in the class's own release.
   Without that, `enum.Enum.name` read as 3.11 against a class that is 3.4, `logging.Logger.name` as 3.11, and `pathlib.Path.as_uri` as 3.13, which is when the method moved down from `PurePath`.
   Those now fall back to the module, which is vaguer and true.
-- **215 documentation markers that were being dropped.**
+- **183 documentation markers that were being dropped.**
   A directive may carry several signatures and one description, and only the last of them was getting the marker underneath.
-  `os.spawnl` and four siblings move from "2.2 or earlier" to 1.6, `operator.iadd` and fourteen more from "2.5 or earlier" to 2.5, and `bytes.maketrans` (3.1), `bytes.isascii` (3.7) and `gettext.pgettext` (3.8) gain dates the index had nothing for.
-  159 more members are published as a result.
-  A grouped marker that names one of the group in its own prose is read as being about that one, which is what keeps `typing.Never` from inheriting the 3.6.2 that belongs to `NoReturn`.
+  `os.spawnl` and four siblings move from "2.2 or earlier" to 1.6, `operator.iadd` and fourteen more from "2.5 or earlier" to 2.5, and `bytes.maketrans` (3.1), `bytes.isascii` (3.7) and eighteen `stat.FILE_ATTRIBUTE_*` constants (3.5) gain dates the index had nothing for.
+  What counts as one directive is the run of signature lines with no blank between them, which is what reST's continuation lines render as; two adjacent directives get a blank line and stay two things.
+  A grouped marker that names one of the group is read as being about that one, quoted or bare, which is what keeps `typing.Never` from inheriting the 3.6.2 that belongs to `NoReturn` and stops `sys.__excepthook__` collecting both its neighbours' versions.
+  One that names something outside the group is about none of it: `assertRegex` is 3.2, not the 3.1 its description mentions for the old `assertRegexpMatches` spelling.
 - **Eight entries for the assertion methods Python 3.14 added to `unittest.TestCase`**: `assertStartsWith`, `assertNotStartsWith`, `assertEndsWith`, `assertNotEndsWith`, `assertHasAttr`, `assertNotHasAttr`, `assertIsSubclass` and `assertNotIsSubclass`.
-  Four of the eight could not have been dated from the docs before the grouping fix, because their markers were landing on their negated siblings.
+  Three of them are dated by the inventory rather than by a marker, because CPython writes those pairs as two adjacent directives with the description under the second and there is no way to tell that from a list of separate names. Their evidence says so.
 
 ### Tool
 

@@ -588,6 +588,25 @@ class Test(base()):
         self.assertNotEndsWith("a", "b")
 """
 
+SHADOWED_BASE = """\
+class dict:
+    pass
+
+
+class Foo(dict):
+    def go(self):
+        self.fromkeys([1])
+"""
+
+REBOUND_NOT_CALLED = """\
+from unittest import TestCase
+
+
+class Test(TestCase):
+    def setUp(self):
+        self.assertNotEndsWith = None
+"""
+
 OUTSIDE_ANY_CLASS = 'self.assertNotEndsWith("a", "b")'
 
 
@@ -600,17 +619,24 @@ OUTSIDE_ANY_CLASS = 'self.assertNotEndsWith("a", "b")'
         OWN_HELPER,
         NESTED_CLASS,
         COMPUTED_BASE,
+        SHADOWED_BASE,
+        REBOUND_NOT_CALLED,
         OUTSIDE_ANY_CLASS,
     ],
 )
 def test_a_method_on_self_is_not_detected_where_the_bases_do_not_pin_it(source):
-    """Seven ways `self` fails to say what it is, all of them silent.
+    """Nine ways `self` fails to say what it is, all of them silent.
 
     `django.test.TestCase` is the one worth naming: it really is a
     subclass of `unittest.TestCase` and really does have this method
     from 3.14, and the resolved name is `django.test.TestCase`, which
     matches nothing. Under-reporting is the direction this matcher is
     built to fail in.
+
+    The last two are the base being shadowed, which `_receiver_type`
+    already rejects for `dict.fromkeys(...)` and `_base_owner` has to
+    reject for the same binding, and `self.x = ...`, which defines the
+    name rather than using it.
     """
     assert method_ids(source) == set()
 

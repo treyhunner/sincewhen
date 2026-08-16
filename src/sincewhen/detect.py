@@ -480,6 +480,17 @@ class _Detector(ast.NodeVisitor):
         worse than a missing one. Those entries stay searchable, which is
         the question this dataset mostly answers.
         """
+        if not isinstance(node.ctx, ast.Load):
+            # `self.assertHasAttr = 3` binds the name rather than
+            # calling it, and reporting a 3.14 floor for a line that
+            # defines its own replacement is exactly backwards. This
+            # could not arise while every owner was a builtin type,
+            # since `"".removeprefix = f` is not something to write.
+            #
+            # An `attributes` match is deliberately left alone: setting
+            # `sys.ps1` really is a use of a documented attribute, which
+            # is not true of overwriting a method.
+            return
         owner = (
             self._inherited_owner(node.attr)
             if isinstance(node.value, ast.Name) and node.value.id == SELF
@@ -610,10 +621,21 @@ class _Detector(ast.NodeVisitor):
         self._bases.pop()
 
     def _base_owner(self, node: ast.expr) -> str | None:
-        """A base class as a dotted name, following aliases."""
+        """A base class as a dotted name, following aliases.
+
+        Read the same way `_receiver_type` reads a `Name`, and it has to
+        be: a module that writes its own `class dict:` and then
+        `class Foo(dict):` is not subclassing the builtin, so `self`
+        inside `Foo` is not a `dict`. Rejecting the shadowed name for
+        `dict.fromkeys(...)` and accepting it here would be the two
+        paths disagreeing about one binding.
+        """
         match node:
             case ast.Name(id=name):
-                return self.aliases.get(name, name)
+                imported = self.aliases.get(name)
+                if imported is not None:
+                    return imported
+                return None if name in self.bound_names else name
             case ast.Attribute():
                 return self._dotted_name(node)
             case _:
