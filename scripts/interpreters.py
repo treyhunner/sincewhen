@@ -939,11 +939,25 @@ def _probe_source(targets: list[str], version: str = RELEASES[0]) -> str:
             case "builtin":
                 attempts.append([f"_ = {name}"])
             case "method":
-                # The head is a builtin type, so there is nothing to
-                # import and only one way to ask. A release that has no
-                # such type answers no, which is the right answer:
-                # `bytes.hex` is unreachable in 2.5 because `bytes` is.
+                # A builtin type needs nothing imported, and a release
+                # that has no such type answers no, which is the right
+                # answer: `bytes.hex` is unreachable in 2.5 because
+                # `bytes` is.
                 attempts.append([f"_ = {name}"])
+                owner = name.rpartition(".")[0]
+                if "." in owner:
+                    # A method of a class in a module, where the owner
+                    # is dotted: `unittest.TestCase.assertNotEndsWith`.
+                    # Asking without the import would come back absent
+                    # from every release, and an absence this file
+                    # manufactured is the one thing it must not report.
+                    attempts.append([f"import {head}", f"_ = {name}"])
+                    module = owner.rpartition(".")[0]
+                    if module != head:
+                        # `xml.etree.ElementTree.Element.iter` needs the
+                        # module that holds the class, and importing
+                        # only `xml` binds nothing.
+                        attempts.append([f"import {module}", f"_ = {name}"])
             case "attribute":
                 attempts.append([f"import {head}", f"_ = {name}"])
                 # `str.format` has no module to import: the head is a
@@ -1241,16 +1255,30 @@ def absence_is_real(version: str, target: str) -> bool:
         # not reported one.
         return False
     kind, _, name = target.partition(" ")
-    if kind in {"builtin", "method"}:
+    if kind == "builtin" or (kind == "method" and _owned_by_a_builtin_type(name)):
         # Both are compiled into the interpreter, so no library and no
         # `Modules/Setup` line can make either go missing. A method whose
         # type the release does not have is absent for a reason that is
         # still history rather than build configuration.
         return True
     module = name.partition(".")[0]
-    if kind == "attribute" and _imported_in(version, module):
+    if kind in {"attribute", "method"} and _imported_in(version, module):
         return True
-    return not _ships_in(version, module if kind == "attribute" else name)
+    return not _ships_in(version, module if kind != "module" else name)
+
+
+def _owned_by_a_builtin_type(name: str) -> bool:
+    """Whether a `method` target hangs off a builtin type.
+
+    `dict.has_key` does and `unittest.TestCase.assertNotEndsWith` does
+    not, and the difference decides which argument applies. A builtin
+    type is compiled in, so nothing about the build can hide a method of
+    one. A class in a module is only ever as available as its module,
+    so its methods want the same guard a module member gets: an absence
+    is only history where the release's own tree does not implement the
+    module the class lives in.
+    """
+    return "." not in name.rpartition(".")[0]
 
 
 @cache

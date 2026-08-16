@@ -26820,6 +26820,131 @@ absent_in = "3.13"
 present_in = "3.14"
 checked = "2026-07-28"
 
+# The eight assertion methods Python 3.14 added to `unittest.TestCase`,
+# and the first entries in this dataset for a method of a class rather
+# than of a builtin type. What makes them detectable is the same rule
+# that has always governed the `methods` matcher, one receiver wider:
+# it fires where the receiver's type is certain, and `self` inside a
+# `class Test(unittest.TestCase):` is as certain as a literal, because
+# the module said so in its own source. See `_inherited_owner` in
+# `detect.py`.
+#
+# Each is its own entry rather than four pairs. The docs group them two
+# to a directive, which is a fact about the description they share and
+# not about the names: `assertStartsWith` and `assertNotStartsWith` are
+# two methods, and search should answer about whichever was asked.
+#
+# That grouping is why four of these read as `inventory-only` until
+# `annotations.py` learned to expand a directive's signatures. The
+# marker sits under the second signature of each pair, and the extractor
+# kept only the last name it had seen, so `assertNotEndsWith` carried
+# the marker and `assertEndsWith` was dated by the release that indexed
+# it. Same release here, by luck; it is not luck in general.
+
+[[features]]
+id = "unittest-assertstartswith"
+name = "unittest.TestCase.assertStartsWith()"
+added = "3.14"
+category = "method"
+methods = ["unittest.TestCase.assertStartsWith"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/unittest.txt"
+quote = "Added in version 3.14."
+checked = "2026-08-16"
+
+[[features]]
+id = "unittest-assertnotstartswith"
+name = "unittest.TestCase.assertNotStartsWith()"
+added = "3.14"
+category = "method"
+methods = ["unittest.TestCase.assertNotStartsWith"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/unittest.txt"
+quote = "Added in version 3.14."
+checked = "2026-08-16"
+
+[[features]]
+id = "unittest-assertendswith"
+name = "unittest.TestCase.assertEndsWith()"
+added = "3.14"
+category = "method"
+methods = ["unittest.TestCase.assertEndsWith"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/unittest.txt"
+quote = "Added in version 3.14."
+checked = "2026-08-16"
+
+[[features]]
+id = "unittest-assertnotendswith"
+name = "unittest.TestCase.assertNotEndsWith()"
+added = "3.14"
+category = "method"
+methods = ["unittest.TestCase.assertNotEndsWith"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/unittest.txt"
+quote = "Added in version 3.14."
+checked = "2026-08-16"
+
+[[features]]
+id = "unittest-asserthasattr"
+name = "unittest.TestCase.assertHasAttr()"
+added = "3.14"
+category = "method"
+methods = ["unittest.TestCase.assertHasAttr"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/unittest.txt"
+quote = "Added in version 3.14."
+checked = "2026-08-16"
+
+[[features]]
+id = "unittest-assertnothasattr"
+name = "unittest.TestCase.assertNotHasAttr()"
+added = "3.14"
+category = "method"
+methods = ["unittest.TestCase.assertNotHasAttr"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/unittest.txt"
+quote = "Added in version 3.14."
+checked = "2026-08-16"
+
+[[features]]
+id = "unittest-assertissubclass"
+name = "unittest.TestCase.assertIsSubclass()"
+added = "3.14"
+category = "method"
+methods = ["unittest.TestCase.assertIsSubclass"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/unittest.txt"
+quote = "Added in version 3.14."
+checked = "2026-08-16"
+
+[[features]]
+id = "unittest-assertnotissubclass"
+name = "unittest.TestCase.assertNotIsSubclass()"
+added = "3.14"
+category = "method"
+methods = ["unittest.TestCase.assertNotIsSubclass"]
+
+[features.evidence]
+method = "annotation"
+docs = "3.14:library/unittest.txt"
+quote = "Added in version 3.14."
+checked = "2026-08-16"
+
 # Removed in Python 3.0, and dated on both axes. See the note above the
 # builtin removals, and "The removal axis" in AGENTS.md.
 #

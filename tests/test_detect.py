@@ -451,3 +451,181 @@ def test_a_method_and_its_type_are_both_reported():
     """
     assert features('dict.fromkeys("abc")') == {"dict", "dict-fromkeys"}
     assert minimum_version('dict.fromkeys("abc")') == Version(2, 3)
+
+
+def method_ids(source):
+    """Only the `methods` matches, so a module import does not count."""
+    return {found.feature.id for found in detect(source) if found.feature.methods}
+
+
+DOTTED_BASE = """\
+import unittest
+
+
+class Test(unittest.TestCase):
+    def test_it(self):
+        self.assertNotEndsWith("spam.py", ".txt")
+"""
+
+BARE_BASE = """\
+from unittest import TestCase
+
+
+class Test(TestCase):
+    def test_it(self):
+        self.assertNotEndsWith("spam.py", ".txt")
+"""
+
+ALIASED_BASE = """\
+from unittest import TestCase as Base
+
+
+class Test(Base):
+    def test_it(self):
+        self.assertNotEndsWith("spam.py", ".txt")
+"""
+
+ALIASED_MODULE = """\
+import unittest as ut
+
+
+class Test(ut.TestCase):
+    def test_it(self):
+        self.assertNotEndsWith("spam.py", ".txt")
+"""
+
+
+@pytest.mark.parametrize(
+    "source", [DOTTED_BASE, BARE_BASE, ALIASED_BASE, ALIASED_MODULE]
+)
+def test_a_method_on_self_is_detected_where_the_bases_pin_the_class(source):
+    """`self` is as certain a receiver as a literal, given the bases.
+
+    Which type `self` is is not in the expression, and it is three lines
+    up, in source the same module wrote. That is the same kind of
+    certainty `dict.fromkeys` has and not the kind `value.copy()` has.
+    """
+    assert method_ids(source) == {"unittest-assertnotendswith"}
+
+
+@pytest.mark.parametrize(
+    "source, expected",
+    [
+        ("import unittest\nunittest.TestCase.assertHasAttr", "unittest-asserthasattr"),
+        (
+            "from unittest import TestCase\nTestCase.assertIsSubclass",
+            "unittest-assertissubclass",
+        ),
+    ],
+)
+def test_a_class_method_is_detected_by_its_unbound_spelling(source, expected):
+    """The class's own name is as certain as a builtin type's.
+
+    Unlike a builtin type, it has to have been imported to be spelled at
+    all, so the name being bound is what makes it certain rather than
+    what makes it suspect.
+    """
+    assert method_ids(source) == {expected}
+
+
+NO_BASE = """\
+class Helper:
+    def check(self):
+        self.assertNotEndsWith("a", "b")
+"""
+
+OTHER_LIBRARY = """\
+from django.test import TestCase
+
+
+class Test(TestCase):
+    def test_it(self):
+        self.assertNotEndsWith("a", "b")
+"""
+
+INDIRECT_BASE = """\
+from unittest import TestCase
+
+
+class Base(TestCase):
+    pass
+
+
+class Test(Base):
+    def test_it(self):
+        self.assertNotEndsWith("a", "b")
+"""
+
+OWN_HELPER = """\
+from unittest import TestCase
+
+
+class Test(TestCase):
+    def assertNotEndsWith(self, value, suffix):
+        pass
+
+    def test_it(self):
+        self.assertNotEndsWith("a", "b")
+"""
+
+NESTED_CLASS = """\
+from unittest import TestCase
+
+
+class Test(TestCase):
+    class Inner:
+        def check(self):
+            self.assertNotEndsWith("a", "b")
+"""
+
+COMPUTED_BASE = """\
+def base():
+    return object
+
+
+class Test(base()):
+    def test_it(self):
+        self.assertNotEndsWith("a", "b")
+"""
+
+OUTSIDE_ANY_CLASS = 'self.assertNotEndsWith("a", "b")'
+
+
+@pytest.mark.parametrize(
+    "source",
+    [
+        NO_BASE,
+        OTHER_LIBRARY,
+        INDIRECT_BASE,
+        OWN_HELPER,
+        NESTED_CLASS,
+        COMPUTED_BASE,
+        OUTSIDE_ANY_CLASS,
+    ],
+)
+def test_a_method_on_self_is_not_detected_where_the_bases_do_not_pin_it(source):
+    """Seven ways `self` fails to say what it is, all of them silent.
+
+    `django.test.TestCase` is the one worth naming: it really is a
+    subclass of `unittest.TestCase` and really does have this method
+    from 3.14, and the resolved name is `django.test.TestCase`, which
+    matches nothing. Under-reporting is the direction this matcher is
+    built to fail in.
+    """
+    assert method_ids(source) == set()
+
+
+def test_a_class_can_hold_a_method_of_its_own_and_a_builtin_types():
+    """The two owners are one matcher and one index, keyed on the owner.
+
+    `str` and `unittest.TestCase` both name a type, one in a word and
+    one dotted, and a lookup that read the head of the name instead
+    would ask about the `unittest` module.
+    """
+    source = (
+        "from unittest import TestCase\n\n\n"
+        "class Test(TestCase):\n"
+        "    def test_it(self):\n"
+        '        self.assertStartsWith("spam".removeprefix("s"), "pam")\n'
+    )
+    assert method_ids(source) == {"unittest-assertstartswith", "str-removeprefix"}

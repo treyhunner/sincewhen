@@ -1,6 +1,7 @@
 """Tests for the feature dataset itself."""
 
 import builtins
+from importlib import import_module
 
 import pytest
 
@@ -109,18 +110,44 @@ def test_no_attribute_is_bounded_below_a_dated_module():
         assert not feature.or_earlier, (feature.id, module.id)
 
 
-def test_methods_hang_off_a_builtin_type():
-    """A `methods` target is `type.method`, and the type is a builtin.
+def owner_of(name):
+    """The type a `methods` target hangs off, as an object.
 
-    The matcher exists for methods of the builtin types, and detection
-    reads the receiver's type to decide whether to fire. A module member
-    that found its way in here would simply never match anything.
+    A builtin type is named on its own and a class in a module is named
+    dotted, so `str.removeprefix` resolves through `builtins` and
+    `unittest.TestCase.assertNotEndsWith` through an import. `None`
+    where nothing of that name is there to resolve.
+
+    The import is unguarded on purpose. A `methods` target naming a
+    module this Python cannot import is a mistake in the dataset, and
+    the error saying which module says more than a `None` that reads as
+    "not a type".
+    """
+    owner, _, _method = name.rpartition(".")
+    module, _, attribute = owner.rpartition(".")
+    if not module:
+        return getattr(builtins, owner, None)
+    return getattr(import_module(module), attribute, None)
+
+
+def test_methods_hang_off_a_type():
+    """A `methods` target is `type.method`, and the type is a real one.
+
+    The matcher exists for methods whose receiver a syntactic tool can
+    be sure of, which is a builtin type or a class the module names in
+    its own bases. Detection reads the receiver to decide whether to
+    fire, so a module member that found its way in here would simply
+    never match anything.
+
+    The method name itself is never dotted. A member of a member is a
+    question this cannot answer, and `memberindex.split_member` refuses
+    the same shape for the same reason.
     """
     for feature in load_features():
         for name in feature.methods:
-            type_name, _, method = name.partition(".")
-            assert method and "." not in method, name
-            assert isinstance(getattr(builtins, type_name, None), type), name
+            method = name.rpartition(".")[2]
+            assert method and method.isidentifier(), name
+            assert isinstance(owner_of(name), type), name
 
 
 def test_every_method_is_where_its_entry_says_it_is():
@@ -145,10 +172,10 @@ def test_every_method_is_where_its_entry_says_it_is():
     """
     for feature in load_features():
         for name in feature.methods:
-            type_name, _, method = name.partition(".")
+            method = name.rpartition(".")[2]
             if method.startswith("__"):
                 continue
-            here = hasattr(getattr(builtins, type_name), method)
+            here = hasattr(owner_of(name), method)
             if feature.removed is None:
                 assert here, name
             else:

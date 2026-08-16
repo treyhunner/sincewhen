@@ -401,6 +401,25 @@ class TestProbedKinds:
         assert "_ = dict.has_key" in source
         assert "import dict" not in source
 
+    def test_a_class_method_imports_the_module_that_holds_the_class(self):
+        """A dotted owner is a class in a module, not a builtin type.
+
+        Asking for `unittest.TestCase.assertNotEndsWith` with nothing
+        imported comes back absent from every release, and an absence
+        this file manufactured is the one thing it must not report.
+        """
+        source = interpreters._probe_source(
+            ["method unittest.TestCase.assertNotEndsWith"], "3.14"
+        )
+        assert "    import unittest\n    _ = unittest.TestCase" in source
+
+    def test_a_nested_class_method_imports_the_module_that_holds_it(self):
+        """Importing only `xml` binds nothing called `etree`."""
+        source = interpreters._probe_source(
+            ["method xml.etree.ElementTree.Element.iter"], "3.14"
+        )
+        assert "    import xml.etree.ElementTree\n" in source
+
     def test_a_type_method_absence_is_always_real(self, table, shipped):
         """Nothing external can take a builtin type's method away.
 
@@ -409,6 +428,19 @@ class TestProbedKinds:
         whether it is there.
         """
         assert interpreters.absence_is_real("2.2", "method dict.has_key")
+
+    def test_a_class_method_absence_is_guarded_like_a_module_members(
+        self, table, shipped
+    ):
+        """A class is only ever as available as its module.
+
+        So the argument that carries `dict.has_key` does not carry
+        `ssl.SSLContext.wrap_bio`: `Lib/ssl.py` ships in a release whose
+        `_ssl` this image cannot build, and an absence there is the
+        image's rather than the release's.
+        """
+        assert not interpreters._owned_by_a_builtin_type("ssl.SSLContext.wrap_bio")
+        assert interpreters._owned_by_a_builtin_type("dict.has_key")
 
 
 class TestUnanswered:
