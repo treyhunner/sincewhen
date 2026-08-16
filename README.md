@@ -121,13 +121,12 @@ A bare name searches every member list, which is how a method usually gets typed
 
 ```console
 $ sincewhen --search TimeoutError
-No entry for 'TimeoutError'. Did you mean one of these?
+'TimeoutError' is a member of:
 multiprocessing.TimeoutError - Python 3.3 (released 2012-09-29)
 asyncio.TimeoutError - Python 3.4 (released 2014-03-17)
 concurrent.futures.TimeoutError - Python 3.5 (released 2015-09-13)
 
 $ sincewhen --search assertNoLogs
-No entry for 'assertNoLogs'. Did you mean one of these?
 unittest.TestCase.assertNoLogs - Python 3.10 (released 2021-10-04)
 ```
 

@@ -42,6 +42,10 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
   `class Test(unittest.TestCase):` and `class Test(TestCase):` both count, and so do the unbound spellings.
   A subclass of a subclass does not, and neither does `from django.test import TestCase`, which resolves to `django.test.TestCase` and matches nothing.
   A class that defines the method itself suppresses the match, the same way a module that binds its own `sum` does.
+- **A bare method name reads as an answer, not a guess.**
+  `sincewhen -s assertEqual` said "No entry for 'assertEqual'. Did you mean one of these?" above the correct answer, while `sincewhen -s removeprefix` printed its answer plainly.
+  Same question, and the only difference was which of the two data files answered.
+  One hit now prints bare, several are introduced with "is a member of:", and "Did you mean one of these?" is kept for the branch that really is guessing at a spelling, which is a misspelled module like `suprocess.Popen`.
 - **`--json` search results name an `owner` where they named a `module`.**
   The field holds a class as often as a module now, and `"module": "unittest.TestCase"` would be false.
 
