@@ -272,7 +272,7 @@ The Python version you *run* `sincewhen` on has nothing to do with the versions 
 - Release dates come from python.org's downloads database back to 2.2, and from CPython's release tags before that.
   Python 0.9 and 1.6 are the two rows neither source reaches, 0.9 because CPython's history begins after it and 1.6 because it was cut by BeOpen and has no tag, so both are taken from Wikipedia's table of versions.
   The 0.9 date is that table's date for the whole 0.9 line, while the corpus reads the 0.9.1 tarball, which was cut within days of it and which no source dates on its own.
-- Searching for a member with no entry of its own falls back to the member index, which covers about 6,000 members across 599 modules and classes.
+- Searching for a member with no entry of its own falls back to the member index, which covers about 6,600 members across 632 modules and classes.
   Its versions are derived by the same machinery that rechecks every entry in the dataset, so an answer from it is the answer an entry would carry; what it does not carry is the evidence, which is most of what an entry is for.
   It holds only names the newest Python still documents, so a member Python 3 removed is not in it; only names the sources agree about; and only names something corroborates, so a member whose sole evidence is a 3.x inventory diff is left out rather than dated by the age of its markup.
   A member the index has never heard of falls back to the module it lives in, as before.

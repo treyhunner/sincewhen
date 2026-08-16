@@ -167,6 +167,34 @@ def test_a_class_member_the_inventories_alone_date_is_left_out():
         assert lookup_member(name) is None, name
 
 
+def test_a_class_member_the_source_dates_is_dated_exactly():
+    """The question the class tier was built to stop dodging.
+
+    `assertAlmostEqual` was already in the 2.6 inventory, the oldest
+    there is, so no diff can date it and none of the methods that reach
+    further back can see a class member. Reading the class bodies in
+    `Lib/unittest.py` settles it outright: absent from 2.1 and 2.2,
+    bound in 2.3 by `assertAlmostEqual = assertAlmostEquals =
+    failUnlessAlmostEqual`.
+    """
+    found = lookup_member("unittest.TestCase.assertAlmostEqual")
+    assert found is not None
+    assert found.since == "2.3"
+    assert not found.or_earlier
+
+
+def test_a_class_member_as_old_as_its_module_is_not_bounded():
+    """`unittest` is 2.1, so a member floored there is dated there.
+
+    The bound closes because there is nothing under it: a member cannot
+    predate the module that holds it. Same rule as `weakref.ref`, two
+    levels down.
+    """
+    found = lookup_member("unittest.TestCase.setUp")
+    assert found is not None
+    assert found.since == "2.1"
+
+
 def test_a_class_member_a_marker_corroborates_is_published():
     """The other side of it: a marker is what makes one publishable.
 

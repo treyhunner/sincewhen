@@ -13,8 +13,14 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 - **The member index reaches inside a class.**
   An owner is now a module or a class in one, so `unittest.TestCase.assertNotEndsWith`, `pathlib.Path.walk` and `datetime.date.fromisoformat` have answers where they had none at all.
-  2,097 class members join 3,921 module members, and the file goes from 48 KB to 83 KB.
+  2,653 class members join 3,918 module members, and the file goes from 48 KB to 91 KB.
   A member of an attribute is still out: `inspect.Parameter.kind.description` is one level deeper than the index goes.
+- **`source.py` reads class bodies, which is what dates the old ones.**
+  `unittest.TestCase.assertAlmostEqual` was already in the 2.6 inventory, the oldest there is, so no diff could date it and nothing that reaches further back could see a class member at all.
+  Reading `Lib/unittest.py` settles it: absent from 2.1 and 2.2, bound in 2.3.
+  591 class members are dated outright this way, `unittest.TestCase.setUp` at 2.1 and `assertTrue` at 2.4 among them, and 510 fewer come back unanswered.
+  The tier is decided per class, as it already was per module: a class that inherits nothing is written down in full so absence is proof, and a class with bases is presence-only.
+  It corrects four dates the docs got wrong, all of them markers attached to the wrong thing: `pstats.Stats.sort_stats` is 1.1, not the 3.7 of the enum its nearest marker describes, and `imaplib.IMAP4.namespace` is 2.2, not 2.3.
 - **Half of what is asked about a class member is still unanswered, on purpose.**
   A class page grows a member at a time and lists what the class *inherits* alongside what it defines, so the release that first indexes one is often the age of the markup rather than the age of the method.
   An inventory diff alone therefore publishes a class member only where it was indexed in the class's own release.

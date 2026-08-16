@@ -46,21 +46,29 @@ asyncio.WriteTransport 3.4 abort,can_write_eof,get_write_buffer_limits,get_write
 atexit 2.0 register
 base64 1.3 decode,encode 2.4 b16decode,b16encode,b32decode,b32encode,b64decode,b64encode,standard_b64decode,standard_b64encode,urlsafe_b64decode,urlsafe_b64encode 3.1 decodebytes,encodebytes 3.4 a85decode,a85encode,b85decode,b85encode 3.10 b32hexdecode,b32hexencode 3.13 z85decode,z85encode
 bdb 1.0 Bdb,BdbQuit 1.1 set_trace 1.5 Breakpoint,effective 2.4 checkfuncname
-bdb.Bdb 3.2 get_bpbynumber 3.14 disable_current_event,restart_events,start_trace,stop_trace
-bdb.Breakpoint 3.2 bpformat
+bdb.Bdb 1.0 break_anywhere,break_here,clear_all_breaks,clear_all_file_breaks,clear_break,dispatch_call,dispatch_exception,dispatch_line,dispatch_return,format_stack_entry,get_all_breaks,get_break,get_file_breaks,get_stack,reset,run,runcall,runctx,set_break,set_continue,set_next,set_quit,set_return,set_step,stop_here,trace_dispatch,user_call,user_exception,user_line,user_return 1.1 set_trace 1.2 runeval 1.5 clear_bpbynumber,get_breaks 1.6? canonic 2.1? do_clear 3.2 get_bpbynumber 3.14 disable_current_event,restart_events,start_trace,stop_trace
+bdb.Breakpoint 1.5 bpbynumber,bplist,bpprint,deleteMe,disable,enable 3.2 bpformat
 binascii 1.3 Error,Incomplete,a2b_base64,a2b_uu,b2a_base64,b2a_uu,crc_hqx 1.6 crc32 2.0 a2b_hex,b2a_hex,hexlify,unhexlify 2.2 a2b_qp,b2a_qp
 bisect 1.0 bisect,insort 2.1 bisect_left,bisect_right,insort_left,insort_right
 bz2 2.3 BZ2Compressor,BZ2Decompressor,BZ2File,compress,decompress 3.3 open
 bz2.BZ2Decompressor 3.3 eof 3.5 needs_input
 bz2.BZ2File 3.3 peek 3.13 mode,name
 calendar 0.9 day_abbr,day_name,isleap,leapdays,month_abbr,month_name,monthcalendar,monthrange,prcal,prmonth,weekday,weekheader 1.6 timegm 2.0 calendar,firstweekday,month,setfirstweekday 2.5 Calendar,HTMLCalendar,IllegalMonthError,IllegalWeekdayError,LocaleHTMLCalendar,LocaleTextCalendar,TextCalendar 3.12 APRIL,AUGUST,DECEMBER,Day,FEBRUARY,JANUARY,JULY,JUNE,MARCH,MAY,Month,NOVEMBER,OCTOBER,SEPTEMBER
-calendar.Calendar 3.7 itermonthdays3,itermonthdays4
-calendar.HTMLCalendar 3.7 cssclass_month,cssclass_month_head,cssclass_noday,cssclass_year,cssclass_year_head,cssclasses_weekday_head
+calendar.Calendar 2.5 firstweekday,getfirstweekday,itermonthdates,itermonthdays,itermonthdays2,iterweekdays,monthdatescalendar,monthdays2calendar,monthdayscalendar,setfirstweekday,yeardatescalendar,yeardays2calendar,yeardayscalendar 3.7 itermonthdays3,itermonthdays4
+calendar.HTMLCalendar 2.5 cssclasses,formatmonth,formatmonthname,formatyear,formatyearpage 3.7 cssclass_month,cssclass_month_head,cssclass_noday,cssclass_year,cssclass_year_head,cssclasses_weekday_head
+calendar.TextCalendar 2.5 formatday,formatmonth,formatmonthname,formatweek,formatweekday,formatweekheader,formatyear,prmonth,pryear
 cmath 1.4 acos,acosh,asin,asinh,atan,atanh,cos,cosh,e,exp,log,log10,pi,sin,sinh,sqrt,tan,tanh 2.6 isinf,isnan,phase,polar,rect 3.2 isfinite 3.5 isclose 3.6 inf,infj,nan,nanj,tau
 cmd 1.0 Cmd
-cmd.Cmd 3.4 cmdqueue
+cmd.Cmd 1.0 cmdloop,default,do_help,onecmd 1.5 cmdqueue,doc_header,emptyline,intro,misc_header,postcmd,postloop,precmd,preloop,ruler,undoc_header 1.5? identchars,lastcmd,prompt 2.1 use_rawinput 2.2 completedefault 2.3 columnize
 code 1.5 InteractiveConsole,InteractiveInterpreter,compile_command,interact
+code.InteractiveConsole 1.5 interact,push,raw_input,resetbuffer
+code.InteractiveInterpreter 1.5 runcode,runsource,showsyntaxerror,showtraceback,write
 codecs 1.6 BOM,BOM_BE,BOM_LE,Codec,EncodedFile,StreamReader,StreamReaderWriter,StreamRecoder,StreamWriter,lookup,open,register 2.2 getdecoder,getencoder,getreader,getwriter 2.3 BOM_UTF16,BOM_UTF16_BE,BOM_UTF16_LE,BOM_UTF32,BOM_UTF32_BE,BOM_UTF32_LE,BOM_UTF8 2.3? backslashreplace_errors,ignore_errors,lookup_error,register_error,replace_errors,strict_errors,xmlcharrefreplace_errors 2.4 decode,encode 2.5 getincrementaldecoder,getincrementalencoder,iterdecode,iterencode 2.5? CodecInfo,IncrementalDecoder,IncrementalEncoder 3.5 namereplace_errors 3.10 unregister
+codecs.Codec 1.6 decode,encode
+codecs.IncrementalDecoder 2.5? decode,reset
+codecs.IncrementalEncoder 2.5? encode,reset
+codecs.StreamReader 1.6 read,readline,readlines,reset
+codecs.StreamWriter 1.6 reset,write,writelines
 codeop 1.5 compile_command 2.2 CommandCompiler 2.2? Compile
 collections 2.4 deque 2.5 defaultdict 2.6 namedtuple 2.7 Counter,OrderedDict 3.3 ChainMap
 collections.ChainMap 3.3 maps,new_child,parents
@@ -98,8 +106,9 @@ contextvars.ContextVar 3.7 get,name,reset,set
 copy 1.2 Error,copy,deepcopy 3.13 replace
 copyreg 3.0 constructor,pickle
 csv 2.3 Dialect,DictReader,DictWriter,Error,QUOTE_ALL,QUOTE_MINIMAL,QUOTE_NONE,QUOTE_NONNUMERIC,Sniffer,excel,excel_tab,get_dialect,list_dialects,reader,register_dialect,unregister_dialect,writer 2.5 field_size_limit 3.2 unix_dialect 3.12 QUOTE_NOTNULL,QUOTE_STRINGS
-csv.Dialect 2.7? strict
+csv.Dialect 2.3 delimiter,doublequote,escapechar,lineterminator,quotechar,quoting,skipinitialspace 2.7? strict
 csv.DictWriter 2.7 writeheader
+csv.Sniffer 2.3 has_header,sniff
 ctypes 2.5 BigEndianStructure,CDLL,CFUNCTYPE,DEFAULT_MODE,DllCanUnloadNow,DllGetClassObject,FormatError,GetLastError,HRESULT,LibraryLoader,LittleEndianStructure,OleDLL,POINTER,PYFUNCTYPE,PyDLL,RTLD_GLOBAL,RTLD_LOCAL,Structure,Union,WINFUNCTYPE,WinDLL,WinError,addressof,alignment,byref,c_byte,c_char,c_char_p,c_double,c_float,c_int,c_int16,c_int32,c_int64,c_int8,c_long,c_longlong,c_short,c_size_t,c_ubyte,c_uint,c_uint16,c_uint32,c_uint64,c_uint8,c_ulong,c_ulonglong,c_ushort,c_void_p,c_wchar,c_wchar_p,cast,cdll,create_string_buffer,create_unicode_buffer,memmove,memset,oledll,pointer,pydll,pythonapi,resize,sizeof,string_at,windll,wstring_at 2.6 c_bool,c_longdouble,get_errno,get_last_error,set_errno,set_last_error 2.7 c_ssize_t 3.5 Array 3.11 BigEndianUnion,LittleEndianUnion 3.12 c_time_t 3.14 CField,COMError,CopyComPointer,c_double_complex,c_float_complex,c_longdouble_complex,memoryview_at
 ctypes.CField 3.14 bit_offset,bit_size,byte_offset,byte_size,is_anonymous,is_bitfield,name,offset,size,type
 ctypes.COMError 3.14 details,hresult,text
@@ -119,15 +128,20 @@ datetime.timezone 3.2 dst,fromutc,tzname,utc,utcoffset
 dbm 1.0 error,open
 dbm.sqlite3 3.13 open
 decimal 2.4 BasicContext,Clamped,Context,Decimal,DecimalException,DefaultContext,DivisionByZero,ExtendedContext,Inexact,InvalidOperation,Overflow,ROUND_CEILING,ROUND_DOWN,ROUND_FLOOR,ROUND_HALF_DOWN,ROUND_HALF_EVEN,ROUND_HALF_UP,ROUND_UP,Rounded,Subnormal,Underflow,getcontext,setcontext 2.5 localcontext 3.14 IEEEContext
-decimal.Context 2.7 create_decimal_from_float 3.3 clear_traps
-decimal.Decimal 2.6 canonical,compare_signal,compare_total,compare_total_mag,conjugate,copy_abs,copy_negate,copy_sign,exp,fma,is_canonical,is_finite,is_infinite,is_nan,is_normal,is_qnan,is_signed,is_snan,is_subnormal,is_zero,ln,log10,logb,logical_and,logical_invert,logical_or,logical_xor,max_mag,min_mag,next_minus,next_plus,next_toward,number_class,radix,rotate,scaleb,shift,to_integral_exact 2.7 from_float 3.14 from_number
+decimal.Context 2.4 Etiny,Etop,abs,add,clear_flags,compare,copy,create_decimal,divide,divide_int,divmod,max,min,minus,multiply,normalize,plus,power,quantize,remainder,remainder_near,same_quantum,sqrt,subtract,to_eng_string,to_sci_string 2.7 create_decimal_from_float 3.3 clear_traps
+decimal.Decimal 2.4 adjusted,as_tuple,compare,max,min,normalize,quantize,remainder_near,same_quantum,sqrt,to_eng_string,to_integral 2.6 canonical,compare_signal,compare_total,compare_total_mag,conjugate,copy_abs,copy_negate,copy_sign,exp,fma,is_canonical,is_finite,is_infinite,is_nan,is_normal,is_qnan,is_signed,is_snan,is_subnormal,is_zero,ln,log10,logb,logical_and,logical_invert,logical_or,logical_xor,max_mag,min_mag,next_minus,next_plus,next_toward,number_class,radix,rotate,scaleb,shift,to_integral_exact 2.7 from_float 3.14 from_number
 difflib 2.1 SequenceMatcher,get_close_matches 2.2 Differ,IS_CHARACTER_JUNK,IS_LINE_JUNK,ndiff,restore 2.3 context_diff,unified_diff 2.4 HtmlDiff 3.5 diff_bytes
-difflib.SequenceMatcher 2.3 get_grouped_opcodes
+difflib.Differ 2.2 compare
+difflib.HtmlDiff 2.4 make_file,make_table
+difflib.SequenceMatcher 2.1 find_longest_match,get_matching_blocks,get_opcodes,quick_ratio,ratio,real_quick_ratio,set_seq1,set_seq2,set_seqs 2.3 get_grouped_opcodes
 dis 0.9 dis,disassemble,disco,distb,findlabels,hasconst,hasjabs,hasjrel,hasname,opname 1.4 haslocal 1.5 cmp_op,hascompare 2.1 hasfree 2.3 opmap 2.4? findlinestarts 3.0 show_code 3.2 code_info 3.4 Instruction,get_instructions,stack_effect 3.11 Positions 3.12 hasarg,hasexc 3.13 hasjump
 dis.Instruction 3.4 arg,argrepr,argval,is_jump_target,offset,opcode,opname,starts_line
 dis.Positions 3.11 col_offset,end_col_offset,end_lineno,lineno
 doctest 2.1 run_docstring_examples,testmod 2.3 DONT_ACCEPT_TRUE_FOR_1,DocTestSuite,debug,testsource 2.4 COMPARISON_FLAGS,DONT_ACCEPT_BLANKLINE,DebugRunner,DocFileSuite,DocTest,DocTestFailure,DocTestFinder,DocTestParser,DocTestRunner,ELLIPSIS,Example,IGNORE_EXCEPTION_DETAIL,NORMALIZE_WHITESPACE,OutputChecker,REPORTING_FLAGS,REPORT_CDIFF,REPORT_NDIFF,REPORT_ONLY_FIRST_FAILURE,REPORT_UDIFF,UnexpectedException,debug_src,register_optionflag,script_from_examples,set_unittest_reportflags,testfile 2.5 SKIP
-doctest.DocTestRunner 3.13 skips
+doctest.DocTestFinder 2.4 find
+doctest.DocTestParser 2.4 get_doctest,get_examples,parse
+doctest.DocTestRunner 2.4 report_failure,report_start,report_success,report_unexpected_exception,run,summarize 3.13 skips
+doctest.OutputChecker 2.4 check_output,output_difference
 doctest.TestResults 3.13 skipped
 email 3.2 message_from_binary_file,message_from_bytes
 email.charset 2.5 Charset,add_alias,add_charset,add_codec
@@ -175,20 +189,20 @@ enum.FlagBoundary 3.11 CONFORM,EJECT,KEEP,STRICT
 faulthandler 3.3 cancel_dump_traceback_later,disable,dump_traceback,dump_traceback_later,enable,is_enabled,register,unregister 3.14 dump_c_stack
 fcntl 1.0 fcntl,ioctl 1.4 flock,lockf 1.5 LOCK_EX,LOCK_NB,LOCK_SH,LOCK_UN
 filecmp 1.6 cmp 2.0 cmpfiles,dircmp 3.4 DEFAULT_IGNORES,clear_cache
-filecmp.dircmp 2.7? left,right
+filecmp.dircmp 2.0 report,report_full_closure,report_partial_closure 2.7? left,right
 fileinput 1.5 FileInput,close,filelineno,filename,input,isfirstline,isstdin,lineno,nextfile 2.5 fileno,hook_compressed,hook_encoded
 fnmatch 0.9 fnmatch 1.0 translate 1.2 fnmatchcase 2.2 filter 3.14 filterfalse
 fractions.Fraction 3.8 as_integer_ratio 3.12 is_integer 3.14 from_number
 ftplib 1.0 FTP,all_errors,error_perm,error_proto,error_reply,error_temp 2.7 FTP_TLS
-ftplib.FTP 3.3 mlsd
+ftplib.FTP 1.0 abort,close,connect,cwd,dir,getwelcome,login,mkd,nlst,pwd,quit,rename,retrbinary,retrlines,sendcmd,set_debuglevel,size,storbinary,storlines,transfercmd,voidcmd 3.3 mlsd
 ftplib.FTP_TLS 2.7? auth,prot_c,prot_p,ssl_version 3.3 ccc
 functools 2.5 partial,update_wrapper,wraps 2.6 reduce 2.7 cmp_to_key,total_ordering 3.2 lru_cache 3.4 partialmethod,singledispatch 3.8 cached_property,singledispatchmethod 3.9 cache 3.14 Placeholder
 gc 2.0 DEBUG_COLLECTABLE,DEBUG_LEAK,DEBUG_SAVEALL,DEBUG_STATS,DEBUG_UNCOLLECTABLE,collect,disable,enable,garbage,get_debug,get_threshold,isenabled,set_debug,set_threshold 2.2 get_objects,get_referrers 2.3 get_referents 2.5 get_count 2.7 is_tracked 3.3 callbacks 3.4 get_stats 3.7 freeze,get_freeze_count,unfreeze 3.9 is_finalized
 getopt 0.9 error,getopt 1.6 GetoptError 2.3 gnu_getopt
 getpass 1.5 getpass,getuser
 gettext 2.0 GNUTranslations,NullTranslations,bindtextdomain,dgettext,find,gettext,install,textdomain,translation 2.3 dngettext,ngettext 3.8 dnpgettext
-gettext.GNUTranslations 2.3 ngettext 3.8 npgettext,pgettext
-gettext.NullTranslations 2.3 ngettext 3.8 npgettext,pgettext
+gettext.GNUTranslations 2.0 gettext 2.3 ngettext 3.8 npgettext,pgettext
+gettext.NullTranslations 2.0 charset,gettext,info,install 2.3 add_fallback,ngettext 3.8 npgettext,pgettext
 glob 0.9 glob 2.5 iglob 3.4 escape 3.13 translate
 graphlib 3.9 CycleError,TopologicalSorter
 graphlib.TopologicalSorter 3.9 add,done,get_ready,is_active,prepare,static_order
@@ -208,7 +222,7 @@ http.client.HTTPResponse 3.3 readinto
 http.server 3.7 ThreadingHTTPServer 3.14 HTTPSServer,ThreadingHTTPSServer
 http.server.BaseHTTPRequestHandler 3.2 handle_expect_100,send_response_only 3.3 flush_headers
 imaplib 1.5 IMAP4,Int2AP,Internaldate2tuple,ParseFlags,Time2Internaldate 2.3 IMAP4_SSL,IMAP4_stream
-imaplib.IMAP4 2.3 getquota,getquotaroot,login_cram_md5,namespace,proxyauth,setquota 2.4 deleteacl,myrights,thread 2.5 getannotation,setannotation 3.2 starttls 3.5 enable,utf8_enabled 3.9 unselect 3.14 idle
+imaplib.IMAP4 1.5 abort,error,readonly 1.6? append,authenticate,check,close,copy,create,delete,expunge,fetch,list,login,logout,lsub,noop,open,partial,recent,rename,response,search,select,socket,status,store,subscribe,uid,unsubscribe,xatom 2.2 getacl,namespace,setacl,shutdown,sort 2.2? read,readline,send 2.3 getquota,getquotaroot,login_cram_md5,proxyauth,setquota 2.4 deleteacl,myrights,thread 2.5 getannotation,setannotation 3.2 starttls 3.5 enable,utf8_enabled 3.9 unselect 3.14 idle
 importlib 2.7 import_module 3.3 invalidate_caches 3.4 reload
 importlib.abc 3.1 InspectLoader,Loader,ResourceLoader 3.2 ExecutionLoader,SourceLoader 3.3 FileLoader,MetaPathFinder,PathEntryFinder
 importlib.abc.ExecutionLoader 3.2 get_filename
@@ -285,15 +299,21 @@ lzma.LZMACompressor 3.3 compress,flush
 lzma.LZMADecompressor 3.3 check,decompress,eof,unused_data 3.5 needs_input
 lzma.LZMAFile 3.3 peek 3.13 mode,name
 mailbox 1.5 Maildir 2.5 Babyl,BabylMessage,Error,ExternalClashError,FormatError,MHMessage,MMDFMessage,MaildirMessage,NoSuchMailboxError,NotEmptyError,mboxMessage 2.5? MH,MMDF,Mailbox,Message,mbox
-mailbox.Mailbox 3.2 get_bytes
-mailbox.Maildir 2.6? get_folder 3.13 add_flag,get_flags,get_info,remove_flag,set_flags,set_info
+mailbox.Babyl 2.5 get_file,get_labels
+mailbox.BabylMessage 2.5 add_label,get_labels,get_visible,remove_label,set_labels,set_visible,update_visible
+mailbox.MH 2.5? add_folder,close,flush,get_file,get_folder,get_sequences,list_folders,lock,pack,remove,remove_folder,set_sequences,unlock
+mailbox.MHMessage 2.5 add_sequence,get_sequences,remove_sequence,set_sequences
+mailbox.Mailbox 2.5? add,clear,close,discard,flush,get,get_file,get_message,get_string,items,iteritems,iterkeys,itervalues,keys,lock,pop,popitem,remove,unlock,update,values 3.2 get_bytes
+mailbox.Maildir 2.5 add,add_folder,clean,colon,flush,get_file,get_folder,list_folders,lock,remove_folder,unlock 2.5? close 3.13 add_flag,get_flags,get_info,remove_flag,set_flags,set_info
+mailbox.MaildirMessage 2.5 add_flag,get_date,get_flags,get_info,get_subdir,remove_flag,set_date,set_flags,set_info,set_subdir
 marshal 1.0 dump,dumps,load,loads 2.4 version
 math 0.9 acos,asin,atan,atan2,ceil,cos,cosh,e,exp,fabs,floor,log,log10,pi,pow,sin,sinh,sqrt,tan,tanh 1.0 fmod,frexp,ldexp,modf 1.2 hypot 2.3 degrees,radians 2.6 acosh,asinh,atanh,copysign,factorial,fsum,isinf,isnan,log1p,trunc 2.7 erf,erfc,expm1,gamma,lgamma 3.2 isfinite 3.3 log2 3.5 gcd,inf,isclose,nan 3.6 tau 3.7 remainder 3.8 comb,dist,isqrt,perm,prod 3.9 lcm,nextafter,ulp 3.11 cbrt,exp2 3.12 sumprod 3.13 fma
 mimetypes 1.5 encodings_map,guess_extension,guess_type,init,inited,knownfiles,read_mime_types,suffix_map,types_map 2.2 MimeTypes,common_types 2.3 add_type,guess_all_extensions 3.13 guess_file_type
-mimetypes.MimeTypes 2.7 read_windows_registry 2.7? guess_all_extensions,types_map_inv 3.13 guess_file_type
+mimetypes.MimeTypes 2.2 guess_extension,guess_type,read,readfp 2.3 add_type,guess_all_extensions 2.7 read_windows_registry 2.7? types_map_inv 3.13 guess_file_type
 mmap 1.6 mmap 3.8 MADV_AUTOSYNC,MADV_CORE,MADV_DODUMP,MADV_DOFORK,MADV_DONTDUMP,MADV_DONTFORK,MADV_DONTNEED,MADV_FREE,MADV_HUGEPAGE,MADV_HWPOISON,MADV_MERGEABLE,MADV_NOCORE,MADV_NOHUGEPAGE,MADV_NORMAL,MADV_NOSYNC,MADV_PROTECT,MADV_RANDOM,MADV_REMOVE,MADV_SEQUENTIAL,MADV_SOFT_OFFLINE,MADV_UNMERGEABLE,MADV_WILLNEED 3.11 MAP_STACK 3.12 MAP_ALIGNED_SUPER,MAP_CONCEAL 3.13 MAP_32BIT,MAP_HASSEMAPHORE,MAP_JIT,MAP_NOCACHE,MAP_NOEXTEND,MAP_NORESERVE,MAP_RESILIENT_CODESIGN,MAP_RESILIENT_MEDIA,MAP_TPRO,MAP_TRANSLATED_ALLOW_EXECUTE,MAP_UNIX03
 mmap.mmap 3.4 close,find,flush,move,read,read_byte,readline,resize,rfind,seek,size,tell,write,write_byte 3.8 madvise 3.13 seekable
 modulefinder 2.3 AddPackagePath,ModuleFinder,ReplacePackage
+modulefinder.ModuleFinder 2.3 report,run_script
 msvcrt 1.5 get_osfhandle,getch,getche,heapmin,kbhit,locking,open_osfhandle,putch,setmode,ungetch 2.1? LK_LOCK,LK_NBLCK,LK_NBRLCK,LK_RLCK,LK_UNLCK 2.6 getwch,getwche,putwch,ungetwch
 multiprocessing 2.6? log_to_stderr 3.3 AuthenticationError,Barrier,ProcessError,SimpleQueue,TimeoutError 3.4 get_all_start_methods,get_context,get_start_method,set_start_method 3.8 parent_process 3.9 Manager
 multiprocessing.Lock 3.4 acquire,release 3.14 locked
@@ -311,10 +331,11 @@ multiprocessing.shared_memory 3.8 ShareableList,SharedMemory
 multiprocessing.shared_memory.ShareableList 3.8 count,format,index,shm
 multiprocessing.shared_memory.SharedMemory 3.8 buf,close,name,size,unlink
 netrc 1.5 netrc 2.1 NetrcParseError
+netrc.netrc 1.5 authenticators
 operator 1.4 abs,add,and_,concat,countOf,delitem,getitem,indexOf,inv,lshift,mod,mul,neg,or_,pos,rshift,setitem,sub,truth,xor 1.5 contains,not_ 2.0 invert 2.2 eq,floordiv,ge,gt,le,lt,ne,truediv 2.3 is_,is_not,pow 2.4 attrgetter,itemgetter 2.5 iadd,iand,iconcat,ifloordiv,ilshift,imod,imul,index,ior,ipow,irshift,isub,itruediv,ixor 2.6 methodcaller 3.4 length_hint 3.5 imatmul,matmul 3.11 call 3.14 is_none,is_not_none
 optparse 2.3 BadOptionError,Option,OptionConflictError,OptionError,OptionGroup,OptionParser,OptionValueError,Values 2.5 AmbiguousOptionError
-optparse.Option 2.6? ACTIONS,ALWAYS_TYPED_ACTIONS,STORE_ACTIONS,TYPED_ACTIONS,TYPES,TYPE_CHECKER,action,callback,callback_args,callback_kwargs,choices,const,default,dest,help,metavar,nargs,type
-optparse.OptionParser 2.6? add_option,disable_interspersed_args,enable_interspersed_args,get_option,get_usage,get_version,has_option,print_usage,print_version,remove_option,set_defaults,set_usage 2.7? get_option_group
+optparse.Option 2.3 ACTIONS,STORE_ACTIONS,TYPED_ACTIONS,TYPES,TYPE_CHECKER 2.4 ALWAYS_TYPED_ACTIONS 2.6? action,callback,callback_args,callback_kwargs,choices,const,default,dest,help,metavar,nargs,type
+optparse.OptionParser 2.3 disable_interspersed_args,enable_interspersed_args,get_option_group,get_usage,get_version,parse_args,print_usage,print_version,set_defaults,set_usage 2.6? add_option,get_option,has_option,remove_option
 os 1.0 curdir,error,execl,execle,execlp,execvp,kill,name,pardir,sep 1.1 defpath,pathsep 1.2 execlpe,execvpe 1.5 altsep,makedirs,removedirs,renames 1.5? O_APPEND,O_CREAT,O_DSYNC,O_EXCL,O_NDELAY,O_NOCTTY,O_NONBLOCK,O_RDONLY,O_RDWR,O_RSYNC,O_SYNC,O_TRUNC,O_WRONLY,P_DETACH,P_NOWAIT,P_OVERLAY,WEXITSTATUS,WIFEXITED,WIFSIGNALED,WIFSTOPPED,WNOHANG,WSTOPSIG,WTERMSIG,access,chdir,chmod,chown,close,dup,dup2,environ,execv,execve,fdopen,fork,fstat,fstatvfs,ftruncate,getcwd,getegid,geteuid,getgid,getpgrp,getpid,getppid,getuid,linesep,link,listdir,lseek,lstat,mkdir,mkfifo,nice,open,pipe,plock,popen,putenv,read,readlink,remove,rename,rmdir,setgid,setpgid,setpgrp,setsid,setuid,spawnv,spawnve,stat,statvfs,strerror,symlink,system,tcgetpgrp,tcsetpgrp,times,ttyname,umask,uname,unlink,utime,wait,waitpid,write 1.6 P_NOWAITO,P_WAIT,spawnl,spawnle,spawnlp,spawnlpe,spawnvp,spawnvpe 1.6? F_OK,R_OK,W_OK,X_OK,abort,confstr,confstr_names,ctermid,fpathconf,getenv,getgroups,getlogin,pathconf,pathconf_names,sysconf,sysconf_names 2.0 startfile 2.0? O_BINARY,forkpty,isatty,openpty,setegid,seteuid,setregid,setreuid 2.2 chroot,extsep,setgroups 2.3 EX_CANTCREAT,EX_CONFIG,EX_DATAERR,EX_IOERR,EX_NOHOST,EX_NOINPUT,EX_NOPERM,EX_NOTFOUND,EX_NOUSER,EX_OK,EX_OSERR,EX_OSFILE,EX_PROTOCOL,EX_SOFTWARE,EX_TEMPFAIL,EX_UNAVAILABLE,EX_USAGE,WCONTINUED,WCOREDUMP,WIFCONTINUED,WUNTRACED,fchdir,getloadavg,getpgid,killpg,lchown,major,makedev,minor,walk 2.3? O_NOINHERIT,O_RANDOM,O_SEQUENTIAL,O_SHORT_LIVED,O_TEMPORARY,O_TEXT,fdatasync,fsync 2.4 devnull,getsid,urandom 2.5 SEEK_CUR,SEEK_END,SEEK_SET,wait3,wait4 2.5? O_EXLOCK,O_SHLOCK,unsetenv 2.6 chflags,closerange,fchmod,fchown,lchflags,lchmod 2.7 getresgid,getresuid,initgroups,setresgid,setresuid 3.2 environb,fsdecode,fsencode,get_exec_path,getenvb,supports_bytes_environ 3.3 CLD_CONTINUED,CLD_DUMPED,CLD_EXITED,CLD_TRAPPED,F_LOCK,F_TEST,F_TLOCK,F_ULOCK,POSIX_FADV_DONTNEED,POSIX_FADV_NOREUSE,POSIX_FADV_NORMAL,POSIX_FADV_RANDOM,POSIX_FADV_SEQUENTIAL,POSIX_FADV_WILLNEED,PRIO_PGRP,PRIO_PROCESS,PRIO_USER,P_ALL,P_PGID,P_PID,RTLD_DEEPBIND,RTLD_GLOBAL,RTLD_LAZY,RTLD_LOCAL,RTLD_NODELETE,RTLD_NOLOAD,RTLD_NOW,SF_MNOWAIT,SF_NODISKIO,SF_SYNC,WEXITED,WSTOPPED,fwalk,get_terminal_size,getgrouplist,getpriority,lockf,pipe2,posix_fadvise,posix_fallocate,pread,pwrite,readv,replace,sendfile,setpriority,supports_dir_fd,supports_effective_ids,supports_fd,supports_follow_symlinks,sync,truncate,waitid,writev 3.4 cpu_count 3.5 get_blocking,scandir,set_blocking 3.6 GRND_NONBLOCK,GRND_RANDOM,PathLike,fspath,getrandom 3.7 RWF_DSYNC,RWF_HIPRI,RWF_NOWAIT,RWF_SYNC,preadv,pwritev,register_at_fork 3.8 MFD_ALLOW_SEALING,MFD_CLOEXEC,MFD_HUGETLB,MFD_HUGE_16GB,MFD_HUGE_16MB,MFD_HUGE_1GB,MFD_HUGE_1MB,MFD_HUGE_256MB,MFD_HUGE_2GB,MFD_HUGE_2MB,MFD_HUGE_32MB,MFD_HUGE_512KB,MFD_HUGE_512MB,MFD_HUGE_64KB,MFD_HUGE_8MB,MFD_HUGE_MASK,MFD_HUGE_SHIFT,add_dll_directory,copy_file_range,memfd_create,posix_spawn,posix_spawnp 3.9 pidfd_open,waitstatus_to_exitcode 3.10 EFD_CLOEXEC,EFD_NONBLOCK,EFD_SEMAPHORE,RWF_APPEND,SPLICE_F_MORE,SPLICE_F_MOVE,SPLICE_F_NONBLOCK,eventfd,eventfd_read,eventfd_write,splice 3.11 SF_NOCACHE,login_tty 3.12 PRIO_DARWIN_BG,PRIO_DARWIN_NONUI,PRIO_DARWIN_PROCESS,PRIO_DARWIN_THREAD,listdrives,listmounts,listvolumes,setns,unshare 3.13 TFD_CLOEXEC,TFD_NONBLOCK,TFD_TIMER_ABSTIME,TFD_TIMER_CANCEL_ON_SET,grantpt,posix_openpt,process_cpu_count,ptsname,timerfd_create,timerfd_gettime,timerfd_gettime_ns,timerfd_settime,timerfd_settime_ns,unlockpt 3.14 SCHED_DEADLINE,SCHED_NORMAL,readinto,reload_environ
 os.DirEntry 3.12 is_junction
 os.path 1.3 splitdrive 1.5 abspath,getatime,getmtime,getsize 1.5? basename,commonprefix,dirname,exists,expanduser,expandvars,isabs,isdir,isfile,islink,ismount,join,normcase,normpath,samefile,sameopenfile,samestat,split,splitext 2.2 realpath 2.3 getctime,supports_unicode_filenames 2.4 lexists 2.6 relpath 3.5 commonpath 3.12 isdevdrive,isjunction,splitroot 3.13 isreserved
@@ -328,20 +349,21 @@ pdb 1.0 Pdb,pm,post_mortem,run,runcall 1.1 set_trace 1.2 runeval 3.14 get_defaul
 pdb.Pdb 2.7? run,runcall,runeval,set_trace
 pickle 1.2 Pickler,PicklingError,Unpickler,dump,dumps,load,loads 1.5? UnpicklingError 2.0? PickleError 2.3 HIGHEST_PROTOCOL 3.8 PickleBuffer
 pickle.PickleBuffer 3.8 raw,release
-pickle.Pickler 3.3 dispatch_table 3.8 reducer_override
+pickle.Pickler 1.2 dump,persistent_id 2.3 clear_memo 3.3 dispatch_table 3.8 reducer_override
+pickle.Unpickler 1.2 find_class,load
 pickletools 2.3 dis,genops 2.6 optimize
 pkgutil 2.3 extend_path 2.5 get_importer,iter_importers,iter_modules,walk_packages 2.6 get_data 3.6 ModuleInfo 3.9 resolve_name
 platform 2.3 architecture,java_ver,libc_ver,mac_ver,machine,node,platform,processor,python_build,python_compiler,python_version,python_version_tuple,release,system,system_alias,uname,version,win32_ver 2.6 python_branch,python_implementation,python_revision 3.8 win32_edition,win32_is_iot 3.10 freedesktop_os_release 3.13 android_ver 3.14 invalidate_caches
 plistlib 3.4 FMT_BINARY,FMT_XML,dump,dumps,load,loads 3.8 UID
 poplib 1.5 POP3,error_proto 2.4 POP3_SSL
-poplib.POP3 3.4 capa,stls 3.5 utf8
+poplib.POP3 1.5 apop,dele,getwelcome,list,noop,pass_,quit,retr,rpop,rset,set_debuglevel,stat,top,uidl,user 3.4 capa,stls 3.5 utf8
 posix 0.9 environ
 pprint 1.5 PrettyPrinter,isreadable,isrecursive,pformat,pprint,saferepr 3.8 pp
-pprint.PrettyPrinter 2.3 format
+pprint.PrettyPrinter 1.5 isreadable,isrecursive,pformat,pprint 2.3 format
 profile 1.0 Profile,run 2.4? runctx
-profile.Profile 3.3 create_stats,disable,dump_stats,enable,run,runcall,runctx
+profile.Profile 1.0 dump_stats,print_stats,run,runcall,runctx 1.1 create_stats 3.3 disable,enable
 pstats 1.1 Stats
-pstats.Stats 3.9 get_stats_profile
+pstats.Stats 1.1 add,print_callees,print_callers,print_stats,reverse_order,sort_stats,strip_dirs 2.3 dump_stats 3.9 get_stats_profile
 pty 1.1 fork,spawn 2.0 openpty
 pwd 1.0 getpwall,getpwnam,getpwuid
 py_compile 1.1 compile 2.3 PyCompileError 3.7 PycInvalidationMode
@@ -354,6 +376,7 @@ queue.Queue 3.13 shutdown
 queue.SimpleQueue 3.7 empty,get,get_nowait,put,put_nowait,qsize
 quopri 1.3 decode,encode 2.2 decodestring,encodestring
 random 1.1 betavariate,choice,expovariate,gammavariate,gauss,lognormvariate,normalvariate,randint,random,uniform,vonmisesvariate 1.5 paretovariate,randrange,seed,weibullvariate 1.6 shuffle 2.1 getstate,setstate 2.1? Random 2.3 sample 2.4 SystemRandom,getrandbits 2.6 triangular 3.6 choices 3.9 randbytes 3.12 binomialvariate
+random.Random 2.3? getstate,seed,setstate
 re 1.5 DOTALL,I,IGNORECASE,L,LOCALE,M,MULTILINE,S,VERBOSE,X,compile,escape,findall,match,search,split,sub,subn 1.6 UNICODE 2.0 U 2.5? DEBUG,purge 3.4 fullmatch 3.6 RegexFlag 3.11 NOFLAG 3.13 PatternError
 re.PatternError 3.13 colno,lineno,msg,pattern,pos
 readline 2.0 get_begidx,get_completer_delims,get_endidx,get_history_length,get_line_buffer,insert_text,parse_and_bind,read_history_file,read_init_file,set_completer,set_completer_delims,set_history_length,write_history_file 2.2 add_history,set_startup_hook 2.2? set_pre_input_hook 2.3 get_completer,get_current_history_length,get_history_item,redisplay 2.4 clear_history,remove_history_item,replace_history_item 2.6 get_completion_type,set_completion_display_matches_hook 3.5 append_history_file 3.6 set_auto_history 3.13 backend
@@ -361,9 +384,10 @@ reprlib 3.2 recursive_repr
 reprlib.Repr 3.11 fillvalue 3.12 indent
 resource 1.5 error,getpagesize,getrlimit,getrusage,setrlimit 1.5? RLIMIT_AS,RLIMIT_CORE,RLIMIT_CPU,RLIMIT_DATA,RLIMIT_FSIZE,RLIMIT_NOFILE,RLIMIT_NPROC,RLIMIT_OFILE,RLIMIT_RSS,RLIMIT_STACK,RLIMIT_VMEM,RUSAGE_BOTH,RUSAGE_CHILDREN,RUSAGE_SELF 2.3 RLIM_INFINITY 2.3? RLIMIT_MEMLOCK 3.2 RUSAGE_THREAD 3.4 RLIMIT_MSGQUEUE,RLIMIT_NICE,RLIMIT_NPTS,RLIMIT_RTPRIO,RLIMIT_RTTIME,RLIMIT_SBSIZE,RLIMIT_SIGPENDING,RLIMIT_SWAP,prlimit 3.10 RLIMIT_KQUEUES
 rlcompleter 1.5 Completer
+rlcompleter.Completer 1.5 complete
 runpy 2.5 run_module 2.7 run_path
 sched 1.0 scheduler
-sched.scheduler 2.6 queue
+sched.scheduler 1.0 cancel,empty,enter,enterabs,run 2.6 queue
 secrets 3.6 SystemRandom,choice,compare_digest,randbelow,randbits,token_bytes,token_hex,token_urlsafe 3.13 DEFAULT_ENTROPY
 select 1.0 error,select 2.0 poll 2.6 epoll,kevent,kqueue 2.7 PIPE_BUF 3.3 devpoll
 selectors 3.4 BaseSelector,DefaultSelector,EpollSelector,KqueueSelector,PollSelector,SelectSelector,SelectorKey 3.5 DevpollSelector 3.11 EVENT_READ,EVENT_WRITE
@@ -373,13 +397,14 @@ selectors.EpollSelector 3.4 fileno
 selectors.KqueueSelector 3.4 fileno
 selectors.SelectorKey 3.4 data,events,fd,fileobj
 shelve 1.2 Shelf,open 1.3 BsdDbShelf,DbfilenameShelf
-shelve.Shelf 2.6? close
+shelve.Shelf 1.2 close 1.5 sync
 shlex 1.5 shlex 2.3 split 3.3 quote 3.8 join
+shlex.shlex 1.5 get_token,push_token 1.6 error_leader,read_token,sourcehook 2.1 pop_source,push_source
 shutil 0.9 copy,copy2,copyfile,copymode,copystat,copytree 1.5 rmtree 2.0 copyfileobj 2.3 Error,move 2.6 ignore_patterns 2.7 SpecialFileError,get_archive_formats,make_archive,register_archive_format,unregister_archive_format 3.2 unpack_archive 3.3 chown,disk_usage,get_terminal_size,which 3.4 SameFileError
 signal 1.1 NSIG,SIG_DFL,SIG_IGN,alarm,getsignal,pause,signal 2.6 getitimer,set_wakeup_fd,setitimer,siginterrupt 2.7 CTRL_BREAK_EVENT,CTRL_C_EVENT 3.3 SIG_BLOCK,SIG_SETMASK,SIG_UNBLOCK,pthread_kill,pthread_sigmask,sigpending,sigtimedwait,sigwait,sigwaitinfo 3.8 raise_signal,strsignal,valid_signals 3.9 pidfd_send_signal 3.11 SIGSTKFLT
 site 1.5 addsitedir 2.4 main 2.6 ENABLE_USER_SITE,PREFIXES,USER_BASE,USER_SITE 2.7 getsitepackages,getuserbase,getusersitepackages
 smtplib 1.5 SMTP,SMTPConnectError,SMTPDataError,SMTPException,SMTPHeloError,SMTPRecipientsRefused,SMTPResponseException,SMTPSenderRefused,SMTPServerDisconnected 2.2 SMTPAuthenticationError 2.6 LMTP,SMTP_SSL 3.5 SMTPNotSupportedError
-smtplib.SMTP 2.6 ehlo_or_helo_if_needed 3.2 send_message 3.5 auth
+smtplib.SMTP 1.5 connect,docmd,does_esmtp,ehlo,ehlo_resp,has_extn,helo,helo_resp,quit,sendmail,set_debuglevel,verify 2.2 login,starttls 2.6 ehlo_or_helo_if_needed 3.2 send_message 3.5 auth
 socket 1.0 AF_INET,AF_UNIX,SOCK_DGRAM,SOCK_RAW,SOCK_RDM,SOCK_SEQPACKET,SOCK_STREAM,error,fromfd,gethostbyname,gethostname,getservbyname,socket 1.2 SOMAXCONN,gethostbyaddr 1.4 htonl,htons,ntohl,ntohs 1.5 SocketType,gethostbyname_ex,getprotobyname 1.6 AF_INET6,inet_aton,inet_ntoa 2.0 getfqdn 2.2 getaddrinfo,getnameinfo 2.2? gaierror,herror 2.3 getdefaulttimeout,has_ipv6,inet_ntop,inet_pton,setdefaulttimeout,timeout 2.4 socketpair 2.4? getservbyport 2.6 create_connection 3.2 SOCK_CLOEXEC,SOCK_NONBLOCK 3.3 AF_CAN,AF_RDS,CMSG_LEN,CMSG_SPACE,PF_CAN,PF_RDS,SOL_RDS,fromshare,if_indextoname,if_nameindex,if_nametoindex,sethostname 3.4 AF_LINK,CAN_BCM 3.5 CAN_RAW_FD_FRAMES 3.6 AF_ALG,SOL_ALG 3.7 AF_VSOCK,CAN_ISOTP,IOCTL_VM_SOCKETS_GET_LOCAL_CID,close 3.8 create_server,has_dualstack_ipv6 3.9 CAN_J1939,CAN_RAW_JOIN_FILTERS,recv_fds,send_fds 3.11 LOCAL_CREDS,LOCAL_CREDS_PERSISTENT,SCM_CREDS2,SO_INCOMING_CPU 3.12 AF_DIVERT,AF_HYPERV,ETHERTYPE_ARP,ETHERTYPE_IP,ETHERTYPE_IPV6,ETHERTYPE_VLAN,ETH_P_ALL,HVSOCKET_ADDRESS_FLAG_PASSTHRU,HVSOCKET_CONNECTED_SUSPEND,HVSOCKET_CONNECT_TIMEOUT,HVSOCKET_CONNECT_TIMEOUT_MAX,HV_GUID_BROADCAST,HV_GUID_CHILDREN,HV_GUID_LOOPBACK,HV_GUID_PARENT,HV_GUID_WILDCARD,HV_GUID_ZERO,HV_PROTOCOL_RAW,PF_DIVERT 3.14 BDADDR_BREDR,BDADDR_LE_PUBLIC,BDADDR_LE_RANDOM,HCI_CHANNEL_CONTROL,HCI_CHANNEL_LOGGING,HCI_CHANNEL_MONITOR,HCI_CHANNEL_RAW,HCI_CHANNEL_USER,HCI_DEV_NONE,L2CAP_LM,SO_REUSEPORT_LB
 socketserver 3.12 ForkingUnixDatagramServer,ForkingUnixStreamServer
 socketserver.BaseServer 3.3 service_actions
@@ -401,7 +426,7 @@ stat 0.9 ST_ATIME,ST_CTIME,ST_DEV,ST_GID,ST_INO,ST_MODE,ST_MTIME,ST_NLINK,ST_SIZ
 statistics 3.4 StatisticsError,mean,median,median_grouped,median_high,median_low,mode,pstdev,pvariance,stdev,variance 3.6 harmonic_mean 3.8 NormalDist,fmean,geometric_mean,multimode,quantiles 3.10 correlation,covariance,linear_regression 3.13 kde,kde_random
 statistics.NormalDist 3.8 cdf,from_samples,inv_cdf,mean,median,mode,overlap,pdf,quantiles,samples,stdev,variance 3.9 zscore
 string 0.9 digits,hexdigits,octdigits,whitespace 1.4 capwords 2.0 printable,punctuation 2.2 ascii_letters,ascii_lowercase,ascii_uppercase 2.4 Template
-string.Template 2.6? template 3.11 get_identifiers,is_valid
+string.Template 2.4 safe_substitute,substitute 2.6? template 3.11 get_identifiers,is_valid
 string.templatelib 3.14 Interpolation,Template,convert
 string.templatelib.Interpolation 3.14 conversion,expression,format_spec,value
 string.templatelib.Template 3.14 interpolations,strings,values
@@ -411,11 +436,14 @@ struct.Struct 3.4 iter_unpack
 subprocess 2.4 PIPE,Popen,STDOUT,call 2.5 check_call 2.5? CalledProcessError 2.7 check_output 2.7? CREATE_NEW_CONSOLE,CREATE_NEW_PROCESS_GROUP,STARTF_USESHOWWINDOW,STARTF_USESTDHANDLES,STARTUPINFO,STD_ERROR_HANDLE,STD_INPUT_HANDLE,STD_OUTPUT_HANDLE,SW_HIDE 3.3 DEVNULL,SubprocessError,TimeoutExpired 3.5 CompletedProcess,run 3.7 ABOVE_NORMAL_PRIORITY_CLASS,BELOW_NORMAL_PRIORITY_CLASS,CREATE_BREAKAWAY_FROM_JOB,CREATE_DEFAULT_ERROR_MODE,CREATE_NO_WINDOW,DETACHED_PROCESS,HIGH_PRIORITY_CLASS,IDLE_PRIORITY_CLASS,NORMAL_PRIORITY_CLASS,REALTIME_PRIORITY_CLASS 3.13 STARTF_FORCEOFFFEEDBACK,STARTF_FORCEONFEEDBACK
 subprocess.CalledProcessError 2.7? cmd,output,returncode
 subprocess.CompletedProcess 3.5 args,check_returncode,returncode,stderr,stdout
-subprocess.Popen 2.6 kill,send_signal,terminate 3.3 args
+subprocess.Popen 2.5? communicate 2.6 kill,send_signal,terminate 3.3 args
 subprocess.STARTUPINFO 3.1 dwFlags,hStdError,hStdInput,hStdOutput,wShowWindow 3.7 lpAttributeList
 subprocess.TimeoutExpired 3.3 cmd,output,timeout
 symtable 2.1 Class,Function,Symbol,SymbolTable,symtable 3.13 SymbolTableType
-symtable.Symbol 2.6? is_declared_global 3.14 is_comp_cell,is_comp_iter,is_free_class,is_type_parameter
+symtable.Class 2.1 get_methods
+symtable.Function 2.1 get_frees,get_globals,get_locals,get_parameters
+symtable.Symbol 2.1 get_name,get_namespace,get_namespaces,is_assigned,is_free,is_global,is_imported,is_local,is_namespace,is_parameter,is_referenced 2.6? is_declared_global 3.14 is_comp_cell,is_comp_iter,is_free_class,is_type_parameter
+symtable.SymbolTable 2.1 get_children,get_id,get_identifiers,get_lineno,get_name,get_symbols,get_type,has_children,is_nested,is_optimized,lookup
 symtable.SymbolTableType 3.13 ANNOTATION,CLASS,FUNCTION,MODULE,TYPE_ALIAS,TYPE_PARAMETERS,TYPE_VARIABLE
 sys 0.9 argv,exit,modules,path,ps1,ps2,stderr,stdin,stdout 1.0 builtin_module_names,copyright,setprofile,settrace,version 1.0? last_traceback,last_type,last_value,tracebacklimit 1.3 getrefcount,platform 1.4 exec_prefix,prefix 1.5 exc_info,executable,hexversion 1.6 version_info 1.6? dllhandle,winver 2.0 byteorder,getdefaultencoding,getrecursionlimit,setrecursionlimit 2.1 displayhook,excepthook,warnoptions 2.2 getdlopenflags,maxunicode,setdlopenflags 2.3 api_version,call_tracing,getfilesystemencoding,getwindowsversion 2.6 dont_write_bytecode,flags,float_info,getprofile,getsizeof,gettrace 2.6? meta_path,path_hooks,path_importer_cache 2.7 float_repr_style 3.1 int_info 3.2 abiflags,getswitchinterval,hash_info,setswitchinterval 3.3 base_exec_prefix,base_prefix,implementation,thread_info 3.4 getallocatedblocks 3.5 is_finalizing 3.6 get_asyncgen_hooks,getfilesystemencodeerrors,set_asyncgen_hooks 3.7 breakpointhook,get_coroutine_origin_tracking_depth,getandroidapilevel,set_coroutine_origin_tracking_depth 3.8 addaudithook,audit,pycache_prefix,unraisablehook 3.9 platlibdir 3.10 orig_argv,stdlib_module_names 3.11 exception 3.12 activate_stack_trampoline,deactivate_stack_trampoline,getunicodeinternedsize,is_stack_trampoline_active,last_exc 3.14 remote_exec
 sys.monitoring 3.12 DISABLE,MISSING,free_tool_id,get_events,get_local_events,get_tool,register_callback,restart_events,set_events,set_local_events,use_tool_id 3.14 clear_tool_id
@@ -423,8 +451,8 @@ sysconfig 2.7? get_config_h_filename,get_config_var,get_config_vars,get_makefile
 syslog 1.4? closelog,openlog,setlogmask,syslog 1.5 LOG_SYSLOG 1.5? LOG_AUTH,LOG_CRON,LOG_NEWS,LOG_UUCP
 tabnanny 1.6 NannyNag,check,filename_only,verbose 2.2 process_tokens
 tarfile 2.3 AREGTYPE,BLKTYPE,CHRTYPE,CONTTYPE,CompressionError,DIRTYPE,ExtractError,FIFOTYPE,GNUTYPE_LONGLINK,GNUTYPE_LONGNAME,GNUTYPE_SPARSE,LNKTYPE,REGTYPE,ReadError,SYMTYPE,StreamError,TarError,TarFile,TarInfo,is_tarfile,open 2.6 HeaderError
-tarfile.TarFile 2.5 extractall 2.6 pax_headers
-tarfile.TarInfo 2.6 frombuf,fromtarfile,pax_headers
+tarfile.TarFile 2.3 add,addfile,close,errorlevel,extract,extractfile,getmember,getmembers,getnames,gettarinfo,list,next,open 2.5 extractall 2.6 pax_headers
+tarfile.TarInfo 2.3 frombuf,isblk,ischr,isdev,isdir,isfifo,isfile,islnk,isreg,issym,tobuf 2.6 fromtarfile,pax_headers
 tempfile 1.0 gettempdir,gettempprefix,mktemp,tempdir 1.5 TemporaryFile 2.3 NamedTemporaryFile,mkdtemp,mkstemp 2.6 SpooledTemporaryFile 3.2 TemporaryDirectory 3.5 gettempdirb,gettempprefixb
 termios 1.3 tcdrain,tcflow,tcflush,tcgetattr,tcsendbreak,tcsetattr 3.11 tcgetwinsize,tcsetwinsize
 test.support 2.7 captured_stdout 2.7? ResourceDenied,TestFailed,findfile,is_jython,is_resource_enabled,requires,verbose 3.3 anticipate_failure,captured_stderr,captured_stdin,run_with_locale 3.4 SuppressCrashReport,load_package_tests 3.5 detect_api_mismatch 3.6 check__all__ 3.7 ALWAYS_EQ,HAVE_DOCSTRINGS,LARGEST,MAX_Py_ssize_t,MISSING_C_DOCSTRINGS,Matcher,PGO,PIPE_MAX_SIZE,SMALLEST,SOCK_MAX_SIZE,SaveSignals,TEST_DATA_DIR,TEST_HOME_DIR,TEST_HTTP_URL,TEST_SUPPORT_DIR,args_from_interpreter_flags,bigaddrspacetest,bigmemtest,calcobjsize,calcvobjsize,check_free_after_iterating,check_impl_detail,check_syntax_error,checksizeof,cpython_only,disable_faulthandler,disable_gc,gc_collect,get_attribute,get_original_stdout,impl_detail,is_android,max_memuse,missing_compiler_executable,no_tracing,open_urlresource,optim_args_from_interpreter_flags,patch,python_is_optimized,real_max_memuse,reap_children,record_original_stdout,refcount_test,requires_IEEE_754,requires_bz2,requires_docstrings,requires_freebsd_version,requires_gzip,requires_linux_version,requires_lzma,requires_mac_version,requires_resource,requires_zlib,run_in_subinterp,run_with_tz,set_memlimit,setswitchinterval,sortdict,swap_attr,swap_item,system_must_validate_cert,unix_shell,with_pymalloc 3.8 catch_unraisable_exception 3.9 INTERNET_TIMEOUT,LONG_TIMEOUT,LOOPBACK_TIMEOUT,NEVER_EQ,SHORT_TIMEOUT,print_warning,wait_process 3.10 check_disallow_instantiation,skip_if_broken_multiprocessing_synchronize 3.11 busy_retry,flush_std_streams,sleeping_retry 3.12 Py_DEBUG,get_pagesize,requires_limited_api 3.13 get_resource_value,requires_gil_enabled 3.14 is_apple,is_apple_mobile,is_emscripten,is_wasi,linked_to_musl,thread_unsafe
@@ -439,16 +467,16 @@ test.support.socket_helper 3.9 IPV6_ENABLED,bind_port,bind_unix_socket,find_unus
 test.support.threading_helper 3.10 join_thread,reap_threads,start_threads,threading_cleanup,threading_setup,wait_threads_exit 3.14 run_concurrently
 test.support.warnings_helper 3.10 WarningsRecorder,check_no_resource_warning,check_warnings
 textwrap 2.3 TextWrapper,dedent,fill,wrap 3.3 indent 3.4 shorten
-textwrap.TextWrapper 2.6 break_on_hyphens,drop_whitespace 3.3 tabsize 3.4 max_lines,placeholder
+textwrap.TextWrapper 2.3 fill,wrap 2.6 break_on_hyphens,drop_whitespace 3.3 tabsize 3.4 max_lines,placeholder
 threading 1.5 Condition,Event,Lock,RLock,Semaphore,Thread,enumerate 2.2 BoundedSemaphore,Timer 2.3 setprofile,settrace 2.4 local 2.5 stack_size 3.2 Barrier,TIMEOUT_MAX 3.3 get_ident 3.4 main_thread 3.8 excepthook,get_native_id 3.10 getprofile,gettrace 3.12 setprofile_all_threads,settrace_all_threads
 threading.Barrier 3.2 abort,broken,n_waiting,parties,reset,wait
 threading.Condition 3.2 wait_for 3.14 locked
 threading.Lock 3.7 locked
 threading.RLock 3.14 locked
-threading.Thread 2.6 daemon,ident,name 3.8 native_id
+threading.Thread 1.5 getName,isDaemon,join,run,setDaemon,setName,start 2.6 daemon,ident,name 3.8 native_id
 time 0.9 sleep,time 1.0 altzone,asctime,ctime,daylight,gmtime,localtime,mktime,timezone,tzname 1.3 strftime 1.5 strptime 2.2 struct_time 2.3 tzset 3.3 CLOCK_HIGHRES,CLOCK_MONOTONIC,CLOCK_MONOTONIC_RAW,CLOCK_PROCESS_CPUTIME_ID,CLOCK_REALTIME,CLOCK_THREAD_CPUTIME_ID,clock_getres,clock_gettime,clock_settime,get_clock_info,monotonic,perf_counter,process_time 3.7 CLOCK_BOOTTIME,CLOCK_PROF,CLOCK_UPTIME,clock_gettime_ns,clock_settime_ns,monotonic_ns,perf_counter_ns,process_time_ns,pthread_getcpuclockid,thread_time,thread_time_ns,time_ns 3.8 CLOCK_UPTIME_RAW 3.9 CLOCK_TAI 3.13 CLOCK_MONOTONIC_RAW_APPROX,CLOCK_UPTIME_RAW_APPROX
 timeit 2.3 Timer,timeit 2.6 repeat 2.7? default_timer
-timeit.Timer 3.6 autorange
+timeit.Timer 2.3 print_exc,repeat,timeit 3.6 autorange
 tkinter 3.4 EXCEPTION,READABLE,WRITABLE 3.13 ACTIVE,ALL,ANCHOR,ARC,BASELINE,BEVEL,BOTH,BOTTOM,BROWSE,BUTT,BaseWidget,BitmapImage,BooleanVar,Button,CASCADE,CENTER,CHAR,CHECKBUTTON,CHORD,COMMAND,CURRENT,CallWrapper,Canvas,Checkbutton,DISABLED,DOTBOX,DoubleVar,E,END,EW,EXTENDED,Entry,Event,EventType,FALSE,FIRST,FLAT,Frame,GROOVE,Grid,HIDDEN,HORIZONTAL,INSERT,INSIDE,Image,IntVar,LAST,LEFT,Label,LabelFrame,Listbox,MITER,MOVETO,MULTIPLE,Menu,Menubutton,Message,Misc,N,NE,NO,NONE,NORMAL,NS,NSEW,NUMERIC,NW,NoDefaultRoot,OFF,ON,OUTSIDE,OptionMenu,PAGES,PIESLICE,PROJECTING,Pack,PanedWindow,PhotoImage,Place,RADIOBUTTON,RAISED,RIDGE,RIGHT,ROUND,Radiobutton,S,SCROLL,SE,SEL,SEL_FIRST,SEL_LAST,SEPARATOR,SINGLE,SOLID,SUNKEN,SW,Scale,Scrollbar,Spinbox,StringVar,TOP,TRUE,TclError,Text,Toplevel,UNDERLINE,UNITS,VERTICAL,Variable,W,WORD,Widget,Wm,X,XView,Y,YES,YView,getboolean,getdouble,getint,image_names,image_types,mainloop
 tkinter.BaseWidget 3.13 destroy
 tkinter.BooleanVar 3.13 get,initialize,set
@@ -516,8 +544,8 @@ token 1.0 AMPER,CIRCUMFLEX,COLON,COMMA,DEDENT,DOT,ENDMARKER,EQEQUAL,EQUAL,ERRORT
 tokenize 1.5 TokenError,tokenize 2.2 generate_tokens 2.5 untokenize 3.2 open
 tomllib 3.11 TOMLDecodeError,load,loads
 trace 2.3 CoverageResults,Trace
-trace.CoverageResults 2.6? update,write_results
-trace.Trace 2.6? results
+trace.CoverageResults 2.3 update,write_results
+trace.Trace 2.3 results,run,runctx,runfunc
 traceback 1.1 extract_tb,print_exc,print_exception,print_last,print_tb 1.3 format_exception,format_exception_only,format_tb 1.4 extract_stack,format_list,format_stack,print_list,print_stack 1.5? tb_lineno 2.4 format_exc 3.4 clear_frames 3.5 FrameSummary,StackSummary,TracebackException,walk_stack,walk_tb
 traceback.StackSummary 3.5 extract,from_list 3.11 format_frame_summary
 traceback.TracebackException 3.5 exc_type,filename,format,format_exception_only,from_exception,lineno,msg,offset,stack,text 3.10 end_lineno,end_offset 3.11 exceptions,print 3.13 exc_type_str
@@ -542,9 +570,11 @@ typing.TypeVarTuple 3.13 has_default 3.14 evaluate_default
 unicodedata 1.6 bidirectional,category,combining,decimal,decomposition,digit,mirrored,numeric 2.1 lookup,name 2.3 normalize,unidata_version 2.4 east_asian_width 2.5 ucd_3_2_0 3.8 is_normalized
 unittest 2.1 FunctionTestCase,TestCase,TestLoader,TestResult,TestSuite,TextTestRunner,defaultTestLoader,main 2.7 TextTestResult,installHandler,registerResult,removeHandler,removeResult 2.7? SkipTest,expectedFailure,skip,skipIf,skipUnless 3.8 IsolatedAsyncioTestCase,addModuleCleanup,doModuleCleanups 3.11 enterModuleContext
 unittest.IsolatedAsyncioTestCase 3.8 asyncSetUp,asyncTearDown,run 3.13 loop_factory
-unittest.TestCase 2.7 addCleanup,addTypeEqualityFunc,assertDictEqual,assertGreater,assertGreaterEqual,assertIn,assertIs,assertIsInstance,assertIsNone,assertIsNot,assertIsNotNone,assertLess,assertLessEqual,assertListEqual,assertMultiLineEqual,assertNotIn,assertNotIsInstance,assertSequenceEqual,assertSetEqual,assertTupleEqual,doCleanups,longMessage,maxDiff,setUpClass,skipTest,tearDownClass 3.2 assertCountEqual,assertNotRegex,assertWarns,assertWarnsRegex 3.4 assertLogs,subTest 3.8 addClassCleanup,doClassCleanups 3.10 assertNoLogs 3.11 enterClassContext,enterContext 3.14 assertIsSubclass,assertNotEndsWith,assertNotHasAttr,assertNotIsSubclass,assertNotStartsWith
-unittest.TestLoader 2.7 discover 3.5 errors 3.7 testNamePatterns
-unittest.TestResult 2.7 buffer,failfast,skipped,startTestRun,stopTestRun 2.7? addExpectedFailure,addSkip,addUnexpectedSuccess,expectedFailures,shouldStop,unexpectedSuccesses 3.4 addSubTest 3.5 tb_locals 3.12 addDuration,collectedDurations
+unittest.TestCase 2.1 assertEqual,assertNotEqual,assertRaises,countTestCases,debug,defaultTestResult,fail,failureException,id,run,setUp,shortDescription,tearDown 2.3 assertAlmostEqual,assertNotAlmostEqual 2.4 assertFalse,assertTrue 2.7 addCleanup,addTypeEqualityFunc,assertDictEqual,assertGreater,assertGreaterEqual,assertIn,assertIs,assertIsInstance,assertIsNone,assertIsNot,assertIsNotNone,assertLess,assertLessEqual,assertListEqual,assertMultiLineEqual,assertNotIn,assertNotIsInstance,assertSequenceEqual,assertSetEqual,assertTupleEqual,doCleanups,longMessage,maxDiff,setUpClass,skipTest,tearDownClass 3.2 assertCountEqual,assertNotRegex,assertWarns,assertWarnsRegex 3.4 assertLogs,subTest 3.8 addClassCleanup,doClassCleanups 3.10 assertNoLogs 3.11 enterClassContext,enterContext 3.14 assertIsSubclass,assertNotEndsWith,assertNotHasAttr,assertNotIsSubclass,assertNotStartsWith
+unittest.TestLoader 2.1 getTestCaseNames,loadTestsFromModule,loadTestsFromName,loadTestsFromNames,loadTestsFromTestCase,sortTestMethodsUsing,suiteClass,testMethodPrefix 2.7 discover 3.5 errors 3.7 testNamePatterns
+unittest.TestResult 2.1 addError,addFailure,addSuccess,startTest,stop,stopTest,wasSuccessful 2.7 buffer,failfast,skipped,startTestRun,stopTestRun 2.7? addExpectedFailure,addSkip,addUnexpectedSuccess,expectedFailures,shouldStop,unexpectedSuccesses 3.4 addSubTest 3.5 tb_locals 3.12 addDuration,collectedDurations
+unittest.TestSuite 2.1 addTest,addTests,countTestCases,debug,run
+unittest.TextTestRunner 2.1 run
 unittest.mock 3.3 ANY,DEFAULT,FILTER_DIR,MagicMock,NonCallableMagicMock,NonCallableMock,PropertyMock,call,create_autospec,mock_open,patch,sentinel 3.7 seal 3.8 AsyncMock 3.13 ThreadingMock
 unittest.mock.AsyncMock 3.8 assert_any_await,assert_awaited,assert_awaited_once,assert_awaited_once_with,assert_awaited_with,assert_has_awaits,assert_not_awaited,await_args,await_args_list,await_count,reset_mock
 unittest.mock.Mock 3.5 assert_not_called 3.6 assert_called,assert_called_once
@@ -560,11 +590,13 @@ urllib.response.addinfourl 3.9 status
 urllib.robotparser.RobotFileParser 3.6 crawl_delay,request_rate 3.8 site_maps
 uuid 2.5 NAMESPACE_DNS,NAMESPACE_OID,NAMESPACE_URL,NAMESPACE_X500,RESERVED_FUTURE,RESERVED_MICROSOFT,RESERVED_NCS,RFC_4122,UUID,getnode,uuid1,uuid3,uuid4,uuid5 3.7 SafeUUID 3.14 MAX,NIL,uuid6,uuid7,uuid8
 uuid.SafeUUID 3.7 safe,unknown,unsafe
-uuid.UUID 3.7 is_safe
+uuid.UUID 2.5 bytes,bytes_le,clock_seq,clock_seq_hi_variant,clock_seq_low,fields,hex,node,time,time_hi_version,time_low,time_mid,urn,variant,version 3.7 is_safe
 venv 3.3 EnvBuilder,create
 venv.EnvBuilder 3.3 create,create_configuration,ensure_directories,install_scripts,post_setup,setup_python,setup_scripts 3.9 upgrade_dependencies 3.13 create_git_ignore_file
 warnings 2.1 filterwarnings,formatwarning,resetwarnings,showwarning,warn,warn_explicit 2.3 simplefilter 2.6 catch_warnings 3.13 deprecated
 wave 1.0 Error,Wave_read,Wave_write,open
+wave.Wave_read 1.0 close,getcompname,getcomptype,getframerate,getmark,getmarkers,getnchannels,getnframes,getparams,getsampwidth,readframes,rewind,setpos,tell
+wave.Wave_write 1.0 close,getcompname,getcomptype,getframerate,getnchannels,getnframes,getparams,getsampwidth,setcomptype,setframerate,setnchannels,setnframes,setparams,setsampwidth,tell,writeframes,writeframesraw
 weakref 2.1 CallableProxyType,ProxyType,ProxyTypes,ReferenceType,WeakKeyDictionary,WeakValueDictionary,getweakrefcount,getweakrefs,proxy,ref 2.7 WeakSet 3.4 WeakMethod,finalize
 weakref.WeakKeyDictionary 2.5 keyrefs
 weakref.WeakValueDictionary 2.5 valuerefs
@@ -597,7 +629,8 @@ xml.sax.xmlreader 2.0 AttributesImpl,AttributesNSImpl,IncrementalParser,InputSou
 zipapp 3.5 create_archive,get_interpreter
 zipfile 1.6 PyZipFile,ZIP_DEFLATED,ZIP_STORED,ZipFile,ZipInfo,is_zipfile 2.0? BadZipfile 2.5 LargeZipFile 3.2 BadZipFile 3.3 ZIP_BZIP2,ZIP_LZMA 3.8 Path 3.14 ZIP_ZSTANDARD
 zipfile.Path 3.8 exists,is_dir,is_file,iterdir,name,open,read_bytes,read_text 3.11 stem,suffix,suffixes
-zipfile.ZipFile 2.6 extract,extractall,open,setpassword 3.11 mkdir
+zipfile.PyZipFile 1.6 writepy
+zipfile.ZipFile 1.6 close,getinfo,infolist,namelist,printdir,read,testzip,write,writestr 2.6 extract,extractall,open,setpassword 3.11 mkdir
 zipfile.ZipInfo 3.6 from_file,is_dir
 zipimport 2.3 ZipImportError,zipimporter
 zipimport.zipimporter 3.1 get_filename 3.10 create_module,exec_module,find_spec,invalidate_caches

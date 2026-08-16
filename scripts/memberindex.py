@@ -41,7 +41,7 @@ for something regenerated a few times a year and checked by
 
 Rather more names are dropped than kept, and `index()` says why for each
 kind. 10024 go because the newest release no longer documents them,
-which is most of why the file is 83 KB.
+which is most of why the file is 91 KB.
 
 Usage:
 
@@ -404,18 +404,19 @@ def index() -> dict[str, dict[str, tuple[str, bool]]]:
 
     - 10024 the newest release no longer documents, since answering for
       them would be answering about a language this parser cannot read;
-    - 1963 `dating.py` refuses, because the sources contradict each
+    - 1442 `dating.py` refuses, because the sources contradict each
       other;
     - 168 in a module nothing here can read, see `UNREADABLE`;
-    - 1277 whose verdict rests on an inventory diff alone and cannot be
+    - 1246 whose verdict rests on an inventory diff alone and cannot be
       corroborated, see `_publish`.
 
-    The class tier accounts for most of the growth in all four, and for
-    the last two disproportionately: 1537 of the refusals and 558 of the
-    uncorroborated ones are class members, out of 4193 asked about.
-    A class member is the shape the sources agree about least, which is
-    why so few of them are published and why the ones that are had to be
-    argued for one rule at a time.
+    The class tier accounts for most of the growth in all four: 1016 of
+    the refusals and 524 of the uncorroborated ones are class members,
+    out of 4193 asked about. It used to account for far more. Teaching
+    `source.py` to read a class body took the class members it refuses
+    from 1537 to 1016, because a name already in the 2.6 inventory could
+    not be dated by anything until something read the tarballs one level
+    further in.
 
     A member dated older than its own owner takes the owner's date
     instead. It cannot be older, so the owner is the binding constraint,
