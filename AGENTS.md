@@ -313,6 +313,11 @@ It has to be asked for with the module imported, because `_ = unittest.TestCase.
 And its absence has to be guarded the way a module member's is rather than waved through the way a builtin's is: the argument that carries `dict.has_key` is that a builtin type is compiled in, so no library and no `Modules/Setup` line can hide a method of one, and a class in a module is only ever as available as its module.
 `_owned_by_a_builtin_type` is the one-line distinction, and `absence_is_real` reads a class method through the same `_imported_in` and `_ships_in` checks that `ssl.create_default_context` gets.
 
+Neither is exercised against a real build yet, because `interpreters.json` predates them and carries no dotted-owner `method` target.
+That also means `--check`'s removal direction, the one that catches the dataset going stale when Python drops something, says nothing about a class method: `removed()` returns `None` for a name with no mask.
+What covers the same ground meanwhile is `test_every_method_is_where_its_entry_says_it_is`, which asks the running interpreter and walks all eight of them, so a Python that removes one fails the build without needing Docker.
+The table wants rebuilding the next time somebody has an hour and a compiler.
+
 ### Removed syntax is searchable and never detectable
 
 A 3.14 parser cannot produce a node for `<>`, `print x`, a backtick or the `exec` statement, so there is nothing for a matcher to fire on.
