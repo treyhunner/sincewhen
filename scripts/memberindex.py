@@ -404,17 +404,17 @@ def index() -> dict[str, dict[str, tuple[str, bool]]]:
 
     - 10024 the newest release no longer documents, since answering for
       them would be answering about a language this parser cannot read;
-    - 1442 `dating.py` refuses, because the sources contradict each
+    - 1438 `dating.py` refuses, because the sources contradict each
       other;
     - 168 in a module nothing here can read, see `UNREADABLE`;
-    - 1246 whose verdict rests on an inventory diff alone and cannot be
+    - 1245 whose verdict rests on an inventory diff alone and cannot be
       corroborated, see `_publish`.
 
-    The class tier accounts for most of the growth in all four: 1016 of
-    the refusals and 524 of the uncorroborated ones are class members,
+    The class tier accounts for most of the growth in all four: 1012 of
+    the refusals and 523 of the uncorroborated ones are class members,
     out of 4193 asked about. It used to account for far more. Teaching
     `source.py` to read a class body took the class members it refuses
-    from 1537 to 1016, because a name already in the 2.6 inventory could
+    from 1537 to 1012, because a name already in the 2.6 inventory could
     not be dated by anything until something read the tarballs one level
     further in.
 

@@ -145,6 +145,12 @@ PY_BINDING = re.compile(
 # binding is the last word either way.
 IMPORTED = re.compile(r"(?:\w+[ \t]+as[ \t]+)?(?P<name>[A-Za-z_]\w*)")
 
+# The quote that opens a string literal, after any prefix a release
+# spells: `r`, `u`, `b`, `ur`, `rb` and their cases. The prefix is part
+# of the match so that `r'...'` is recognised as a string and not as the
+# name `r` followed by one.
+STRING_START = re.compile(r"[rRuUbB]{0,2}('''|\"\"\"|'|\")")
+
 # A class statement at the top level of a Python module, and whatever it
 # inherits from. Only the top level: a nested class is `Outer.Inner` and
 # a member of one is three levels deep, which is further than the index
@@ -386,6 +392,81 @@ def _python_module_members(version: str) -> dict[str, frozenset[str]]:
     }
 
 
+def code_only(text: str) -> str:
+    """`text` with every string literal and comment blanked out.
+
+    Same length and same line structure, so every offset and every
+    indent still means what it did; only the contents are gone.
+
+    Without this the reader cannot tell code from prose, and a class
+    docstring is full of things that look like code. Three separate
+    failures came out of that, and all three are in the corpus:
+
+    - `SimpleXMLRPCServer`'s module docstring shows a `class MyFuncs:`
+      example, which registered as a class with members. That is
+      AGENTS.md's "prose is not a heading" one level down.
+    - `zipfile.ZipFile`'s docstring writes `z = ZipFile(...)`, which
+      registered as a member called `z`. Presence is believed with no
+      guard, so the first such name to collide with a real one would
+      date it too old.
+    - `ftplib.FTP`'s docstring closes with `'''` in column zero, which
+      ended the class body before a single method: all 38 of them
+      invisible. `random.Random` lost five to `## ----` separators in
+      column zero for the same reason, since a comment ends a body just
+      as convincingly.
+
+    Scanned in one pass rather than matched with a regex, because
+    strings and comments have to be recognised in the same sweep. A
+    `#` inside a string does not start a comment, and a `'''` inside a
+    comment does not start a string, and no ordering of two independent
+    patterns gets both right.
+    """
+    out: list[str] = []
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char == "#":
+            end = text.find("\n", index)
+            end = len(text) if end < 0 else end
+            out.append(" " * (end - index))
+            index = end
+            continue
+        match = STRING_START.match(text, index)
+        if match is None:
+            out.append(char)
+            index += 1
+            continue
+        quote = match.group(1)
+        end = _string_ends(text, match.end(), quote)
+        out.append(
+            "".join(" " if c != "\n" else "\n" for c in text[index:end]),
+        )
+        index = end
+    return "".join(out)
+
+
+def _string_ends(text: str, start: int, quote: str) -> int:
+    """Where the literal opened by `quote` at `start` finishes.
+
+    A single-quoted string cannot cross a newline, so an unterminated
+    one ends at the line break rather than running to the end of the
+    file. That matters for an apostrophe in a comment this has not
+    reached yet, and for the odd release with a syntax error in a file
+    nothing imports.
+    """
+    index = start
+    while index < len(text):
+        if text[index] == "\\":
+            index += 2
+            continue
+        if text.startswith(quote, index):
+            return index + len(quote)
+        if text[index] == "\n" and len(quote) == 1:
+            return index
+        index += 1
+    return len(text)
+
+
 def _body_of(text: str, header: re.Match) -> str:
     """One class statement's body, as text."""
     rest = text[header.end() :]
@@ -437,18 +518,39 @@ def _python_classes(version: str) -> dict[str, tuple[str, frozenset[str]]]:
     Read from `Lib/*.py` with a regex rather than with `ast`, for the
     reason the rest of this file is regexes: a 3.14 parser cannot read
     a 1.5 tarball, where `print` is a statement and `except E, e:` is
-    how exceptions are caught.
+    how exceptions are caught. `code_only` is what makes that safe.
+
+    A name defined twice keeps the union of what both bodies bind and
+    is recorded as inheriting *something*, whichever of them does.
+    Presence is additive and costs nothing, and the closed reading is
+    the one that must not be won by accident: a second definition with
+    no bases beating a first that has some would turn "no account of
+    this class" into "absence is proof" and manufacture a hard date.
+    Refusing to close is the direction that cannot invent one.
     """
     found: dict[str, tuple[str, frozenset[str]]] = {}
     for module, path in module_paths(version).items():
-        text = _read(path)
+        text = code_only(_read(path))
         for header in CLASS_HEADER.finditer(text):
+            name = f"{module}.{header['name']}"
             bases = (header["bases"] or "").strip()
-            found[f"{module}.{header['name']}"] = (
-                bases,
-                _class_bound(_body_of(text, header)),
-            )
+            members = _class_bound(_body_of(text, header))
+            if name in found:
+                seen_bases, seen_members = found[name]
+                bases = bases if not _inherits_nothing(bases) else seen_bases
+                members = members | seen_members
+            found[name] = (bases, members)
     return found
+
+
+def _inherits_nothing(bases: str) -> bool:
+    """Whether a class body is the whole account of the class.
+
+    Named rather than inlined so that the rule the entire class-member
+    absence argument rests on is one thing, tested directly, rather
+    than an expression a test can restate and agree with itself about.
+    """
+    return all(base.strip() in NO_INHERITANCE for base in bases.split(","))
 
 
 @cache
@@ -473,7 +575,7 @@ def closed_classes(version: str) -> frozenset[str]:
     return frozenset(
         owner
         for owner, (bases, _) in _python_classes(version).items()
-        if all(base.strip() in NO_INHERITANCE for base in bases.split(","))
+        if _inherits_nothing(bases)
     )
 
 

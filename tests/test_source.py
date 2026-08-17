@@ -12,7 +12,14 @@ where `print` is a statement and exceptions are caught `except E, e:`.
 """
 
 import pytest
-from source import CLASS_HEADER, NO_INHERITANCE, _body_of, _class_bound
+import source
+from source import (
+    CLASS_HEADER,
+    _body_of,
+    _class_bound,
+    _inherits_nothing,
+    code_only,
+)
 
 
 def members(body):
@@ -112,7 +119,15 @@ def test_the_bases_are_read_off_the_header(header, bases):
 
 @pytest.mark.parametrize(
     "bases, closed",
-    [("", True), ("object", True), ("Base", False), ("One, Two", False)],
+    [
+        ("", True),
+        ("object", True),
+        (" object ", True),
+        ("Base", False),
+        ("One, Two", False),
+        ("Base, object", False),
+        ("object, Base", False),
+    ],
 )
 def test_only_a_class_that_inherits_nothing_is_closed(bases, closed):
     """`open_modules` one level down, and the same argument decides it.
@@ -121,6 +136,111 @@ def test_only_a_class_that_inherits_nothing_is_closed(bases, closed):
     absence there says nothing. `unittest.TestCase` inherits nothing in
     every release from 2.1 to 2.5, which is what lets 2.2 prove it
     lacked `assertAlmostEqual`.
+
+    The production predicate is called rather than restated. Restating
+    it made this pass for any implementation, `any` as readily as
+    `all`, and `any` would read `class Foo(Base, object):` as closed
+    and take an absence in a subclass's body for proof.
     """
-    inherits_nothing = all(base.strip() in NO_INHERITANCE for base in bases.split(","))
-    assert inherits_nothing is closed
+    assert _inherits_nothing(bases) is closed
+
+
+def test_closed_classes_is_the_ones_that_inherit_nothing(monkeypatch):
+    """And that `closed_classes` is wired to that predicate at all."""
+    catalogue = {
+        "m.Plain": ("", frozenset()),
+        "m.Object": ("object", frozenset()),
+        "m.Derived": ("Base", frozenset()),
+        "m.Multiple": ("Base, object", frozenset()),
+    }
+    monkeypatch.setattr(source, "_python_classes", lambda version: catalogue)
+    source.closed_classes.cache_clear()
+    try:
+        assert source.closed_classes("2.5") == {"m.Plain", "m.Object"}
+    finally:
+        source.closed_classes.cache_clear()
+
+
+def unchanged_shape(text):
+    """Whether blanking left every offset and every line where it was."""
+    blanked = code_only(text)
+    return len(blanked) == len(text) and [
+        len(line) for line in blanked.splitlines()
+    ] == [len(line) for line in text.splitlines()]
+
+
+def test_a_comment_is_blanked_without_moving_anything():
+    text = "x = 1  # note\ny = 2\n"
+    assert unchanged_shape(text)
+    assert code_only(text).splitlines() == ["x = 1        ", "y = 2"]
+
+
+def test_a_string_is_blanked_and_keeps_its_line_count():
+    text = 'a = 1\n"""\nclass Fake:\n    def nope(self):\n"""\nb = 2\n'
+    blanked = code_only(text)
+    assert unchanged_shape(text)
+    assert "class Fake" not in blanked
+    assert blanked.splitlines()[0] == "a = 1"
+    assert blanked.splitlines()[-1] == "b = 2"
+    assert not any(line.strip() for line in blanked.splitlines()[1:5])
+
+
+def test_a_hash_inside_a_string_does_not_start_a_comment():
+    assert code_only('x = "a # b"\ny = 2\n').splitlines() == ["x =        ", "y = 2"]
+
+
+def test_a_quote_inside_a_comment_does_not_start_a_string():
+    """`# don't` would otherwise swallow the rest of the file."""
+    assert code_only("# don't\nx = 1\n").splitlines() == ["       ", "x = 1"]
+
+
+def test_a_triple_quote_inside_a_comment_does_not_start_a_string():
+    text = "# use ''' for docstrings\nclass Spam:\n    def one(self):\n        pass\n"
+    assert bodies(code_only(text)) == {"Spam": ("", {"one"})}
+
+
+def test_a_prefixed_string_is_still_a_string():
+    assert code_only("x = r'a#b'\ny = 2\n").splitlines() == ["x =       ", "y = 2"]
+
+
+def test_an_escaped_quote_does_not_end_a_string():
+    assert code_only("x = 'a\\'b'\ny = 2\n").splitlines() == ["x =       ", "y = 2"]
+
+
+def test_an_unterminated_single_quote_stops_at_the_line_end():
+    """Otherwise one stray quote blanks everything after it."""
+    assert (
+        code_only("x = 'oops\nclass Spam:\n    pass\n").splitlines()[1] == "class Spam:"
+    )
+
+
+def test_a_docstring_example_is_not_a_class():
+    """`SimpleXMLRPCServer`'s module docstring shows `class MyFuncs:`.
+
+    "Prose is not a heading", one level down from the rule AGENTS.md
+    already records for the doc archives.
+    """
+    text = '"""\nclass MyFuncs:\n    def div(self): pass\n"""\n\n\nclass Real:\n    def one(self):\n        pass\n'
+    assert bodies(code_only(text)) == {"Real": ("", {"one"})}
+
+
+def test_a_docstring_that_closes_in_column_zero_does_not_end_the_body():
+    """`ftplib.FTP` lost all 38 of its methods to this."""
+    text = "class Spam:\n    '''\n    Usage:\n'''\n    def one(self):\n        pass\n"
+    assert bodies(code_only(text)) == {"Spam": ("", {"one"})}
+
+
+def test_a_comment_in_column_zero_does_not_end_the_body():
+    """`random.Random` lost five methods to `## ----` separators."""
+    text = "class Spam:\n    def one(self):\n        pass\n## ---- section ----\n    def two(self):\n        pass\n"
+    assert bodies(code_only(text)) == {"Spam": ("", {"one", "two"})}
+
+
+def test_an_assignment_in_a_docstring_is_not_a_member():
+    """`zipfile.ZipFile`'s docstring writes `z = ZipFile(...)`.
+
+    Presence is believed with no guard at all, so an invented member is
+    a date that is too old the first time one collides with a real name.
+    """
+    text = "class Spam:\n    '''Usage:\n\n    z = Spam()\n    '''\n    def one(self):\n        pass\n"
+    assert bodies(code_only(text)) == {"Spam": ("", {"one"})}

@@ -194,7 +194,7 @@ fileinput 1.5 FileInput,close,filelineno,filename,input,isfirstline,isstdin,line
 fnmatch 0.9 fnmatch 1.0 translate 1.2 fnmatchcase 2.2 filter 3.14 filterfalse
 fractions.Fraction 3.8 as_integer_ratio 3.12 is_integer 3.14 from_number
 ftplib 1.0 FTP,all_errors,error_perm,error_proto,error_reply,error_temp 2.7 FTP_TLS
-ftplib.FTP 1.0 abort,close,connect,cwd,dir,getwelcome,login,mkd,nlst,pwd,quit,rename,retrbinary,retrlines,sendcmd,set_debuglevel,size,storbinary,storlines,transfercmd,voidcmd 3.3 mlsd
+ftplib.FTP 1.0 abort,close,connect,cwd,dir,getwelcome,login,mkd,nlst,pwd,quit,rename,retrbinary,retrlines,sendcmd,set_debuglevel,size,storbinary,storlines,transfercmd,voidcmd 1.4 set_pasv 1.5 ntransfercmd,rmd 1.5? delete 3.3 mlsd
 ftplib.FTP_TLS 2.7? auth,prot_c,prot_p,ssl_version 3.3 ccc
 functools 2.5 partial,update_wrapper,wraps 2.6 reduce 2.7 cmp_to_key,total_ordering 3.2 lru_cache 3.4 partialmethod,singledispatch 3.8 cached_property,singledispatchmethod 3.9 cache 3.14 Placeholder
 gc 2.0 DEBUG_COLLECTABLE,DEBUG_LEAK,DEBUG_SAVEALL,DEBUG_STATS,DEBUG_UNCOLLECTABLE,collect,disable,enable,garbage,get_debug,get_threshold,isenabled,set_debug,set_threshold 2.2 get_objects,get_referrers 2.3 get_referents 2.5 get_count 2.7 is_tracked 3.3 callbacks 3.4 get_stats 3.7 freeze,get_freeze_count,unfreeze 3.9 is_finalized
@@ -212,7 +212,7 @@ gzip.GzipFile 3.2 peek
 hashlib 2.7 algorithms_available,algorithms_guaranteed 3.4 pbkdf2_hmac 3.6 blake2b,blake2s,sha3_224,sha3_256,sha3_384,sha3_512,shake_128,shake_256 3.11 file_digest
 heapq 2.3 heapify,heappop,heappush,heapreplace 2.4 nlargest,nsmallest 2.6 heappushpop,merge 3.14 heapify_max,heappop_max,heappush_max,heappushpop_max,heapreplace_max
 hmac 2.2 HMAC,new 3.3 compare_digest 3.7 digest
-hmac.HMAC 2.7? copy,digest,hexdigest,update 3.4 block_size,name
+hmac.HMAC 2.2 copy,digest,hexdigest,update 3.4 block_size,name
 html 3.2 escape 3.4 unescape
 html.entities 3.3 html5
 http 3.5 HTTPStatus 3.11 HTTPMethod
@@ -222,7 +222,7 @@ http.client.HTTPResponse 3.3 readinto
 http.server 3.7 ThreadingHTTPServer 3.14 HTTPSServer,ThreadingHTTPSServer
 http.server.BaseHTTPRequestHandler 3.2 handle_expect_100,send_response_only 3.3 flush_headers
 imaplib 1.5 IMAP4,Int2AP,Internaldate2tuple,ParseFlags,Time2Internaldate 2.3 IMAP4_SSL,IMAP4_stream
-imaplib.IMAP4 1.5 abort,error,readonly 1.6? append,authenticate,check,close,copy,create,delete,expunge,fetch,list,login,logout,lsub,noop,open,partial,recent,rename,response,search,select,socket,status,store,subscribe,uid,unsubscribe,xatom 2.2 getacl,namespace,setacl,shutdown,sort 2.2? read,readline,send 2.3 getquota,getquotaroot,login_cram_md5,proxyauth,setquota 2.4 deleteacl,myrights,thread 2.5 getannotation,setannotation 3.2 starttls 3.5 enable,utf8_enabled 3.9 unselect 3.14 idle
+imaplib.IMAP4 1.5 abort,append,authenticate,check,close,copy,create,delete,error,expunge,fetch,list,login,logout,lsub,noop,open,partial,readonly,recent,rename,response,search,select,socket,status,store,subscribe,uid,unsubscribe,xatom 2.2 getacl,namespace,setacl,shutdown,sort 2.2? read,readline,send 2.3 getquota,getquotaroot,login_cram_md5,proxyauth,setquota 2.4 deleteacl,myrights,thread 2.5 getannotation,setannotation 3.2 starttls 3.5 enable,utf8_enabled 3.9 unselect 3.14 idle
 importlib 2.7 import_module 3.3 invalidate_caches 3.4 reload
 importlib.abc 3.1 InspectLoader,Loader,ResourceLoader 3.2 ExecutionLoader,SourceLoader 3.3 FileLoader,MetaPathFinder,PathEntryFinder
 importlib.abc.ExecutionLoader 3.2 get_filename
@@ -376,7 +376,7 @@ queue.Queue 3.13 shutdown
 queue.SimpleQueue 3.7 empty,get,get_nowait,put,put_nowait,qsize
 quopri 1.3 decode,encode 2.2 decodestring,encodestring
 random 1.1 betavariate,choice,expovariate,gammavariate,gauss,lognormvariate,normalvariate,randint,random,uniform,vonmisesvariate 1.5 paretovariate,randrange,seed,weibullvariate 1.6 shuffle 2.1 getstate,setstate 2.1? Random 2.3 sample 2.4 SystemRandom,getrandbits 2.6 triangular 3.6 choices 3.9 randbytes 3.12 binomialvariate
-random.Random 2.3? getstate,seed,setstate
+random.Random 2.1? getstate,random,seed,setstate
 re 1.5 DOTALL,I,IGNORECASE,L,LOCALE,M,MULTILINE,S,VERBOSE,X,compile,escape,findall,match,search,split,sub,subn 1.6 UNICODE 2.0 U 2.5? DEBUG,purge 3.4 fullmatch 3.6 RegexFlag 3.11 NOFLAG 3.13 PatternError
 re.PatternError 3.13 colno,lineno,msg,pattern,pos
 readline 2.0 get_begidx,get_completer_delims,get_endidx,get_history_length,get_line_buffer,insert_text,parse_and_bind,read_history_file,read_init_file,set_completer,set_completer_delims,set_history_length,write_history_file 2.2 add_history,set_startup_hook 2.2? set_pre_input_hook 2.3 get_completer,get_current_history_length,get_history_item,redisplay 2.4 clear_history,remove_history_item,replace_history_item 2.6 get_completion_type,set_completion_display_matches_hook 3.5 append_history_file 3.6 set_auto_history 3.13 backend
