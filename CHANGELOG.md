@@ -11,6 +11,11 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ### Dataset
 
+- **`x = yield value` is 2.5, where it read as 2.2.**
+  PEP 342 made `yield` an expression, and the dataset had only the 2.2 entry for the statement, so every `Yield` node answered 2.2 and any code that used the value a generator hands back had its floor understated by three releases.
+  The grammar settles it: 2.4 has `yield_stmt: 'yield' testlist` and nothing else mentions yield, and 2.5 adds `yield_expr` and rewrites `yield_stmt` as a wrapper around it.
+  Both entries fire for the expression form, which is two true statements about one line, and the newer one sets the floor.
+  This is also the beat the async story turns on, and the reason the README can now tell that arc: a 2.2 generator could only hand values out, and receiving one is what `send()`, `yield from` and everything after them are built on.
 - **The member index reaches inside a class.**
   An owner is now a module or a class in one, so `unittest.TestCase.assertNotEndsWith`, `pathlib.Path.walk` and `datetime.date.fromisoformat` have answers where they had none at all.
   2,658 class members join 3,918 module members, and the file goes from 48 KB to 91 KB.
@@ -49,6 +54,10 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
   One hit now prints bare, several are introduced with "is a member of:", and "Did you mean one of these?" is kept for the branch that really is guessing at a spelling, which is a misspelled module like `suprocess.Popen`.
 - **`--json` search results name an `owner` where they named a `module`.**
   The field holds a class as often as a module now, and `"module": "unittest.TestCase"` would be false.
+- **A check knows what its node hangs off.**
+  A matcher predicate was handed a node and the names the module binds, which is everything a node can be asked about itself and nothing about where it sits.
+  `ast` records no link back up, and the same node can mean two things: a `Yield` is the 2.2 statement directly under an `Expr` and the 2.5 expression everywhere else.
+  The pair is now a `Context`, so the parent is there for the one check that reads it, and `yield (yield x)` gets both readings on one line rather than whichever the coarser question would have picked.
 
 ### Documentation
 

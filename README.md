@@ -136,7 +136,7 @@ A search that answers from the member index emits member records, which carry `o
 
 ## History you can look up
 
-Dating 1,884 features against seven independent sources turns up a lot of history that is easy to misremember, and nearly all of it is one search away:
+Dating 1,885 features against seven independent sources turns up a lot of history that is easy to misremember, and nearly all of it is one search away:
 
 ```console
 $ sincewhen --search sorted
@@ -170,6 +170,13 @@ Tuples were the answer in 1991, but Python has added new answers since: `collect
 `os.system` is from 1997 (1.5).
 `subprocess.Popen` arrived in 2004 (2.4) with the stated aim of replacing it, `subprocess.check_output` in 2010 (2.7), and `subprocess.run` in 2015 (3.5).
 `os.system` is still there in Python 3.14.
+
+**Async.**
+This one is twenty years long and each beat is built on the one before it, rather than replacing it.
+Generator functions arrived in 2001 (2.2) and could only hand values out.
+`yield` became an expression in 2006 (2.5), which is what let a generator take one back, and everything after it rests on that.
+Then `yield from` in 2012 (3.3), `asyncio` in 2014 (3.4), `async` and `await` in 2015 (3.5), asynchronous generators and comprehensions in 2016 (3.6), `asyncio.run` in 2018 (3.7), and `aiter` and `anext` in 2021 (3.10).
+`sincewhen --search yield` prints the first three in order.
 
 ### Other surprising stories
 

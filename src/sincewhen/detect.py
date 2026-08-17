@@ -23,6 +23,22 @@ class Detection:
         return self.feature.added
 
 
+@dataclass(frozen=True)
+class Context:
+    """What a check knows besides the node it was handed.
+
+    Two questions come up that a node cannot answer about itself. What
+    the module binds, so a feature keyed on a builtin can tell a real
+    use from a shadowed one. And what the node hangs off, because `ast`
+    carries no link back up and the same node means different things in
+    different places: a `Yield` is the 2.2 statement under an `Expr` and
+    the 2.5 expression everywhere else.
+    """
+
+    bound_names: frozenset[str]
+    parent: ast.AST | None
+
+
 # Containers that PEP 585 made subscriptable in 3.9. Subscripting any
 # of these names is either the new generic syntax or a variable that
 # shadows the builtin, which is why the check needs to know what the
@@ -63,12 +79,12 @@ CONSTANT_TYPES: dict[type, str] = {
 }
 
 
-def _has_none_key(node: ast.Dict, _bound: frozenset[str]) -> bool:
+def _has_none_key(node: ast.Dict, _context: Context) -> bool:
     """A `None` key means dict unpacking, as in `{**a}`."""
     return any(key is None for key in node.keys)
 
 
-def _has_dict_items(node: ast.Dict, _bound: frozenset[str]) -> bool:
+def _has_dict_items(node: ast.Dict, _context: Context) -> bool:
     """`{'k': 1}`, a dict display with something between the braces.
 
     The empty display is as old as Python and the pairs are not: 0.9.1
@@ -83,7 +99,7 @@ def _has_dict_items(node: ast.Dict, _bound: frozenset[str]) -> bool:
 
 
 def _has_starred_element(
-    node: ast.List | ast.Tuple | ast.Set, _bound: frozenset[str]
+    node: ast.List | ast.Tuple | ast.Set, _context: Context
 ) -> bool:
     """Unpacking into a literal, as in `[*a]`.
 
@@ -95,7 +111,7 @@ def _has_starred_element(
     return any(isinstance(element, ast.Starred) for element in node.elts)
 
 
-def _has_starred_target(node: ast.List | ast.Tuple, _bound: frozenset[str]) -> bool:
+def _has_starred_target(node: ast.List | ast.Tuple, _context: Context) -> bool:
     """Extended unpacking, as in `a, *rest = values`."""
     if isinstance(node.ctx, ast.Load):
         return False
@@ -104,12 +120,12 @@ def _has_starred_target(node: ast.List | ast.Tuple, _bound: frozenset[str]) -> b
 
 def _has_async_comprehension(
     node: ast.ListComp | ast.SetComp | ast.DictComp | ast.GeneratorExp,
-    _bound: frozenset[str],
+    _context: Context,
 ) -> bool:
     return any(generator.is_async for generator in node.generators)
 
 
-def _has_multiple_unpackings(node: ast.Call, _bound: frozenset[str]) -> bool:
+def _has_multiple_unpackings(node: ast.Call, _context: Context) -> bool:
     """More than one unpacking in a call, as in `f(*a, *b)`.
 
     A single `f(*a)` has always been legal, so only the second one
@@ -120,7 +136,7 @@ def _has_multiple_unpackings(node: ast.Call, _bound: frozenset[str]) -> bool:
     return starred > 1 or doubled > 1
 
 
-def _has_call_unpacking(node: ast.Call, _bound: frozenset[str]) -> bool:
+def _has_call_unpacking(node: ast.Call, _context: Context) -> bool:
     """`f(*args)` or `f(**kwargs)`, unpacking at a call site.
 
     Both spellings arrived in the same 1.6 grammar line, so they are one
@@ -137,7 +153,7 @@ def _has_call_unpacking(node: ast.Call, _bound: frozenset[str]) -> bool:
     )
 
 
-def _has_equality(node: ast.Compare, _bound: frozenset[str]) -> bool:
+def _has_equality(node: ast.Compare, _context: Context) -> bool:
     """`a == b`, which is younger than Python rather than as old as it.
 
     0.9.1 spelled equality `=`, and could without ambiguity, because
@@ -151,7 +167,7 @@ def _has_equality(node: ast.Compare, _bound: frozenset[str]) -> bool:
     return any(isinstance(operator, ast.Eq) for operator in node.ops)
 
 
-def _has_containment(node: ast.Compare, _bound: frozenset[str]) -> bool:
+def _has_containment(node: ast.Compare, _context: Context) -> bool:
     """`x in y` or `x not in y`, both in the 0.9.1 grammar.
 
     The operator is all this can see, and the operator is the only part
@@ -166,7 +182,7 @@ def _has_containment(node: ast.Compare, _bound: frozenset[str]) -> bool:
     return any(isinstance(operator, ast.In | ast.NotIn) for operator in node.ops)
 
 
-def _has_tuple_target(node: ast.Tuple | ast.List, _bound: frozenset[str]) -> bool:
+def _has_tuple_target(node: ast.Tuple | ast.List, _context: Context) -> bool:
     """A comma-separated assignment target, as in `a, b = 1, 2`.
 
     Store context is what makes this unpacking rather than a display:
@@ -183,7 +199,7 @@ def _has_tuple_target(node: ast.Tuple | ast.List, _bound: frozenset[str]) -> boo
     return isinstance(node.ctx, ast.Store)
 
 
-def _has_inequality(node: ast.Compare, _bound: frozenset[str]) -> bool:
+def _has_inequality(node: ast.Compare, _context: Context) -> bool:
     """`a != b`, which arrived in 1.0 alongside `<>`.
 
     Only `!=` is detectable, and not because it is the survivor: `<>`
@@ -194,7 +210,7 @@ def _has_inequality(node: ast.Compare, _bound: frozenset[str]) -> bool:
     return any(isinstance(operator, ast.NotEq) for operator in node.ops)
 
 
-def _is_async_generator(node: ast.AsyncFunctionDef, _bound: frozenset[str]) -> bool:
+def _is_async_generator(node: ast.AsyncFunctionDef, _context: Context) -> bool:
     """An `async def` that yields, which needed 3.6.
 
     Nested functions are skipped, since a plain generator defined inside
@@ -216,28 +232,28 @@ def _own_body(node: ast.AST):
         yield from _own_body(child)
 
 
-def _is_builtin_generic(node: ast.Subscript, bound: frozenset[str]) -> bool:
+def _is_builtin_generic(node: ast.Subscript, context: Context) -> bool:
     """Subscripting a builtin container, as in `list[int]` (PEP 585)."""
     return (
         isinstance(node.value, ast.Name)
         and node.value.id in PEP_585_GENERICS
-        and node.value.id not in bound
+        and node.value.id not in context.bound_names
     )
 
 
-def _is_zero_argument_super(node: ast.Call, bound: frozenset[str]) -> bool:
+def _is_zero_argument_super(node: ast.Call, context: Context) -> bool:
     """`super()` with no arguments, which needs the 3.0 compiler help."""
     return (
         isinstance(node.func, ast.Name)
         and node.func.id == "super"
-        and "super" not in bound
+        and "super" not in context.bound_names
         and not node.args
         and not node.keywords
     )
 
 
 def _has_complex_decorator(
-    node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef, _bound: frozenset[str]
+    node: ast.FunctionDef | ast.AsyncFunctionDef | ast.ClassDef, _context: Context
 ) -> bool:
     """A decorator that the pre-3.9 grammar would have rejected.
 
@@ -259,39 +275,39 @@ def _is_dotted_name(node: ast.expr) -> bool:
     return isinstance(node, ast.Name)
 
 
-def _has_except_and_finally(node: ast.Try, _bound: frozenset[str]) -> bool:
+def _has_except_and_finally(node: ast.Try, _context: Context) -> bool:
     """One statement with both `except` and `finally`, unified in 2.5."""
     return bool(node.handlers and node.finalbody)
 
 
 def _has_several_context_managers(
-    node: ast.With | ast.AsyncWith, _bound: frozenset[str]
+    node: ast.With | ast.AsyncWith, _context: Context
 ) -> bool:
     """`with a, b:` rather than two nested `with` statements."""
     return len(node.items) > 1
 
 
-def _has_metaclass_keyword(node: ast.ClassDef, _bound: frozenset[str]) -> bool:
+def _has_metaclass_keyword(node: ast.ClassDef, _context: Context) -> bool:
     """`class C(metaclass=M)`, which replaced `__metaclass__` in 3.0."""
     return any(keyword.arg == "metaclass" for keyword in node.keywords)
 
 
-def _has_named_handler(node: ast.ExceptHandler, _bound: frozenset[str]) -> bool:
+def _has_named_handler(node: ast.ExceptHandler, _context: Context) -> bool:
     """`except E as name`, the spelling that replaced `except E, name`."""
     return node.name is not None
 
 
-def _has_cause(node: ast.Raise, _bound: frozenset[str]) -> bool:
+def _has_cause(node: ast.Raise, _context: Context) -> bool:
     """`raise X from Y`, which is exception chaining."""
     return node.cause is not None
 
 
-def _is_bytes(node: ast.Constant, _bound: frozenset[str]) -> bool:
+def _is_bytes(node: ast.Constant, _context: Context) -> bool:
     """A `b"..."` literal."""
     return isinstance(node.value, bytes)
 
 
-def _has_starred_subscript(node: ast.Subscript, _bound: frozenset[str]) -> bool:
+def _has_starred_subscript(node: ast.Subscript, _context: Context) -> bool:
     """Unpacking inside a subscript, as in `tuple[*Ts]` (PEP 646).
 
     A starred subscript is always parsed into a tuple, even when it is
@@ -303,12 +319,36 @@ def _has_starred_subscript(node: ast.Subscript, _bound: frozenset[str]) -> bool:
     )
 
 
+def _is_yield_expression(_node: ast.Yield, context: Context) -> bool:
+    """`x = yield value`, a `yield` whose own value is used (PEP 342).
+
+    2.2's `yield` is a statement and nothing else. `yield_stmt: 'yield'
+    testlist` is the whole of it, so a generator of that era could hand
+    values out and had no way at all to receive one. 2.5 added
+    `yield_expr` and left `yield_stmt: yield_expr` behind as a wrapper,
+    which is what `send()` needs and what every later beat of the async
+    story is built on.
+
+    A statement `yield` is the direct value of an `Expr` and nothing
+    else is, so the parent is the whole of the distinction. Both
+    readings can meet on one line: in `yield (yield x)` the outer
+    `yield` is a statement and the inner one is an expression, and only
+    the inner one is claimed here.
+
+    The 2.2 entry still fires either way, since both spellings are a
+    generator function. Reporting both for `x = yield value` is two true
+    statements about one line, and the newer one sets the floor.
+    """
+    return not isinstance(context.parent, ast.Expr)
+
+
 # Checks are dispatched by name from the dataset, so the node type is
 # only known at runtime. Each predicate still annotates the node types
 # it actually accepts; `Any` here is the dynamic-dispatch boundary.
-# Every check also receives the names the module binds, so that a
-# feature keyed on a builtin can tell a real use from a shadowed one.
-CHECKS: dict[str, Callable[[Any, frozenset[str]], bool]] = {
+# Every check also receives a `Context`, for the two questions a node
+# cannot answer about itself: what the module binds, and what the node
+# hangs off.
+CHECKS: dict[str, Callable[[Any, Context], bool]] = {
     "has_none_key": _has_none_key,
     "has_dict_items": _has_dict_items,
     "has_starred_element": _has_starred_element,
@@ -331,6 +371,7 @@ CHECKS: dict[str, Callable[[Any, frozenset[str]], bool]] = {
     "has_cause": _has_cause,
     "is_bytes": _is_bytes,
     "has_starred_subscript": _has_starred_subscript,
+    "is_yield_expression": _is_yield_expression,
 }
 
 
@@ -411,6 +452,10 @@ class _Detector(ast.NodeVisitor):
         # to dotted names. Only the innermost is ever read.
         self._bases: list[tuple[str, ...]] = []
         self._position = (1, 0)
+        # The node this one hangs off, which `ast` does not record.
+        # Saved and restored around the descent rather than kept as a
+        # stack, because only the immediate parent is ever asked for.
+        self._parent: ast.AST | None = None
 
     def visit(self, node: ast.AST) -> None:
         # Some matched nodes (`arguments`) carry no position of their
@@ -420,18 +465,25 @@ class _Detector(ast.NodeVisitor):
         if lineno is not None:
             self._position = (lineno, getattr(node, "col_offset", 0))
         self._match_node(node)
+        parent = self._parent
+        self._parent = node
         handler = getattr(self, f"visit_{type(node).__name__}", None)
         if handler is None:
             self.generic_visit(node)
         else:
             handler(node)
+        self._parent = parent
         self._position = previous
 
     def _match_node(self, node: ast.AST) -> None:
-        for feature in self.index.by_node.get(type(node).__name__, ()):
+        features = self.index.by_node.get(type(node).__name__, ())
+        if not features:
+            return
+        context = Context(self.bound_names, self._parent)
+        for feature in features:
             if feature.requires and not getattr(node, feature.requires, None):
                 continue
-            if feature.check and not CHECKS[feature.check](node, self.bound_names):
+            if feature.check and not CHECKS[feature.check](node, context):
                 continue
             self._record(feature)
 

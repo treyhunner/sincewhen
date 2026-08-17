@@ -87,6 +87,12 @@ def test_no_features_detected():
         # sets the floor.
         ("a, *rest = values", "tuple-unpacking"),
         ("a, *rest = values", "starred-assignment"),
+        # A `yield` whose own value is used is 2.5, wherever it sits.
+        ("def f():\n    x = yield 1", "yield-expression"),
+        ("def f():\n    x = yield", "yield-expression"),
+        ("def f():\n    x += yield 1", "yield-expression"),
+        ("def f():\n    print((yield))", "yield-expression"),
+        ("def f():\n    return (yield 1)", "yield-expression"),
     ],
 )
 def test_syntax_features(source, expected):
@@ -166,6 +172,12 @@ def test_syntax_features(source, expected):
         ("f(a, b=1)", "call-unpacking"),
         # `[*a]` is unpacking into a literal, which is the 3.5 entry.
         ("[*a]", "call-unpacking"),
+        # A `yield` on a line of its own is the 2.2 statement, with or
+        # without a value, and `yield from` is its own 3.3 entry.
+        ("def f():\n    yield 1", "yield-expression"),
+        ("def f():\n    yield", "yield-expression"),
+        ("def f():\n    yield a, b", "yield-expression"),
+        ("def f():\n    yield from g()", "yield-expression"),
     ],
 )
 def test_narrow_syntax_matchers_do_not_over_fire(source, unwanted):
@@ -192,6 +204,33 @@ def test_a_call_can_use_both_unpacking_features():
     """
     assert features("f(*a, *b)") >= {"call-unpacking", "multiple-unpackings"}
     assert minimum_version("f(*a, *b)") == Version(3, 5)
+
+
+def test_a_yield_expression_is_also_a_generator_function():
+    """`x = yield value` is one line making two true claims.
+
+    Every `yield` makes its function a generator, which is 2.2, and
+    using the value one hands back needs the 2.5 expression form. The
+    newer one sets the floor, which is the whole point: the same line
+    reported 2.2 before PEP 342 had an entry.
+    """
+    source = "def f():\n    x = yield 1"
+    assert features(source) >= {"generator-function", "yield-expression"}
+    assert minimum_version(source) == Version(2, 5)
+    assert minimum_version("def f():\n    yield 1") == Version(2, 2)
+
+
+def test_only_the_inner_yield_of_a_nested_pair_is_an_expression():
+    """In `yield (yield x)` the outer one is still a statement.
+
+    The parent is the whole of the distinction, so a `Yield` inside
+    another `Yield` is an expression and the one under the `Expr` is
+    not. Two `yield` statements would report the 2.5 feature twice if
+    the check read anything coarser, such as the enclosing function.
+    """
+    found = detect("def f():\n    yield (yield 1)")
+    expressions = [one for one in found if one.feature.id == "yield-expression"]
+    assert [one.col_offset for one in expressions] == [11]
 
 
 def test_starred_assignment_is_not_literal_unpacking():

@@ -308,6 +308,23 @@ python_version = "2.5"
 checked = "2026-07-28"
 
 [[features]]
+id = "yield-expression"
+name = "yield expression (x = yield value)"
+added = "2.5"
+category = "syntax"
+pep = 342
+nodes = ["Yield"]
+check = "is_yield_expression"
+
+[features.evidence]
+method = "grammar"
+symbol = "yield_expr"
+absent_in = "2.4"
+present_in = "2.5"
+note = "2.4 has `yield_stmt: 'yield' testlist` and no other rule mentions yield, so a generator could only hand values out. 2.5 adds `yield_expr: 'yield' [testlist]`, rewrites `yield_stmt` as a wrapper around it, and lets `expr_stmt` and `atom` hold one, which is what `x = yield value` and `(yield)` need. The rule is new rather than renamed: the statement form kept its own name on both sides of the change. PEP 342 headers 2.5 and agrees. The generator function entry is 2.2 and stays, since both spellings are one, and a `yield` used as an expression reports both."
+checked = "2026-08-17"
+
+[[features]]
 id = "bytes-literal"
 name = "bytes literal (b\"...\")"
 added = "2.6"
