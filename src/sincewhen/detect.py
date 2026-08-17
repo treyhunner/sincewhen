@@ -45,6 +45,11 @@ LITERAL_TYPES: dict[type[ast.AST], str] = {
     ast.JoinedStr: "str",
 }
 
+# What a method's receiver is called inside the class that defines it.
+# A convention rather than a rule, which is why it is only read where
+# the enclosing class says what it is: see `_inherited_owner`.
+SELF = "self"
+
 # The same for a constant, whose type is the type of its value. A `bool`
 # answers as an `int`, because it defines no methods of its own: every
 # method `True.bit_count()` can reach is `int.bit_count`.
@@ -351,7 +356,16 @@ class _Index:
                 self.by_method[name] = feature
         # The types those methods hang off, taken from the dataset rather
         # than listed again here, so the two cannot drift apart.
-        self.method_types = frozenset(name.partition(".")[0] for name in self.by_method)
+        #
+        # `rpartition`, because an owner is a builtin type or a class in
+        # a module and the second is spelled dotted: `str.removeprefix`
+        # hangs off `str` and `unittest.TestCase.assertNotEndsWith` off
+        # `unittest.TestCase`. Reading the head instead would call the
+        # owner `unittest`, which is a module and answers a different
+        # question.
+        self.method_owners = frozenset(
+            name.rpartition(".")[0] for name in self.by_method
+        )
 
 
 @cache
@@ -393,6 +407,9 @@ class _Detector(ast.NodeVisitor):
         self.bound_names = bound_names
         self.detections: list[Detection] = []
         self.aliases: dict[str, str] = {}
+        # The bases of each class currently being walked into, resolved
+        # to dotted names. Only the innermost is ever read.
+        self._bases: list[tuple[str, ...]] = []
         self._position = (1, 0)
 
     def visit(self, node: ast.AST) -> None:
@@ -443,37 +460,103 @@ class _Detector(ast.NodeVisitor):
             self._record(feature)
 
     def _record_method(self, node: ast.Attribute) -> None:
-        """Report a method of a builtin type, where the type is certain.
+        """Report a method of a known type, where the type is certain.
 
         `x.removeprefix(...)` says nothing about `x`: it could be a
         `str`, a `pathlib.PurePath`, or a class written this morning, and
-        the AST cannot tell. Two receivers do say, and only those two are
-        read:
+        the AST cannot tell. Four receivers do say, and only those four
+        are read:
 
         - a literal, whose type is its own syntax
         - the type's own name, as in `dict.fromkeys(keys)`, unless the
           module has bound that name to something else
+        - a class the module imported, by either spelling:
+          `unittest.TestCase.assertNotEndsWith` or a bare `TestCase`
+          that `from unittest import TestCase` bound
+        - `self`, inside a class that says in its own bases which type
+          it is: see `_inherited_owner`
 
         Everything else is left alone, because a wrong version number is
         worse than a missing one. Those entries stay searchable, which is
         the question this dataset mostly answers.
         """
-        receiver = self._receiver_type(node.value)
-        if receiver is None:
+        if not isinstance(node.ctx, ast.Load):
+            # `self.assertHasAttr = 3` binds the name rather than
+            # calling it, and reporting a 3.14 floor for a line that
+            # defines its own replacement is exactly backwards. This
+            # could not arise while every owner was a builtin type,
+            # since `"".removeprefix = f` is not something to write.
+            #
+            # An `attributes` match is deliberately left alone: setting
+            # `sys.ps1` really is a use of a documented attribute, which
+            # is not true of overwriting a method.
             return
-        feature = self.index.by_method.get(f"{receiver}.{node.attr}")
+        owner = (
+            self._inherited_owner(node.attr)
+            if isinstance(node.value, ast.Name) and node.value.id == SELF
+            else self._receiver_type(node.value)
+        )
+        if owner is None:
+            return
+        feature = self.index.by_method.get(f"{owner}.{node.attr}")
         if feature is not None:
             self._record(feature)
 
+    def _inherited_owner(self, attr: str) -> str | None:
+        """The type `self.<attr>` reaches, where the bases settle it.
+
+        `self.assertNotEndsWith(...)` is a method call on a receiver
+        whose type the AST does not carry, and one whose type the
+        enclosing `class Test(unittest.TestCase):` line does. That line
+        is the same kind of certainty a literal gives: the module said
+        which type this is, in its own source, three lines up.
+
+        Only the innermost class, and only its own bases. A subclass of
+        a subclass says nothing here, since resolving that would mean
+        following a name into another module, and `class
+        Test(TestCase):` where `TestCase` came `from django.test`
+        resolves to `django.test.TestCase` and matches nothing, which is
+        the right answer rather than a near miss.
+
+        A class that defines the method itself is not calling this one.
+        `bound_names` is what says so, exactly as it does for a module
+        that binds its own `sum`, and it is deliberately the module's
+        names rather than the class's. That is coarse in both
+        directions and coarse the safe way: one class's
+        `assertNotEndsWith` helper silences the name for every class in
+        the file, and a helper on a mixin in the same file silences it
+        for the classes that inherit the mixin, which no class-scoped
+        reading could see at all.
+        """
+        if attr in self.bound_names:
+            return None
+        for owner in self._bases[-1] if self._bases else ():
+            if f"{owner}.{attr}" in self.index.by_method:
+                return owner
+        return None
+
     def _receiver_type(self, node: ast.expr) -> str | None:
-        """The builtin type `node` certainly is, if there is one."""
+        """The type `node` certainly is, if there is one.
+
+        A builtin type answers by its bare name and a class in a module
+        by its dotted one, which is why an imported name is resolved
+        through `aliases` first: `TestCase` is bound by the import that
+        names it, so the shadowing check that protects `dict` would
+        reject the very binding that makes this one certain.
+        """
         match node:
             case ast.Constant(value=value):
                 return CONSTANT_TYPES.get(type(value))
             case ast.Name(id=name):
-                if name in self.index.method_types and name not in self.bound_names:
+                imported = self.aliases.get(name)
+                if imported in self.index.method_owners:
+                    return imported
+                if name in self.index.method_owners and name not in self.bound_names:
                     return name
                 return None
+            case ast.Attribute():
+                dotted = self._dotted_name(node)
+                return dotted if dotted in self.index.method_owners else None
             case _:
                 return LITERAL_TYPES.get(type(node))
 
@@ -518,6 +601,45 @@ class _Detector(ast.NodeVisitor):
             self._record_attribute(dotted)
         self._record_method(node)
         self.generic_visit(node)
+
+    def visit_ClassDef(self, node: ast.ClassDef) -> None:
+        """Remember what this class says it is, while walking its body.
+
+        Resolved on the way in rather than looked up later, because the
+        aliases a base name depends on are bound by imports the walk has
+        already passed, and because a nested class has to shadow the one
+        around it and hand it back on the way out.
+        """
+        self._bases.append(
+            tuple(
+                owner
+                for base in node.bases
+                if (owner := self._base_owner(base)) is not None
+            )
+        )
+        self.generic_visit(node)
+        self._bases.pop()
+
+    def _base_owner(self, node: ast.expr) -> str | None:
+        """A base class as a dotted name, following aliases.
+
+        Read the same way `_receiver_type` reads a `Name`, and it has to
+        be: a module that writes its own `class dict:` and then
+        `class Foo(dict):` is not subclassing the builtin, so `self`
+        inside `Foo` is not a `dict`. Rejecting the shadowed name for
+        `dict.fromkeys(...)` and accepting it here would be the two
+        paths disagreeing about one binding.
+        """
+        match node:
+            case ast.Name(id=name):
+                imported = self.aliases.get(name)
+                if imported is not None:
+                    return imported
+                return None if name in self.bound_names else name
+            case ast.Attribute():
+                return self._dotted_name(node)
+            case _:
+                return None
 
     def visit_Import(self, node: ast.Import) -> None:
         for alias in node.names:

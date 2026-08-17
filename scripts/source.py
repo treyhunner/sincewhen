@@ -61,7 +61,7 @@ Usage:
 
 import argparse
 import re
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
 from functools import cache
 from pathlib import Path
 
@@ -144,6 +144,44 @@ PY_BINDING = re.compile(
 # One name out of an import list, which may rename it: `a, b as c`. The
 # binding is the last word either way.
 IMPORTED = re.compile(r"(?:\w+[ \t]+as[ \t]+)?(?P<name>[A-Za-z_]\w*)")
+
+# The quote that opens a string literal, after any prefix a release
+# spells: `r`, `u`, `b`, `ur`, `rb` and their cases. The prefix is part
+# of the match so that `r'...'` is recognised as a string and not as the
+# name `r` followed by one.
+STRING_START = re.compile(r"[rRuUbB]{0,2}('''|\"\"\"|'|\")")
+
+# A class statement at the top level of a Python module, and whatever it
+# inherits from. Only the top level: a nested class is `Outer.Inner` and
+# a member of one is three levels deep, which is further than the index
+# spells a name.
+CLASS_HEADER = re.compile(
+    r"^class[ \t]+(?P<name>\w+)[ \t]*(?:\((?P<bases>[^)]*)\))?[ \t]*:",
+    re.MULTILINE,
+)
+
+# Where a class body ends: the next line starting in column zero.
+AFTER_CLASS = re.compile(r"^\S", re.MULTILINE)
+
+# A name bound in a class body. The assignment case carries as much
+# weight as the `def`, because it is how several of these names actually
+# exist: 2.3's `unittest.py` writes `assertAlmostEqual =
+# assertAlmostEquals = failUnlessAlmostEqual`, so the two spellings
+# anybody uses are chained assignments and the `def` is a third name.
+#
+# The chain is matched whole and split afterwards. `(?!=)` keeps `==`
+# out, and `+=` never matches because the `=` is not what follows the
+# name.
+CLASS_MEMBER = re.compile(
+    r"^(?P<indent>[ \t]+)(?:def[ \t]+(?P<function>\w+)"
+    r"|class[ \t]+(?P<klass>\w+)"
+    r"|(?P<targets>[A-Za-z_]\w*(?:[ \t]*=[ \t]*[A-Za-z_]\w*)*)[ \t]*=(?!=))",
+    re.MULTILINE,
+)
+
+# Bases that leave a class's body an exhaustive account of it. Anything
+# else brings in members the body does not list.
+NO_INHERITANCE = frozenset({"", "object"})
 
 # `from os import *`, which is what makes a Python module's own text an
 # incomplete account of its namespace.
@@ -354,6 +392,193 @@ def _python_module_members(version: str) -> dict[str, frozenset[str]]:
     }
 
 
+def code_only(text: str) -> str:
+    """`text` with every string literal and comment blanked out.
+
+    Same length and same line structure, so every offset and every
+    indent still means what it did; only the contents are gone.
+
+    Without this the reader cannot tell code from prose, and a class
+    docstring is full of things that look like code. Three separate
+    failures came out of that, and all three are in the corpus:
+
+    - `SimpleXMLRPCServer`'s module docstring shows a `class MyFuncs:`
+      example, which registered as a class with members. That is
+      AGENTS.md's "prose is not a heading" one level down.
+    - `zipfile.ZipFile`'s docstring writes `z = ZipFile(...)`, which
+      registered as a member called `z`. Presence is believed with no
+      guard, so the first such name to collide with a real one would
+      date it too old.
+    - `ftplib.FTP`'s docstring closes with `'''` in column zero, which
+      ended the class body before a single method: all 38 of them
+      invisible. `random.Random` lost five to `## ----` separators in
+      column zero for the same reason, since a comment ends a body just
+      as convincingly.
+
+    Scanned in one pass rather than matched with a regex, because
+    strings and comments have to be recognised in the same sweep. A
+    `#` inside a string does not start a comment, and a `'''` inside a
+    comment does not start a string, and no ordering of two independent
+    patterns gets both right.
+    """
+    out: list[str] = []
+    index = 0
+    while index < len(text):
+        char = text[index]
+        if char == "#":
+            end = text.find("\n", index)
+            end = len(text) if end < 0 else end
+            out.append(" " * (end - index))
+            index = end
+            continue
+        match = STRING_START.match(text, index)
+        if match is None:
+            out.append(char)
+            index += 1
+            continue
+        quote = match.group(1)
+        end = _string_ends(text, match.end(), quote)
+        out.append(
+            "".join(" " if c != "\n" else "\n" for c in text[index:end]),
+        )
+        index = end
+    return "".join(out)
+
+
+def _string_ends(text: str, start: int, quote: str) -> int:
+    """Where the literal opened by `quote` at `start` finishes.
+
+    A single-quoted string cannot cross a newline, so an unterminated
+    one ends at the line break rather than running to the end of the
+    file. That matters for an apostrophe in a comment this has not
+    reached yet, and for the odd release with a syntax error in a file
+    nothing imports.
+    """
+    index = start
+    while index < len(text):
+        if text[index] == "\\":
+            index += 2
+            continue
+        if text.startswith(quote, index):
+            return index + len(quote)
+        if text[index] == "\n" and len(quote) == 1:
+            return index
+        index += 1
+    return len(text)
+
+
+def _body_of(text: str, header: re.Match) -> str:
+    """One class statement's body, as text."""
+    rest = text[header.end() :]
+    ends = AFTER_CLASS.search(rest)
+    return rest[: ends.start()] if ends else rest
+
+
+def _body_indent(body: str) -> str | None:
+    """The indent a class body's own statements sit at.
+
+    Taken from the first line rather than the smallest indent found,
+    because the smallest indent would let a `def` nested inside an `if`
+    count as the body's when it is the only one there. A docstring gives
+    the right answer as readily as a method does, being at the same
+    indent and not a binding.
+    """
+    for line in body.splitlines():
+        stripped = line.lstrip()
+        if stripped and not stripped.startswith("#"):
+            return line[: len(line) - len(stripped)]
+    return None
+
+
+def _class_bound(body: str) -> frozenset[str]:
+    """Every name a class body binds directly.
+
+    Only at the body's own indent. Anything deeper belongs to a method,
+    or sits inside an `if` the release may not take, and a conditional
+    binding is not one the source binds outright.
+    """
+    indent = _body_indent(body)
+    if indent is None:
+        return frozenset()
+    found = set()
+    for match in CLASS_MEMBER.finditer(body):
+        if match["indent"] != indent:
+            continue
+        if match["targets"] is not None:
+            found |= {target.strip() for target in match["targets"].split("=")}
+        else:
+            found.add(match["function"] or match["klass"])
+    return frozenset(found)
+
+
+@cache
+def _python_classes(version: str) -> dict[str, tuple[str, frozenset[str]]]:
+    """`{"module.Class": (bases, members)}` for one release's library.
+
+    Read from `Lib/*.py` with a regex rather than with `ast`, for the
+    reason the rest of this file is regexes: a 3.14 parser cannot read
+    a 1.5 tarball, where `print` is a statement and `except E, e:` is
+    how exceptions are caught. `code_only` is what makes that safe.
+
+    A name defined twice keeps the union of what both bodies bind and
+    is recorded as inheriting *something*, whichever of them does.
+    Presence is additive and costs nothing, and the closed reading is
+    the one that must not be won by accident: a second definition with
+    no bases beating a first that has some would turn "no account of
+    this class" into "absence is proof" and manufacture a hard date.
+    Refusing to close is the direction that cannot invent one.
+    """
+    found: dict[str, tuple[str, frozenset[str]]] = {}
+    for module, path in module_paths(version).items():
+        text = code_only(_read(path))
+        for header in CLASS_HEADER.finditer(text):
+            name = f"{module}.{header['name']}"
+            bases = (header["bases"] or "").strip()
+            members = _class_bound(_body_of(text, header))
+            if name in found:
+                seen_bases, seen_members = found[name]
+                bases = bases if not _inherits_nothing(bases) else seen_bases
+                members = members | seen_members
+            found[name] = (bases, members)
+    return found
+
+
+def _inherits_nothing(bases: str) -> bool:
+    """Whether a class body is the whole account of the class.
+
+    Named rather than inlined so that the rule the entire class-member
+    absence argument rests on is one thing, tested directly, rather
+    than an expression a test can restate and agree with itself about.
+    """
+    return all(base.strip() in NO_INHERITANCE for base in bases.split(","))
+
+
+@cache
+def class_members_in(version: str) -> dict[str, frozenset[str]]:
+    """Every `module.Class.member` one release's library binds, by class."""
+    return {owner: members for owner, (_, members) in _python_classes(version).items()}
+
+
+@cache
+def closed_classes(version: str) -> frozenset[str]:
+    """Classes whose own body is the whole of their namespace.
+
+    This is `open_modules` one level down, and the same argument decides
+    it. A class that inherits gets members its body does not list, so
+    absence from the body says nothing; a class that inherits from
+    nothing is written down in full, so absence is proof.
+
+    `unittest.TestCase` is the case that earns it: `class TestCase:`
+    with no bases in every release from 2.1 to 2.5, so 2.2 provably
+    lacks `assertAlmostEqual` and 2.3 provably has it.
+    """
+    return frozenset(
+        owner
+        for owner, (bases, _) in _python_classes(version).items()
+        if _inherits_nothing(bases)
+    )
+
+
 @cache
 def members_in(version: str) -> dict[str, frozenset[str]]:
     """Every `module.member` one release provably binds, by module.
@@ -532,9 +757,34 @@ def _datable(previous: str, module: str, member: str) -> bool:
     )
 
 
+def _datable_class_member(previous: str, owner: str, member: str) -> bool:
+    """Whether a release can be shown *not* to have `owner.member`.
+
+    The same tiering as `_datable`, decided per class rather than per
+    module. A class that inherits gets members its own body does not
+    list, so absence from the body is no account of the class at all; a
+    class that inherits from nothing is written down in full.
+
+    The credulous half is unchanged and is read over the whole module
+    file rather than the class body, for the reason `mentions` gives:
+    a name the file so much as says is one this declines to date. That
+    costs yield and not correctness, and it covers the shapes the body
+    reader deliberately skips, a `def` inside an `if` above all.
+    """
+    if owner not in closed_classes(previous):
+        return False
+    return not mentions(previous, owner.rpartition(".")[0], member)
+
+
 @cache
 def dated_members() -> dict[str, dict[str, str]]:
-    """First source release each `module.member` can be shown in.
+    """First source release each member can be shown in, by dotted name.
+
+    A member of a module, and a member of a class inside one. The two
+    are chained together rather than kept apart because everything
+    downstream reads this by dotted name and neither `dating.py` nor the
+    index has to care which it got: `os.getcwd` and
+    `unittest.TestCase.assertAlmostEqual` are one question asked twice.
 
     Presence is read strictly and absence generously, so the two halves
     of the answer are not symmetric. A member counts as present only
@@ -545,7 +795,8 @@ def dated_members() -> dict[str, dict[str, str]]:
     That is the difference between this and `modindex.dated_members`,
     which only ever emits floors. A doc build indexes whatever share of
     a release it happened to paginate, so its absences are meaningless.
-    A module's own implementation is the thing itself.
+    A module's own implementation is the thing itself, and so is a
+    class's own body where the class inherits nothing.
     """
     readable = [version for version in SOURCE_ORDER if members_in(version)]
     if not readable:
@@ -555,13 +806,13 @@ def dated_members() -> dict[str, dict[str, str]]:
     dated: dict[str, dict[str, str]] = {}
     previous = baseline
     for version in readable:
-        for module, members in sorted(members_in(version).items()):
+        for owner, module, members, datable in _owners_in(version):
             for member in sorted(members):
-                name = f"{module}.{member}"
+                name = f"{owner}.{member}"
                 if name in dated:
                     continue
                 where = {"file": module_file(version, module)}
-                if version != baseline and _datable(previous, module, member):
+                if version != baseline and datable(previous, owner, member):
                     dated[name] = where | {
                         "added": version,
                         "absent_in": previous,
@@ -571,6 +822,25 @@ def dated_members() -> dict[str, dict[str, str]]:
                     dated[name] = where | {"floor": version}
         previous = version
     return dated
+
+
+def _owners_in(
+    version: str,
+) -> Iterator[tuple[str, str, frozenset[str], Callable[[str, str, str], bool]]]:
+    """Each namespace one release can be read for, with its absence rule.
+
+    The module is carried alongside the owner rather than derived from
+    it, because the two are only sometimes the same and splitting a
+    dotted name cannot tell which case it is: `os.path` is a module and
+    `unittest.TestCase` is a class, and both cite `Lib/os.py` and
+    `Lib/unittest.py` respectively. A class is read out of the module
+    that holds it, so a reviewer goes to the same file for either
+    answer.
+    """
+    for module, members in sorted(members_in(version).items()):
+        yield module, module, members, _datable
+    for owner, members in sorted(class_members_in(version).items()):
+        yield owner, owner.rpartition(".")[0], members, _datable_class_member
 
 
 def module_file(version: str, module: str) -> str:

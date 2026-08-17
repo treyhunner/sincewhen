@@ -137,9 +137,12 @@ def _report(results: list[tuple[str, list[Detection]]]) -> None:
 
 
 def _member_data(answer: MemberAnswer) -> dict:
+    # `owner` rather than `module`, because it is a class as often as
+    # one now and `"module": "unittest.TestCase"` would be a false
+    # statement in machine-readable output.
     return {
         "name": answer.dotted,
-        "module": answer.module,
+        "owner": answer.owner,
         "added": str(answer.added),
         "or_earlier": answer.or_earlier,
         "released": released.isoformat()
@@ -221,14 +224,23 @@ def _search(term: str, as_json: bool) -> int:
     module_only = bool(found) and found == enclosing_module(query.casefold())
     exact = lookup_member(query)
 
+    heading = None
     if has_entry(query):
         features, answers = found, []
     elif exact is not None:
         features, answers = [], [exact]
     elif found and not module_only:
         features, answers = found, _suggestions(query)
+        heading = f"{term!r} is also a member of:"
     elif suggested := _suggestions(query):
         features, answers = [], suggested
+        # A bare name that really is a member name was answered, not
+        # guessed at, so this is not the place for "did you mean". One
+        # hit needs no preamble at all: `assertEqual` reads exactly as
+        # `removeprefix` does, which is the same question answered from
+        # the other data file, and which file that was is not something
+        # to make the reader think about.
+        heading = f"{term!r} is a member of:" if len(suggested) > 1 else None
     elif not found and "." in query and (near := _suggestions(query.rsplit(".")[-1])):
         # A dotted name that matched nothing at all, not even a module,
         # is usually a typo in the module: `suprocess.Popen`. The part
@@ -237,7 +249,11 @@ def _search(term: str, as_json: bool) -> int:
         # is this reached, so a real module that simply lacks the member
         # still gets the module fallback below rather than a suggestion
         # from somewhere else: `os.Popen` answers about `os`.
+        #
+        # The one branch that really is guessing, and the only one that
+        # says so.
         features, answers = [], near
+        heading = f"No entry for {term!r}. Did you mean one of these?"
     else:
         features, answers = found, []
 
@@ -253,17 +269,12 @@ def _search(term: str, as_json: bool) -> int:
     if features:
         _print_features(term, features)
     if answers:
-        # An exact member gets no preamble. Which of this tool's two data
-        # files answered is not something to make the reader think about,
-        # and the answer is about the name they typed either way. The
-        # module fallback below still announces itself, because that one
-        # answers a different question from the one that was asked.
-        if exact is None:
-            print(
-                f"{term!r} is also a member of:"
-                if features
-                else f"No entry for {term!r}. Did you mean one of these?"
-            )
+        # A preamble is for when the answer is about something other than
+        # the name that was typed: several names rather than one, a
+        # second reading alongside the dataset's, or a spelling this is
+        # guessing at. An answer that is simply the answer gets none.
+        if heading:
+            print(heading)
         _print_members(answers)
     return 0
 

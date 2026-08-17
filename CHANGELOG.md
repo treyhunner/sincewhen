@@ -7,6 +7,56 @@ Dataset changes are listed apart from everything else, because they are the chan
 A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
+## Unreleased
+
+### Dataset
+
+- **The member index reaches inside a class.**
+  An owner is now a module or a class in one, so `unittest.TestCase.assertNotEndsWith`, `pathlib.Path.walk` and `datetime.date.fromisoformat` have answers where they had none at all.
+  2,658 class members join 3,918 module members, and the file goes from 48 KB to 91 KB.
+  A member of an attribute is still out: `inspect.Parameter.kind.description` is one level deeper than the index goes.
+- **`source.py` reads class bodies, which is what dates the old ones.**
+  `unittest.TestCase.assertAlmostEqual` was already in the 2.6 inventory, the oldest there is, so no diff could date it and nothing that reaches further back could see a class member at all.
+  Reading `Lib/unittest.py` settles it: absent from 2.1 and 2.2, bound in 2.3.
+  The source answers 604 class members this way, 551 of them with a date rather than a bound, `unittest.TestCase.setUp` at 2.1 and `assertTrue` at 2.4 among them, and 525 fewer come back unanswered.
+  The tier is decided per class, as it already was per module: a class that inherits nothing is written down in full so absence is proof, and a class with bases is presence-only.
+  The library files are read through a scanner that blanks strings and comments first, because a class docstring is full of things that look like code: without it `ftplib.FTP` reported no methods at all, `random.Random` lost five, and `SimpleXMLRPCServer` grew a class its module docstring only mentions.
+  It corrects four dates the docs got wrong, all of them markers attached to the wrong thing: `pstats.Stats.sort_stats` is 1.1, not the 3.7 of the enum its nearest marker describes, and `imaplib.IMAP4.namespace` is 2.2, not 2.3.
+- **Half of what is asked about a class member is still unanswered, on purpose.**
+  A class page grows a member at a time and lists what the class *inherits* alongside what it defines, so the release that first indexes one is often the age of the markup rather than the age of the method.
+  An inventory diff alone therefore publishes a class member only where it was indexed in the class's own release.
+  Without that, `enum.Enum.name` read as 3.11 against a class that is 3.4, `logging.Logger.name` as 3.11, and `pathlib.Path.as_uri` as 3.13, which is when the method moved down from `PurePath`.
+  Those now fall back to the module, which is vaguer and true.
+- **183 documentation markers that were being dropped.**
+  A directive may carry several signatures and one description, and only the last of them was getting the marker underneath.
+  `os.spawnl` and four siblings move from "2.2 or earlier" to 1.6, `operator.iadd` and fourteen more from "2.5 or earlier" to 2.5, and `bytes.maketrans` (3.1), `bytes.isascii` (3.7) and eighteen `stat.FILE_ATTRIBUTE_*` constants (3.5) gain dates the index had nothing for.
+  What counts as one directive is the run of signature lines with no blank between them, which is what reST's continuation lines render as; two adjacent directives get a blank line and stay two things.
+  A grouped marker that names one of the group is read as being about that one, quoted or bare, which is what keeps `typing.Never` from inheriting the 3.6.2 that belongs to `NoReturn` and stops `sys.__excepthook__` collecting both its neighbours' versions.
+  One that names something outside the group is about none of it: `assertRegex` is 3.2, not the 3.1 its description mentions for the old `assertRegexpMatches` spelling.
+- **Eight entries for the assertion methods Python 3.14 added to `unittest.TestCase`**: `assertStartsWith`, `assertNotStartsWith`, `assertEndsWith`, `assertNotEndsWith`, `assertHasAttr`, `assertNotHasAttr`, `assertIsSubclass` and `assertNotIsSubclass`.
+  Three of them are dated by the inventory rather than by a marker, because CPython writes those pairs as two adjacent directives with the description under the second and there is no way to tell that from a list of separate names. Their evidence says so.
+
+### Tool
+
+- **`self.assertNotEndsWith(...)` is detected, not just searchable.**
+  The `methods` matcher now accepts a class in a module as an owner, and reads one more receiver as certain: `self`, inside a class whose own bases name the type.
+  `class Test(unittest.TestCase):` and `class Test(TestCase):` both count, and so do the unbound spellings.
+  A subclass of a subclass does not, and neither does `from django.test import TestCase`, which resolves to `django.test.TestCase` and matches nothing.
+  A class that defines the method itself suppresses the match, the same way a module that binds its own `sum` does.
+- **A bare method name reads as an answer, not a guess.**
+  `sincewhen -s assertEqual` said "No entry for 'assertEqual'. Did you mean one of these?" above the correct answer, while `sincewhen -s removeprefix` printed its answer plainly.
+  Same question, and the only difference was which of the two data files answered.
+  One hit now prints bare, several are introduced with "is a member of:", and "Did you mean one of these?" is kept for the branch that really is guessing at a spelling, which is a misspelled module like `suprocess.Popen`.
+- **`--json` search results name an `owner` where they named a `module`.**
+  The field holds a class as often as a module now, and `"module": "unittest.TestCase"` would be false.
+
+### Documentation
+
+- **"What a class member may claim"**, folded into the member index section of `AGENTS.md`: why the class level needed a stricter rule than the module level, which 160 names it drops and which of those were wrong.
+- **`tests/test_annotations.py`**, pinning the marker-to-signature shapes one test per shape, as `tests/test_modindex.py` already does for the archives.
+  Both extractors fail by going quiet rather than by raising.
+
+
 ## 0.7.0 - 2026-08-08
 
 ### Dataset

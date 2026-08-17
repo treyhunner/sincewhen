@@ -251,11 +251,28 @@ def test_search_offers_members_of_a_bare_name(capsys):
     assert "platform.system - Python 2.3" in output
 
 
-def test_search_suggests_members_when_the_dataset_has_nothing(capsys):
+def test_search_names_the_owners_when_a_bare_name_has_several(capsys):
+    """Three modules have a `TimeoutError`, so say which is which."""
     assert main(["--search", "TimeoutError"]) == 0
     output = capsys.readouterr().out
-    assert "No entry for 'TimeoutError'. Did you mean one of these?" in output
+    assert "'TimeoutError' is a member of:" in output
     assert "asyncio.TimeoutError" in output
+
+
+def test_search_answers_a_bare_member_name_without_a_preamble(capsys):
+    """An answer is not a guess, and should not read like one.
+
+    `assertEqual` is a member name, it was found, and there is one of
+    it. `removeprefix` is the same question answered out of the dataset
+    instead of the index and prints bare, so this has to as well: which
+    of the two files answered is not something to make the reader think
+    about. "Did you mean" belongs to the branch that really is guessing.
+    """
+    assert main(["--search", "assertEqual"]) == 0
+    output = capsys.readouterr().out
+    assert (
+        output == "unittest.TestCase.assertEqual - Python 2.1 (released 2001-04-16)\n"
+    )
 
 
 def test_search_suggests_past_a_misspelled_module(capsys):
@@ -289,7 +306,7 @@ def test_search_caps_a_long_suggestion_list(capsys):
     """A name in fifty modules is not an answer, it is a directory."""
     answers = [
         MemberAnswer(
-            module=f"m{n}",
+            owner=f"m{n}",
             name="thing",
             added=Version(3, 9),
             or_earlier=False,
@@ -309,7 +326,7 @@ def test_search_member_json(capsys):
     assert not rest
     assert entry == {
         "name": "platform.system",
-        "module": "platform",
+        "owner": "platform",
         "added": "2.3",
         "or_earlier": False,
         "released": "2003-07-29",

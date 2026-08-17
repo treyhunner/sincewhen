@@ -97,7 +97,7 @@ removeprefix() on str, bytes and bytearray - Python 3.9 (released 2020-10-05)
   Docs: https://docs.python.org/3/whatsnew/3.9.html
 ```
 
-A module member with no entry of its own is answered from the member index, which covers every documented member of every stdlib module:
+A member with no entry of its own is answered from the member index, which covers every documented member of every stdlib module and of every class inside one:
 
 ```console
 $ sincewhen --search platform.system
@@ -105,6 +105,9 @@ platform.system - Python 2.3 (released 2003-07-29)
 
 $ sincewhen --search os.path.relpath
 os.path.relpath - Python 2.6 (released 2008-10-02)
+
+$ sincewhen --search unittest.TestCase.subTest
+unittest.TestCase.subTest - Python 3.4 (released 2014-03-17)
 ```
 
 A member nothing can date is bounded, exactly as an entry would be:
@@ -114,23 +117,26 @@ $ sincewhen --search os.path.join
 os.path.join - Python 1.5 or earlier (released 1997-12-31)
 ```
 
-A bare name searches every module's member list, which is how a name usually gets typed:
+A bare name searches every member list, which is how a method usually gets typed:
 
 ```console
 $ sincewhen --search TimeoutError
-No entry for 'TimeoutError'. Did you mean one of these?
+'TimeoutError' is a member of:
 multiprocessing.TimeoutError - Python 3.3 (released 2012-09-29)
 asyncio.TimeoutError - Python 3.4 (released 2014-03-17)
 concurrent.futures.TimeoutError - Python 3.5 (released 2015-09-13)
+
+$ sincewhen --search assertNoLogs
+unittest.TestCase.assertNoLogs - Python 3.10 (released 2021-10-04)
 ```
 
 Pass `--json` to either mode for machine-readable output.
-A search that answers from the member index emits member records, which carry `module` where a feature record carries `id` and `category`.
+A search that answers from the member index emits member records, which carry `owner` where a feature record carries `id` and `category`.
 
 
 ## History you can look up
 
-Dating 1,876 features against seven independent sources turns up a lot of history that is easy to misremember, and nearly all of it is one search away:
+Dating 1,884 features against seven independent sources turns up a lot of history that is easy to misremember, and nearly all of it is one search away:
 
 ```console
 $ sincewhen --search sorted
@@ -265,7 +271,7 @@ The Python version you *run* `sincewhen` on has nothing to do with the versions 
 - Release dates come from python.org's downloads database back to 2.2, and from CPython's release tags before that.
   Python 0.9 and 1.6 are the two rows neither source reaches, 0.9 because CPython's history begins after it and 1.6 because it was cut by BeOpen and has no tag, so both are taken from Wikipedia's table of versions.
   The 0.9 date is that table's date for the whole 0.9 line, while the corpus reads the 0.9.1 tarball, which was cut within days of it and which no source dates on its own.
-- Searching for a module member with no entry of its own falls back to the member index, which covers about 3,700 members across 242 modules.
+- Searching for a member with no entry of its own falls back to the member index, which covers about 6,600 members across 632 modules and classes.
   Its versions are derived by the same machinery that rechecks every entry in the dataset, so an answer from it is the answer an entry would carry; what it does not carry is the evidence, which is most of what an entry is for.
   It holds only names the newest Python still documents, so a member Python 3 removed is not in it; only names the sources agree about; and only names something corroborates, so a member whose sole evidence is a 3.x inventory diff is left out rather than dated by the age of its markup.
   A member the index has never heard of falls back to the module it lives in, as before.
@@ -321,7 +327,7 @@ python_version = "3.8"
 checked = "2026-07-28"
 ```
 
-The matcher kinds are `nodes` (AST node class names), `builtins`, `modules`, `attributes` (dotted `module.name` paths), `methods` (dotted `type.method` paths for the builtin types), and `spellings` (ways of writing something this parser can no longer produce a node for, which are searchable and never detected).
+The matcher kinds are `nodes` (AST node class names), `builtins`, `modules`, `attributes` (dotted `module.name` paths), `methods` (`type.method` for a builtin type, or `module.Class.method` for a class in a module), and `spellings` (ways of writing something this parser can no longer produce a node for, which are searchable and never detected).
 Node matchers can be narrowed with `requires` (a node attribute that must be truthy) or `check` (a predicate registered in `detect.py`).
 
 A feature Python has taken away adds `removed` and a `[features.removed_evidence]` table of its own:
