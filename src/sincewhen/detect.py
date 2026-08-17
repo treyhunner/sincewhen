@@ -319,27 +319,48 @@ def _has_starred_subscript(node: ast.Subscript, _context: Context) -> bool:
     )
 
 
-def _is_yield_expression(_node: ast.Yield, context: Context) -> bool:
-    """`x = yield value`, a `yield` whose own value is used (PEP 342).
+def _is_yield_expression(node: ast.Yield, context: Context) -> bool:
+    """A `yield` that 2.4 would have rejected, which is PEP 342's.
 
-    2.2's `yield` is a statement and nothing else. `yield_stmt: 'yield'
-    testlist` is the whole of it, so a generator of that era could hand
-    values out and had no way at all to receive one. 2.5 added
-    `yield_expr` and left `yield_stmt: yield_expr` behind as a wrapper,
+    2.2's `yield` is a statement with a mandatory value and nothing
+    else. `yield_stmt: 'yield' testlist` is the whole of it, so a
+    generator of that era could hand values out and had no way at all to
+    receive one. 2.5 replaced that line with `yield_expr: 'yield'
+    [testlist]` and left `yield_stmt: yield_expr` behind as a wrapper,
     which is what `send()` needs and what every later beat of the async
     story is built on.
 
-    A statement `yield` is the direct value of an `Expr` and nothing
-    else is, so the parent is the whole of the distinction. Both
-    readings can meet on one line: in `yield (yield x)` the outer
-    `yield` is a statement and the inner one is an expression, and only
-    the inner one is claimed here.
+    That one line changed three things, and the 2.4 and 2.5 builds
+    agree on all three. `x = yield 1` is the one anybody writes: a
+    `yield` whose own value is used. `yield` with no value at all is
+    the same line's `[testlist]`, and 2.3 and 2.4 both reject it. And a
+    `yield` in parentheses is one too, since it is `atom` that gained
+    the right to hold a `yield_expr`: 2.4 runs `yield (1)` and rejects
+    `(yield 1)`.
 
-    The 2.2 entry still fires either way, since both spellings are a
-    generator function. Reporting both for `x = yield value` is two true
-    statements about one line, and the newer one sets the floor.
+    The parent settles the first, because a statement `yield` is the
+    direct value of an `Expr` and nothing else is. Both readings can
+    meet on one line: in `yield (yield x)` the outer `yield` is a
+    statement and the inner one is an expression, and only the inner
+    one is claimed here.
+
+    Parentheses leave no node behind, so the third is read off the
+    positions instead. A statement `yield` begins exactly where its
+    statement does, and the only thing that can sit in front of one is
+    an opening bracket. A tree carrying no positions compares equal to
+    itself and reads as the statement, which is the safe way round.
+
+    The 2.2 entry still fires for all of them, since every spelling
+    makes its function a generator. Reporting both for `x = yield
+    value` is two true statements about one line, and the newer one
+    sets the floor.
     """
-    return not isinstance(context.parent, ast.Expr)
+    if node.value is None:
+        return True
+    parent = context.parent
+    if not isinstance(parent, ast.Expr):
+        return True
+    return (parent.lineno, parent.col_offset) != (node.lineno, node.col_offset)
 
 
 # Checks are dispatched by name from the dataset, so the node type is

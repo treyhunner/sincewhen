@@ -92,7 +92,15 @@ def test_no_features_detected():
         ("def f():\n    x = yield", "yield-expression"),
         ("def f():\n    x += yield 1", "yield-expression"),
         ("def f():\n    print((yield))", "yield-expression"),
-        ("def f():\n    return (yield 1)", "yield-expression"),
+        ("def f():\n    for item in (yield):\n        pass", "yield-expression"),
+        # So is a `yield` with no value, which 2.3 and 2.4 both reject:
+        # the value only became optional in the same 2.5 line.
+        ("def f():\n    yield", "yield-expression"),
+        # And so is one in parentheses, since it is `atom` that gained
+        # the right to hold a yield. 2.4 runs `yield (1)`.
+        ("def f():\n    (yield 1)", "yield-expression"),
+        ("def f():\n    ((yield 1))", "yield-expression"),
+        ("def f():\n    (\n        yield 1\n    )", "yield-expression"),
     ],
 )
 def test_syntax_features(source, expected):
@@ -172,11 +180,13 @@ def test_syntax_features(source, expected):
         ("f(a, b=1)", "call-unpacking"),
         # `[*a]` is unpacking into a literal, which is the 3.5 entry.
         ("[*a]", "call-unpacking"),
-        # A `yield` on a line of its own is the 2.2 statement, with or
-        # without a value, and `yield from` is its own 3.3 entry.
+        # A `yield` with a value, on a line of its own, is the 2.2
+        # statement. Parenthesising the value is not parenthesising the
+        # yield, and `yield from` is its own 3.3 entry.
         ("def f():\n    yield 1", "yield-expression"),
-        ("def f():\n    yield", "yield-expression"),
+        ("def f():\n    yield (1)", "yield-expression"),
         ("def f():\n    yield a, b", "yield-expression"),
+        ("def f():\n    yield 1; yield 2", "yield-expression"),
         ("def f():\n    yield from g()", "yield-expression"),
     ],
 )
@@ -218,6 +228,19 @@ def test_a_yield_expression_is_also_a_generator_function():
     assert features(source) >= {"generator-function", "yield-expression"}
     assert minimum_version(source) == Version(2, 5)
     assert minimum_version("def f():\n    yield 1") == Version(2, 2)
+
+
+def test_parentheses_around_a_yield_are_not_parentheses_around_its_value():
+    """`(yield 1)` is 2.5 and `yield (1)` is 2.2, and the 2.4 build agrees.
+
+    2.5 is the release where `atom` gained the right to hold a
+    `yield_expr`, so the brackets are the feature rather than noise
+    around it. Parentheses leave no node behind, which is why this is
+    read off the positions: the statement and its `yield` begin in the
+    same place only when nothing is in front of it.
+    """
+    assert "yield-expression" in features("def f():\n    (yield 1)")
+    assert "yield-expression" not in features("def f():\n    yield (1)")
 
 
 def test_only_the_inner_yield_of_a_nested_pair_is_an_expression():
