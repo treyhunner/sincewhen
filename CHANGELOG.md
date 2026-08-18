@@ -70,11 +70,20 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
   The pair is now a `Context`, so the parent is there for the one check that reads it, and `yield (yield x)` gets both readings on one line rather than whichever the coarser question would have picked.
   Parentheses leave no node behind at all, so `(yield 1)` is told from `yield (1)` by where the statement and its `yield` begin, which differ only when something sits in front of the `yield`.
 
+### Research pipeline
+
+- **`just ask-pythons` asks the built interpreters whether a snippet compiles.**
+  Every method here reads a description of Python except the interpreters, and they were only ever asked "does this name resolve", which cannot be asked about syntax at all.
+  Both `__future__`-gated entries and the yield expression entry were settled by asking a build directly, in seconds each, and there was nothing pointing at the technique.
+  It writes nothing down, on purpose: evidence needs the control snippet that issue #11 is about, and a `yes` can be the wrong `yes`, since 1.5 through 2.2 compile a bare `yield` as an expression statement that does nothing.
+  It reports three states rather than two, because collapsing the third is how an ad hoc probe invents a version number: the oldest six releases are i386 builds that will not exec on an x86-64 host without a 32-bit loader, and the failure reads exactly like a missing build rather than like a refusal.
+
 ### Documentation
 
 - **"A `__future__` gate is not availability"**, a new curation rule in `AGENTS.md`.
   The dataset already answered this question twice and answered it two different ways: `print()` at 3.0 with the rule spelled out in its own note, and `with` and generators dated from PEP headers with no note at all.
   The rule now says which, why a PEP header and the grammar are both the wrong instrument for it, and that a syntax probe would make it mechanical.
+- **"The builds outlast the table"**, alongside it in the interpreter section: that a build can be asked directly, what `just ask-pythons` is for, and the three ways an answer from one can mislead.
 - **"What a class member may claim"**, folded into the member index section of `AGENTS.md`: why the class level needed a stricter rule than the module level, which 160 names it drops and which of those were wrong.
 - **`tests/test_annotations.py`**, pinning the marker-to-signature shapes one test per shape, as `tests/test_modindex.py` already does for the archives.
   Both extractors fail by going quiet rather than by raising.

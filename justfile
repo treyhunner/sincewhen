@@ -51,6 +51,10 @@ interpreters *args='':
 interpreters-vs-dataset:
     uv run scripts/interpreters.py --compare
 
+# Ask every built interpreter whether a snippet compiles (usage: just ask-pythons 'def f(): yield')
+ask-pythons code='-':
+    uv run scripts/interpreters.py --compiles {{ quote(code) }}
+
 # Show what the builtin types' own method tables date (usage: just typemethods --compare)
 typemethods *args='':
     uv run scripts/typemethods.py {{ args }}
