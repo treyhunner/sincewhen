@@ -11,6 +11,14 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ### Dataset
 
+- **The `with` statement is 2.6, not 2.5, and a generator function is 2.3, not 2.2.**
+  Both were dated off a PEP header, and both headers name the release where `from __future__ import ...` began working rather than the release that compiles the line on its own.
+  The built interpreters settle it: 2.5 rejects `with open(p) as f:` and 2.2 rejects `def f(): yield 1`, and each takes its own line under the future import that names it.
+  `minimum_version()` is a floor for the code as written, so an entry saying 2.5 for a plain `with` was saying the feature is older than it is.
+  `print()` already reads this way at 3.0 against a 2.6 `from __future__ import print_function`, and so does the removal axis, where `<>` is removed in 3.0 rather than the 3.10 that `from __future__ import barry_as_FLUFL` would make it.
+  Neither a PEP header nor the grammar can settle one of these, since the 2.5 grammar has `with_stmt` and the 2.2 grammar has `'yield'`, so both entries carry `manual` evidence as `print()` does.
+- **`from __future__ import generators` is an entry, at 2.2.**
+  The older half of the generator story keeps its date under the name that really does work in 2.2, which is what `from __future__ import with_statement` already does at 2.5.
 - **`x = yield value` is 2.5, where it read as 2.2.**
   PEP 342 made `yield` an expression, and the dataset had only the 2.2 entry for the statement, so every `Yield` node answered 2.2 and any code that used the value a generator hands back had its floor understated by three releases.
   The grammar settles it: 2.4 has `yield_stmt: 'yield' testlist` and nothing else mentions yield, and 2.5 replaces that with `yield_expr: 'yield' [testlist]` and rewrites `yield_stmt` as a wrapper around it.
@@ -64,6 +72,9 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ### Documentation
 
+- **"A `__future__` gate is not availability"**, a new curation rule in `AGENTS.md`.
+  The dataset already answered this question twice and answered it two different ways: `print()` at 3.0 with the rule spelled out in its own note, and `with` and generators dated from PEP headers with no note at all.
+  The rule now says which, why a PEP header and the grammar are both the wrong instrument for it, and that a syntax probe would make it mechanical.
 - **"What a class member may claim"**, folded into the member index section of `AGENTS.md`: why the class level needed a stricter rule than the module level, which 160 names it drops and which of those were wrong.
 - **`tests/test_annotations.py`**, pinning the marker-to-signature shapes one test per shape, as `tests/test_modindex.py` already does for the archives.
   Both extractors fail by going quiet rather than by raising.

@@ -50,7 +50,7 @@ def load(path, /):
 $ sincewhen example.py
 example.py:1  tomllib module                  3.11  2022-10-24
 example.py:4  positional-only parameters (/)  3.8   2019-10-14
-example.py:5  with statement                  2.5   2006-09-19
+example.py:5  with statement                  2.6   2008-10-02
 example.py:5  open()                          0.9   1991-02-20
 example.py:6  tomllib.load()                  3.11  2022-10-24
 ```
@@ -136,7 +136,7 @@ A search that answers from the member index emits member records, which carry `o
 
 ## History you can look up
 
-Dating 1,885 features against seven independent sources turns up a lot of history that is easy to misremember, and nearly all of it is one search away:
+Dating 1,886 features against seven independent sources turns up a lot of history that is easy to misremember, and nearly all of it is one search away:
 
 ```console
 $ sincewhen --search sorted
@@ -172,8 +172,8 @@ Tuples were the answer in 1991, but Python has added new answers since: `collect
 `os.system` is still there in Python 3.14.
 
 **Async.**
-This one is twenty years long and each beat is built on the one before it, rather than replacing it.
-Generator functions arrived in 2001 (2.2) and could only hand values out.
+This one is the longest of them, and each beat is built on the one before it rather than replacing it.
+Generator functions arrived in 2003 (2.3), a year after `from __future__ import generators` offered them to anyone who asked for them, and could only hand values out.
 `yield` became an expression in 2006 (2.5), which is what let a generator take one back, and everything after it rests on that.
 Then `yield from` in 2012 (3.3), `asyncio` in 2014 (3.4), `async` and `await` in 2015 (3.5), asynchronous generators and comprehensions in 2016 (3.6), `asyncio.run` in 2018 (3.7), and `aiter` and `anext` in 2021 (3.10).
 `sincewhen --search yield` prints the first three in order.

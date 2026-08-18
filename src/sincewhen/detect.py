@@ -322,7 +322,7 @@ def _has_starred_subscript(node: ast.Subscript, _context: Context) -> bool:
 def _is_yield_expression(node: ast.Yield, context: Context) -> bool:
     """A `yield` that 2.4 would have rejected, which is PEP 342's.
 
-    2.2's `yield` is a statement with a mandatory value and nothing
+    The older `yield` is a statement with a mandatory value and nothing
     else. `yield_stmt: 'yield' testlist` is the whole of it, so a
     generator of that era could hand values out and had no way at all to
     receive one. 2.5 replaced that line with `yield_expr: 'yield'
@@ -350,10 +350,10 @@ def _is_yield_expression(node: ast.Yield, context: Context) -> bool:
     an opening bracket. A tree carrying no positions compares equal to
     itself and reads as the statement, which is the safe way round.
 
-    The 2.2 entry still fires for all of them, since every spelling
-    makes its function a generator. Reporting both for `x = yield
-    value` is two true statements about one line, and the newer one
-    sets the floor.
+    The generator function entry still fires for all of them, since
+    every spelling makes its function a generator. Reporting both for
+    `x = yield value` is two true statements about one line, and the
+    newer one sets the floor.
     """
     if node.value is None:
         return True
