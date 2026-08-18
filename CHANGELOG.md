@@ -11,6 +11,14 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ### Dataset
 
+- **The `with` statement is 2.6, not 2.5, and a generator function is 2.3, not 2.2.**
+  Both were dated off a PEP header, and both headers name the release where `from __future__ import ...` began working rather than the release that compiles the line on its own.
+  The built interpreters settle it: 2.5 rejects `with open(p) as f:` and 2.2 rejects `def f(): yield 1`, and each takes its own line under the future import that names it.
+  `minimum_version()` is a floor for the code as written, so an entry saying 2.5 for a plain `with` was saying the feature is older than it is.
+  `print()` already reads this way at 3.0 against a 2.6 `from __future__ import print_function`, and so does the removal axis, where `<>` is removed in 3.0 rather than the 3.10 that `from __future__ import barry_as_FLUFL` would make it.
+  Neither a PEP header nor the grammar can settle one of these, since the 2.5 grammar has `with_stmt` and the 2.2 grammar has `'yield'`, so both entries carry `manual` evidence as `print()` does.
+- **`from __future__ import generators` is an entry, at 2.2.**
+  The older half of the generator story keeps its date under the name that really does work in 2.2, which is what `from __future__ import with_statement` already does at 2.5.
 - **`x = yield value` is 2.5, where it read as 2.2.**
   PEP 342 made `yield` an expression, and the dataset had only the 2.2 entry for the statement, so every `Yield` node answered 2.2 and any code that used the value a generator hands back had its floor understated by three releases.
   The grammar settles it: 2.4 has `yield_stmt: 'yield' testlist` and nothing else mentions yield, and 2.5 replaces that with `yield_expr: 'yield' [testlist]` and rewrites `yield_stmt` as a wrapper around it.
@@ -62,8 +70,20 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
   The pair is now a `Context`, so the parent is there for the one check that reads it, and `yield (yield x)` gets both readings on one line rather than whichever the coarser question would have picked.
   Parentheses leave no node behind at all, so `(yield 1)` is told from `yield (1)` by where the statement and its `yield` begin, which differ only when something sits in front of the `yield`.
 
+### Research pipeline
+
+- **`just ask-pythons` asks the built interpreters whether a snippet compiles.**
+  Every method here reads a description of Python except the interpreters, and they were only ever asked "does this name resolve", which cannot be asked about syntax at all.
+  Both `__future__`-gated entries and the yield expression entry were settled by asking a build directly, in seconds each, and there was nothing pointing at the technique.
+  It writes nothing down, on purpose: evidence needs the control snippet that issue #11 is about, and a `yes` can be the wrong `yes`, since 1.5 through 2.2 compile a bare `yield` as an expression statement that does nothing.
+  It reports three states rather than two, because collapsing the third is how an ad hoc probe invents a version number: the oldest six releases are i386 builds that will not exec on an x86-64 host without a 32-bit loader, and the failure reads exactly like a missing build rather than like a refusal.
+
 ### Documentation
 
+- **"A `__future__` gate is not availability"**, a new curation rule in `AGENTS.md`.
+  The dataset already answered this question twice and answered it two different ways: `print()` at 3.0 with the rule spelled out in its own note, and `with` and generators dated from PEP headers with no note at all.
+  The rule now says which, why a PEP header and the grammar are both the wrong instrument for it, and that a syntax probe would make it mechanical.
+- **"The builds outlast the table"**, alongside it in the interpreter section: that a build can be asked directly, what `just ask-pythons` is for, and the three ways an answer from one can mislead.
 - **"What a class member may claim"**, folded into the member index section of `AGENTS.md`: why the class level needed a stricter rule than the module level, which 160 names it drops and which of those were wrong.
 - **`tests/test_annotations.py`**, pinning the marker-to-signature shapes one test per shape, as `tests/test_modindex.py` already does for the archives.
   Both extractors fail by going quiet rather than by raising.

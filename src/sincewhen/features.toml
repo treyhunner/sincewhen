@@ -193,18 +193,31 @@ python_version = "2.2"
 checked = "2026-07-28"
 
 [[features]]
-id = "generator-function"
-name = "generator function (yield)"
+id = "future-generators"
+name = "from __future__ import generators"
 added = "2.2"
 category = "syntax"
 pep = 255
-nodes = ["Yield"]
+attributes = ["__future__.generators"]
 
 [features.evidence]
 method = "pep"
 pep = 255
 python_version = "2.2"
-checked = "2026-07-28"
+checked = "2026-08-17"
+
+[[features]]
+id = "generator-function"
+name = "generator function (yield)"
+added = "2.3"
+category = "syntax"
+pep = 255
+nodes = ["Yield"]
+
+[features.evidence]
+method = "manual"
+note = "PEP 255 headers 2.2, which is when `from __future__ import generators` began working rather than when a generator function became something a release would compile on its own. The 2.2 build rejects `def f(): yield 1` and accepts it under the future import; the 2.3 build accepts it plainly. 2.1 rejects both, `yield` being an ordinary name there, which is what the 2.2 build warns about when it sees one. This is the reading `print()` already carries at 3.0 against a 2.6 future import, and 2.2 is kept as the `from __future__ import generators` entry."
+checked = "2026-08-17"
 
 [[features]]
 id = "decorator"
@@ -294,20 +307,6 @@ python_version = "2.5"
 checked = "2026-07-28"
 
 [[features]]
-id = "with-statement"
-name = "with statement"
-added = "2.5"
-category = "syntax"
-pep = 343
-nodes = ["With"]
-
-[features.evidence]
-method = "pep"
-pep = 343
-python_version = "2.5"
-checked = "2026-07-28"
-
-[[features]]
 id = "yield-expression"
 name = "yield expression (x = yield, or a bare yield)"
 added = "2.5"
@@ -321,7 +320,7 @@ method = "grammar"
 symbol = "yield_expr"
 absent_in = "2.4"
 present_in = "2.5"
-note = "2.4 has `yield_stmt: 'yield' testlist` and no other rule mentions yield, so a generator could only hand values out and had to hand out something. 2.5 replaces that with `yield_expr: 'yield' [testlist]`, rewrites `yield_stmt` as a wrapper around it, and lets `expr_stmt` and `atom` hold one. The rule is new rather than renamed: the statement form kept its own name on both sides of the change. PEP 342 headers 2.5 and agrees. One line changed three spellings, and the built interpreters agree on all three: 2.4 rejects `x = yield 1`, a bare `yield` with no value, and `(yield 1)`, while running `yield (1)` and `yield a, b` happily, and 2.5 accepts every one of them. The generator function entry is 2.2 and stays, since every spelling makes its function a generator, so a `yield` this claims reports both."
+note = "2.4 has `yield_stmt: 'yield' testlist` and no other rule mentions yield, so a generator could only hand values out and had to hand out something. 2.5 replaces that with `yield_expr: 'yield' [testlist]`, rewrites `yield_stmt` as a wrapper around it, and lets `expr_stmt` and `atom` hold one. The rule is new rather than renamed: the statement form kept its own name on both sides of the change. PEP 342 headers 2.5 and agrees. One line changed three spellings, and the built interpreters agree on all three: 2.4 rejects `x = yield 1`, a bare `yield` with no value, and `(yield 1)`, while running `yield (1)` and `yield a, b` happily, and 2.5 accepts every one of them. The generator function entry stays alongside this one at 2.3, since every spelling makes its function a generator, so a `yield` this claims reports both."
 checked = "2026-08-17"
 
 [[features]]
@@ -381,6 +380,19 @@ attributes = ["__future__.print_function"]
 method = "manual"
 note = "The __future__ table in the 3.14 docs gives an optional-in version of 2.6.0a2 for print_function. PEP 3105 headers 3.0, which is when it became mandatory rather than when the future import started working."
 checked = "2026-07-28"
+
+[[features]]
+id = "with-statement"
+name = "with statement"
+added = "2.6"
+category = "syntax"
+pep = 343
+nodes = ["With"]
+
+[features.evidence]
+method = "manual"
+note = "PEP 343 headers 2.5, which is when `from __future__ import with_statement` began working rather than when a `with` statement became something a release would compile on its own. The 2.5 build rejects `with open(p) as f:` and accepts it under the future import; the 2.6 build accepts it plainly. The grammar cannot settle this either way, because 2.5's `Grammar/Grammar` already has `with_stmt` and its compiler refuses one anyway, which is the 2.5 parser rather than the 2.5 language. This is the reading `print()` already carries at 3.0 against a 2.6 future import, and 2.5 is kept as the `from __future__ import with_statement` entry."
+checked = "2026-08-17"
 
 [[features]]
 id = "dict-comprehension"

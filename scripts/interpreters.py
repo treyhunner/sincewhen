@@ -121,6 +121,14 @@ Usage:
     uv run scripts/interpreters.py --probe          # write the table
     uv run scripts/interpreters.py --report         # what it dates
     uv run scripts/interpreters.py --grep operator
+
+The builds outlast the table, and `--compiles` is how to ask them
+something the table does not hold. It answers "will this release parse
+this", release by release, and records nothing:
+
+    uv run scripts/interpreters.py --compiles 'def f():
+        x = yield 1'
+    uv run scripts/interpreters.py --compiles - < snippet.py
 """
 
 import argparse
@@ -131,6 +139,7 @@ import shutil
 import subprocess
 import sys
 import tarfile
+import tempfile
 import tomllib
 from datetime import date
 from functools import cache
@@ -1895,6 +1904,73 @@ def compare() -> dict[str, list[str]]:
     return findings
 
 
+def compiles(code: str) -> None:
+    """Ask every built release whether a snippet compiles.
+
+    The table answers "does this name resolve", which is the question
+    the dataset asks about a member. Syntax needs the other question,
+    and nothing here could ask it: `grammar.py` reads the file the
+    parser is generated from, which is a description of the parser
+    rather than the parser. That proxy has now been wrong in both
+    directions. `with_stmt` is in the 2.5 grammar and 2.5 refuses a
+    `with` statement without `from __future__ import with_statement`;
+    `'await'` is in no grammar before 3.7 and 3.5 runs `await g()`,
+    the tokenizer having handled it as a soft keyword.
+
+    So this exists to be asked by hand, and deliberately writes
+    nothing down. Three states rather than two, because the difference
+    matters more than the answer: `no` is the release refusing the
+    snippet, and `unasked` is this machine being unable to put the
+    question, which is never evidence about the release.
+
+    A `yes` can also be the wrong `yes`, which is why turning an answer
+    here into a dataset entry needs a control snippet and is what issue
+    #11 is for. A bare `yield` compiles in 1.5 through 2.2 because
+    `yield` is an ordinary name there and the line is an expression
+    statement that does nothing at all; 2.2 says so in a warning and
+    the earlier releases say nothing. A snippet written in a dialect a
+    release does not speak reports the dialect rather than the feature.
+    """
+    with tempfile.TemporaryDirectory() as folder:
+        snippet = Path(folder) / "snippet.py"
+        snippet.write_text(code if code.endswith("\n") else code + "\n")
+        # `compile()` rather than running the file, because the question
+        # is whether the release will parse this, and a NameError is not
+        # a refusal. Every release from 1.5 on has `compile` and `open`.
+        ask = f"compile(open({str(snippet)!r}).read(), 'snippet.py', 'exec')"
+        for version in RELEASES:
+            print(f"{version:>5}  {_compiles_in(version, ask)}")
+
+
+def _compiles_in(version: str, ask: str) -> str:
+    """One release's answer, or why it does not have one.
+
+    0.9 through 1.4 are built for i386, because 64-bit made them lie,
+    and an i386 binary on a host with no 32-bit loader fails to exec
+    with `No such file or directory`. That reads exactly like a missing
+    build and nothing like a refusal, so it is caught here rather than
+    left to be mistaken for one. Those six are asked inside the image
+    that built them.
+    """
+    path = binary(version)
+    if path is None:
+        return "unasked (not built)"
+    try:
+        done = subprocess.run(
+            [str(path), "-c", ask], capture_output=True, text=True, timeout=60
+        )
+    except OSError as error:
+        if version in THIRTY_TWO_BIT:
+            return f"unasked (i386 build, no 32-bit loader here: {error.strerror})"
+        return f"unasked (cannot run it here: {error.strerror})"
+    except subprocess.TimeoutExpired:
+        return "unasked (timed out)"
+    if done.returncode == 0:
+        return "yes"
+    lines = [line for line in done.stderr.splitlines() if line.strip()]
+    return f"no   {lines[-1].strip()}" if lines else "no"
+
+
 def _wanted(asked: list[str]) -> list[str]:
     """Which releases to build, from what was asked for.
 
@@ -1932,6 +2008,11 @@ def main(argv: list[str]) -> int:
     )
     parser.add_argument("--grep", help="report only names containing this")
     parser.add_argument(
+        "--compiles",
+        metavar="CODE",
+        help="ask each built release whether a snippet compiles ('-' for stdin)",
+    )
+    parser.add_argument(
         "--check",
         action="store_true",
         help="fail if the table and the dataset disagree",
@@ -1945,6 +2026,8 @@ def main(argv: list[str]) -> int:
             print(f"  built {build(version)}")
     if args.probe:
         probe()
+    if args.compiles:
+        compiles(sys.stdin.read() if args.compiles == "-" else args.compiles)
     if args.report or args.grep:
         report(args.grep)
     if args.compare:
@@ -1972,7 +2055,12 @@ def main(argv: list[str]) -> int:
             return 1
         print("The dataset agrees with every name the interpreters resolve.")
     if args.build is None and not (
-        args.probe or args.report or args.grep or args.compare or args.check
+        args.probe
+        or args.report
+        or args.grep
+        or args.compare
+        or args.check
+        or args.compiles
     ):
         print(__doc__)
         return 1

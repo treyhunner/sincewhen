@@ -576,6 +576,59 @@ class TestRecipe:
         assert not [note for note in interpreters.recipe("2.5") if "getline" in note]
 
 
+class TestAskingByHand:
+    """`--compiles`, whose whole value is telling three states apart.
+
+    Two of them are answers about a release and the third is about this
+    machine, and collapsing the third into "no" is how an ad hoc probe
+    invents a version number.
+    """
+
+    def test_a_release_that_parses_the_snippet_says_yes(self, monkeypatch):
+        monkeypatch.setattr(interpreters, "binary", lambda version: "/nonexistent")
+        monkeypatch.setattr(
+            interpreters.subprocess,
+            "run",
+            lambda *_, **__: interpreters.subprocess.CompletedProcess([], 0, "", ""),
+        )
+        assert interpreters._compiles_in("2.5", "ask") == "yes"
+
+    def test_a_release_that_refuses_it_says_why(self, monkeypatch):
+        monkeypatch.setattr(interpreters, "binary", lambda version: "/nonexistent")
+        monkeypatch.setattr(
+            interpreters.subprocess,
+            "run",
+            lambda *_, **__: interpreters.subprocess.CompletedProcess(
+                [], 1, "", 'File "snippet.py", line 2\nSyntaxError: invalid syntax\n'
+            ),
+        )
+        assert (
+            interpreters._compiles_in("2.4", "ask")
+            == "no   SyntaxError: invalid syntax"
+        )
+
+    def test_a_release_with_no_build_is_unasked_rather_than_absent(self, monkeypatch):
+        monkeypatch.setattr(interpreters, "binary", lambda version: None)
+        assert interpreters._compiles_in("2.4", "ask").startswith("unasked")
+
+    def test_an_i386_build_that_will_not_exec_here_names_the_reason(self, monkeypatch):
+        """The failure reads exactly like a missing build, and is not one.
+
+        0.9 through 1.4 are built for i386, and an i386 binary on a host
+        with no 32-bit loader fails to exec with `No such file or
+        directory`. Reported as a refusal it would date a 0.9 feature to
+        1.5.
+        """
+
+        def refuse(*_, **__):
+            raise OSError(2, "No such file or directory")
+
+        monkeypatch.setattr(interpreters, "binary", lambda version: "/nonexistent")
+        monkeypatch.setattr(interpreters.subprocess, "run", refuse)
+        assert "i386" in interpreters._compiles_in("1.4", "ask")
+        assert "i386" not in interpreters._compiles_in("2.4", "ask")
+
+
 class TestHarvest:
     def test_only_answer_lines_are_collected(self):
         """An interpreter's own chatter is not an answer.

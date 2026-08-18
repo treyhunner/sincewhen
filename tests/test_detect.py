@@ -59,6 +59,7 @@ def test_no_features_detected():
         ("@registry[name]\ndef f():\n    pass", "relaxed-decorator"),
         ("x: tuple[*Ts]", "starred-subscript"),
         ("from __future__ import annotations", "future-annotations"),
+        ("from __future__ import generators", "future-generators"),
         ("a == b", "equality-operator"),
         ("a != b", "inequality-operator"),
         # One operator of a chain is enough, and each is its own claim.
@@ -131,7 +132,7 @@ def test_syntax_features(source, expected):
         ("async def f():\n    def inner():\n        yield 1", "async-generator"),
         # `except E:` with no name predates the `as` spelling.
         ("try:\n    pass\nexcept E:\n    pass", "except-as"),
-        # One context manager is the 2.5 `with`, not the 3.1 form.
+        # One context manager is the 2.6 `with`, not the 3.1 form.
         ("with open(a) as f:\n    pass", "several-context-managers"),
         # try/except and try/finally were separate statements until 2.5.
         ("try:\n    pass\nfinally:\n    pass", "unified-try-except-finally"),
@@ -180,7 +181,7 @@ def test_syntax_features(source, expected):
         ("f(a, b=1)", "call-unpacking"),
         # `[*a]` is unpacking into a literal, which is the 3.5 entry.
         ("[*a]", "call-unpacking"),
-        # A `yield` with a value, on a line of its own, is the 2.2
+        # A `yield` with a value, on a line of its own, is the 2.3
         # statement. Parenthesising the value is not parenthesising the
         # yield, and `yield from` is its own 3.3 entry.
         ("def f():\n    yield 1", "yield-expression"),
@@ -219,7 +220,7 @@ def test_a_call_can_use_both_unpacking_features():
 def test_a_yield_expression_is_also_a_generator_function():
     """`x = yield value` is one line making two true claims.
 
-    Every `yield` makes its function a generator, which is 2.2, and
+    Every `yield` makes its function a generator, which is 2.3, and
     using the value one hands back needs the 2.5 expression form. The
     newer one sets the floor, which is the whole point: the same line
     reported 2.2 before PEP 342 had an entry.
@@ -227,11 +228,27 @@ def test_a_yield_expression_is_also_a_generator_function():
     source = "def f():\n    x = yield 1"
     assert features(source) >= {"generator-function", "yield-expression"}
     assert minimum_version(source) == Version(2, 5)
-    assert minimum_version("def f():\n    yield 1") == Version(2, 2)
+    assert minimum_version("def f():\n    yield 1") == Version(2, 3)
+
+
+def test_a_future_gated_feature_is_dated_where_it_stands_on_its_own():
+    """A `__future__` import is an opt-in, so it is not availability.
+
+    2.5 rejects a plain `with` and 2.2 rejects a plain `yield 1`, and
+    both take one under the import that names it. The floor is for the
+    code as written, so it is the release that compiles the line alone,
+    and the import keeps the older date under its own name. `print()`
+    at 3.0 against a 2.6 `from __future__ import print_function` is the
+    same pair.
+    """
+    assert minimum_version("with open(p) as f:\n    pass") == Version(2, 6)
+    assert minimum_version("def f():\n    yield 1") == Version(2, 3)
+    assert minimum_version("from __future__ import with_statement") == Version(2, 5)
+    assert minimum_version("from __future__ import generators") == Version(2, 2)
 
 
 def test_parentheses_around_a_yield_are_not_parentheses_around_its_value():
-    """`(yield 1)` is 2.5 and `yield (1)` is 2.2, and the 2.4 build agrees.
+    """`(yield 1)` is 2.5 and `yield (1)` is 2.3, and the 2.4 build agrees.
 
     2.5 is the release where `atom` gained the right to hold a
     `yield_expr`, so the brackets are the feature rather than noise
