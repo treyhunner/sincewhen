@@ -7,7 +7,7 @@ Dataset changes are listed apart from everything else, because they are the chan
 A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
-## Unreleased
+## 0.8.0 - 2026-08-17
 
 ### Dataset
 
@@ -25,7 +25,7 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
   That one line changed three spellings rather than one, and the 2.4 and 2.5 builds agree on all three: `x = yield 1`, a bare `yield` with no value at all, and `(yield 1)`, which is 2.5 because `atom` is what gained the right to hold a yield.
   2.4 runs `yield (1)` and rejects `(yield 1)`, so the brackets are the feature rather than noise around it.
   Both entries fire for each of them, which is two true statements about one line, and the newer one sets the floor.
-  This is also the beat the async story turns on, and the reason the README can now tell that arc: a 2.2 generator could only hand values out, and receiving one is what `send()`, `yield from` and everything after them are built on.
+  This is also the beat the async story turns on, and the reason the README can now tell that arc: a generator of that era could only hand values out, and receiving one is what `send()`, `yield from` and everything after them are built on.
 - **The member index reaches inside a class.**
   An owner is now a module or a class in one, so `unittest.TestCase.assertNotEndsWith`, `pathlib.Path.walk` and `datetime.date.fromisoformat` have answers where they had none at all.
   2,658 class members join 3,918 module members, and the file goes from 48 KB to 91 KB.
@@ -66,7 +66,7 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
   The field holds a class as often as a module now, and `"module": "unittest.TestCase"` would be false.
 - **A check knows what its node hangs off.**
   A matcher predicate was handed a node and the names the module binds, which is everything a node can be asked about itself and nothing about where it sits.
-  `ast` records no link back up, and the same node can mean two things: a `Yield` is the 2.2 statement directly under an `Expr` and the 2.5 expression everywhere else.
+  `ast` records no link back up, and the same node can mean two things: a `Yield` directly under an `Expr` is the older statement form and one anywhere else is the 2.5 expression.
   The pair is now a `Context`, so the parent is there for the one check that reads it, and `yield (yield x)` gets both readings on one line rather than whichever the coarser question would have picked.
   Parentheses leave no node behind at all, so `(yield 1)` is told from `yield (1)` by where the statement and its `yield` begin, which differ only when something sits in front of the `yield`.
 
