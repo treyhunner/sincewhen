@@ -283,6 +283,16 @@ def test_builtins_are_detected():
     assert features("sorted(x)") == {"sorted"}
 
 
+def test_repr_the_builtin_is_not_reprlib():
+    """`repr` is a builtin and was also a module until 3.0 renamed it.
+
+    The two are separate entries and only one of them is a name, so a
+    call reports the builtin and an import reports `reprlib` alone.
+    """
+    assert features("repr(x)") == {"repr"}
+    assert features("import reprlib\nreprlib.repr(x)") == {"reprlib"}
+
+
 def test_shadowed_builtins_are_ignored():
     """A locally defined `sum` is not the builtin that arrived in 2.3."""
     assert features("def sum(x):\n    return x\nsum([1])") == set()

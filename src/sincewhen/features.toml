@@ -10352,6 +10352,22 @@ present_in = "1.0"
 checked = "2026-07-29"
 
 [[features]]
+id = "repr"
+name = "repr()"
+added = "1.0"
+category = "function"
+builtins = ["repr"]
+
+[features.evidence]
+method = "source"
+symbol = "repr"
+file = "Python/bltinmodule.c"
+absent_in = "0.9"
+present_in = "1.0"
+note = "`repr` is a builtin and a module, and `date_symbol` guesses the kind from the name rather than reading the matcher, so what `verify-dataset` re-derives here is `Lib/repr.py`: the module that became `reprlib` in 3.0, absent in 0.9 and present in 1.0. The two coincide, which is why this entry is not `manual`. What it cites is the builtin's own evidence: the builtins table is absent `repr` in 0.9.1's src/bltinmodule.c, which registers eighteen functions, seven exception strings and None, and carries it in 1.0's Python/bltinmodule.c. The capability is older than the name: 0.9.1 spells it `x`, whose UNARY_CONVERT calls the same reprobject() that 1.0's builtin_repr is a wrapper over, and that spelling is the backtick-repr entry at 0.9. `cmp` is the same shape with the two dates disagreeing, and it is `manual` for that reason."
+checked = "2026-08-21"
+
+[[features]]
 id = "round"
 name = "round()"
 added = "1.0"

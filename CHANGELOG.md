@@ -7,6 +7,16 @@ Dataset changes are listed apart from everything else, because they are the chan
 A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 
+## Unreleased
+
+### Dataset
+
+- **`repr()` is an entry, at 1.0.**
+  The builtin was missing outright, because `date_symbol` guesses what kind of thing a bare name is and `repr` was a module too: `Lib/repr.py` from 1.0 until 3.0 renamed it `reprlib`, so asking about the name answered about the module.
+  Here the two coincide, since 0.9.1's builtins table registers eighteen functions and not this one and 1.0's carries it, so the entry cites the builtin's own evidence rather than falling back to `manual` the way `cmp` has to.
+  The capability is a release older than the name, and the dataset already had that half: 0.9.1 spells it `x`, whose `UNARY_CONVERT` calls the same `reprobject()` that 1.0's `builtin_repr` wraps, and that spelling is the `backtick repr syntax` entry at 0.9.
+
+
 ## 0.8.0 - 2026-08-17
 
 ### Dataset
