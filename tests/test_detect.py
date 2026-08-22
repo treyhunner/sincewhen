@@ -283,6 +283,46 @@ def test_builtins_are_detected():
     assert features("sorted(x)") == {"sorted"}
 
 
+def test_repr_the_builtin_is_not_reprlib():
+    """`repr` is a builtin and was also a module until 3.0 renamed it.
+
+    The two are separate entries and only one of them is a name, so a
+    call reports the builtin and an import reports `reprlib` alone.
+    """
+    assert features("repr(x)") == {"repr"}
+    assert features("import reprlib\nreprlib.repr(x)") == {"reprlib"}
+
+
+def test_the_builtins_the_matcher_had_missed_are_detected():
+    """Six names had no entry, and `repr` was only the first of them.
+
+    Diffing the builtins tables in the tarballs, and `dir(builtins)` on
+    3.14, against every `builtins` matcher in the dataset is what found
+    the rest.
+    """
+    assert features('__import__("os")') == {"dunder-import"}
+    assert features("callable(x)") == {"callable"}
+    assert features("ascii(x)") == {"ascii"}
+    assert features("bytes(x)") == {"bytes"}
+
+
+def test_exec_the_function_is_not_the_exec_statement():
+    """`exec` is a function in 0.9, a statement to 2.7, a function again in 3.0.
+
+    Two entries, and only one of them can fire: a 3.14 parser cannot
+    produce a node for the statement, so it is searchable and never
+    detected, exactly as backticks are next to `repr()`.
+    """
+    assert features("exec(code)") == {"exec-function"}
+    assert features("exec = 1") == set()
+
+
+def test_bytes_the_builtin_is_not_the_bytes_literal():
+    """Both are 2.6 and they are separate entries, of different kinds."""
+    assert features("bytes(x)") == {"bytes"}
+    assert features('b"hi"') == {"bytes-literal"}
+
+
 def test_shadowed_builtins_are_ignored():
     """A locally defined `sum` is not the builtin that arrived in 2.3."""
     assert features("def sum(x):\n    return x\nsum([1])") == set()
