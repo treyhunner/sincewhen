@@ -1125,6 +1125,18 @@ quote = "New in version 2.6."
 checked = "2026-07-28"
 
 [[features]]
+id = "bytes"
+name = "bytes()"
+added = "2.6"
+category = "builtin"
+builtins = ["bytes"]
+
+[features.evidence]
+method = "manual"
+note = "2.6, where `bytes` is a synonym for `str`. 2.6's and 2.7's Python/bltinmodule.c bind the name with SETBUILTIN(\"bytes\", &PyString_Type) and 3.0's binds &PyBytes_Type, while 2.5's binds nothing under that name at all. The 2.6 What's New says the same thing under its PEP 3112 heading: \"For future compatibility, Python 2.6 adds bytes as a synonym for the str type, and it also supports the b\u0027\u0027 notation.\" That is the reading that already dates the b\"...\" literal to 2.6 rather than to PEP 3112's own 3.0 header, and the same clamp that puts bytes.fromhex() at 3.0, since no 2.x `str` has one. What the two releases do with the name differs and the What's New says that too, 2.6's bytes([65, 66, 67]) being the twelve-character str() of the list, so a call meaning the 3.0 constructor is reported one era early. The entry claims the spelling, as every entry does. Manual because nothing in the pipeline dates it: neither the 2.6 nor the 2.7 inventory indexes `bytes`, so the oldest that does is 3.0's and can only bound it at \"3.0 or earlier\"; source.py stops at 2.5; and the name has no row in scripts/interpreters.json, because `_dataset_names()` builds the probe list out of the dataset and until now there was no entry to ask from. Asked by hand, the corpus builds resolve it from 2.6 onward. See the note above the bytes and bytearray group."
+checked = "2026-08-21"
+
+[[features]]
 id = "format-builtin"
 name = "format()"
 added = "2.6"
@@ -1163,6 +1175,30 @@ symbol = "py:class memoryview"
 absent_in = "2.6"
 present_in = "2.7"
 checked = "2026-07-28"
+
+[[features]]
+id = "ascii"
+name = "ascii()"
+added = "3.0"
+category = "builtin"
+builtins = ["ascii"]
+
+[features.evidence]
+method = "manual"
+note = "3.0, and no method in the pipeline says so. The 3.14 docs give ascii() no marker, and 3.0 is the oldest inventory of the 3.x line, so the inventory can only bound it at \"3.0 or earlier\". What closes the bound sits in 2.x: the 2.6 and 2.7 inventories do not index the name as a builtin at all, only as `future_builtins.ascii`, 2.7's built-in functions page has no entry for it, and the 2.6 What's New introduces it as one of the functions that \"can be imported when writing 3.0-compatible code\", noting that in 3.0 repr() returns a Unicode string while ascii() returns a pure ASCII bytestring. Another module's name that has to be imported is not the builtin, which is the reading that already keeps a `__future__` gate from counting as availability. 3.0's Python/bltinmodule.c registers {\"ascii\", builtin_ascii, METH_O, ascii_doc} and 2.7's has no such row. Manual because source.py stops at 2.5, and because the name has no row in scripts/interpreters.json: `_dataset_names()` builds the probe list out of the dataset and until now there was no entry to ask from. Asked by hand, the corpus builds resolve it from 3.0 onward and in no release before."
+checked = "2026-08-21"
+
+[[features]]
+id = "exec-function"
+name = "exec() function"
+added = "3.0"
+category = "builtin"
+builtins = ["exec"]
+
+[features.evidence]
+method = "manual"
+note = "The function is 3.0, and the arbiter answers 0.9 because 0.9.1 had one too: its src/bltinmodule.c registers {\"exec\", builtin_exec}, 1.0 takes that row out and adds exec_stmt: \u0027exec\u0027 expr [\u0027in\u0027 test [\u0027,\u0027 test]] to the grammar, and no builtins table from 1.0 through 2.7 binds the name again. 3.0's does, and 3.0's inventory is the first to list py:function exec, the 2.7 inventory knowing the name only as a section label and a 2to3 fixer. So the oldest release this spelling has been available in ever since is 3.0, and the statement keeps its own entry at 1.0, removed in 3.0. The pair reads the way repr() and the backtick syntax do. Two things this shares with print(): the built interpreters cannot check it, because `exec` is a keyword before 3.0 and `_probe_source` cannot spell a keyword, and exec(code) parses in Python 2 as the statement with a parenthesised expression, so this entry over-reports on Python 2 source."
+checked = "2026-08-21"
 
 [[features]]
 id = "print-function"
@@ -10021,6 +10057,22 @@ present_in = "1.0"
 checked = "2026-07-29"
 
 [[features]]
+id = "dunder-import"
+name = "__import__()"
+added = "1.2"
+category = "function"
+builtins = ["__import__"]
+
+[features.evidence]
+method = "source"
+symbol = "__import__"
+file = "Python/bltinmodule.c"
+absent_in = "1.1"
+present_in = "1.2"
+note = "1.1's builtins table has no row for it and 1.2's registers {\"__import__\", builtin___import__, 1}. The same release is where the import statement starts going through it: 1.2's Python/ceval.c looks the name up in the builtins dict and raises \"__import__ not found\" if it is gone."
+checked = "2026-08-21"
+
+[[features]]
 id = "abs"
 name = "abs()"
 added = "0.9"
@@ -10034,6 +10086,18 @@ file = "src/bltinmodule.c"
 present_in = "0.9"
 note = "Registered in 0.9, the oldest source release there is, so it is at least that old and may be older."
 checked = "2026-07-29"
+
+[[features]]
+id = "callable"
+name = "callable()"
+added = "1.1"
+category = "function"
+builtins = ["callable"]
+
+[features.evidence]
+method = "manual"
+note = "1.1, with the gap at 3.0 and 3.1 forgiven, which is the `argparse` shape. 1.0's builtins table has no row for it, 1.1's registers {\"callable\", builtin_callable}, and every table from there through 2.5's carries it. Then it went away and came back: the 3.14 docs say \"Added in version 3.2: This function was first removed in Python 3.0 and then brought back in Python 3.2\", and the 2.6 and 2.7 inventories list the name where 3.0's and 3.1's do not. Those two releases do not count towards continuity, so the oldest release it has been available in ever since is 1.1. Recorded by hand because no one method spans both halves of that story: source.py stops at 2.5 and the inventories start at 2.6, so `dating.py` sees only the 3.2 end and answers 3.2. The built interpreters are the method that would settle it in one piece, and this name has no row in scripts/interpreters.json, because `_dataset_names()` builds the probe list out of the dataset and until now there was no entry to ask from. Asked by hand, the corpus builds resolve `callable` from 1.5 through 2.7 and from 3.2 onward, and not in 3.0 or 3.1. This should become interpreter evidence the next time the table is rebuilt."
+checked = "2026-08-21"
 
 [[features]]
 id = "chr"

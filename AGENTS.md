@@ -158,6 +158,15 @@ That is a better trade for everything still bounded, and a different one, so it 
   The oldest six releases are built for i386 and will not exec on an x86-64 host with no 32-bit loader, which fails with `No such file or directory` and reads exactly like a missing build, so those are reported as `unasked` rather than as a refusal and are asked inside the image that built them.
   A `yes` can be the wrong `yes`: 1.5 through 2.2 compile a bare `yield` because `yield` is an ordinary name there and the line does nothing.
   And nothing it prints is written down anywhere, deliberately, because evidence needs the control snippet that issue #11 is about.
+- **The probe list is built from the dataset, so this method is blind to exactly what the dataset is missing.**
+  `_dataset_names()` reads `features.toml`, so a name with no entry has no row in `scripts/interpreters.json` and no mask, and the method best able to settle it says nothing about it.
+  That is a loop rather than an oversight: an entry is what makes a name askable, and a name nobody has an entry for is the kind most likely to need asking.
+  Four of the six builtins the coverage gap held hit it, `callable`, `bytes`, `ascii` and `exec`, and each carries `manual` evidence saying so.
+  A name can still be asked by hand, because the builds outlast the table, and that is what those notes record.
+  What asking by hand cannot do is become evidence, since evidence for this method means a row in the table.
+  Rebuilding it is what demotes those four to `interpreter` evidence wherever the mask then answers, and `callable` is the one that gains most: presence from 1.1 to 2.7 and again from 3.2, with the 3.0 and 3.1 gap forgiven, is one reading of one mask, and no other method here spans both eras to make it.
+  `exec` is the one that will not gain, for `print`'s reason: it is a keyword before 3.0 and `_probe_source` cannot spell a keyword.
+
 - **It outranks every method that reads a description of Python, and ties with none.** Availability is what it measures and what the dataset claims; the others infer it. Against `source.py` it is a real disagreement rather than a ranking, because both claim proof about different things: what the text binds, and what the interpreter bound. `dating.py` refuses to answer, exactly as it does for source-against-archive.
 - **A re-add still belongs to the 3.x line.** `types.NoneType` resolves from 1.1 to 2.7, and its answer is still 3.10, because the rule is the oldest release it has been available in *ever since*. This is now read off the mask rather than guarded around: a name present, then absent, then present again is reported as a gap and dated by nobody, and the release it came back in is what the doc-derived methods already say. `dating.py`'s `readded` guard still covers `source.py`, which sees only the old era and would answer 1.1. It deliberately no longer covers the interpreter, because it fires whenever the inventory and a marker agree, which is most of the 3.x line, and that hid `dis.show_code` being 3.0 for two releases before anyone documented it.
 - **It reads `x.y.0`, so it cannot see a micro release, and a date *newer* than the docs is therefore never believed on its own.** The corpus builds each feature release rather than the last micro of it, so an absence is an absence in 2.2.0. `re.finditer` is the case: `Lib/sre.py` defines it in 2.2.0 behind a `sys.hexversion` guard that passes, `sre.__all__` omits the name, and `re.py` is `from sre import *`, so `re.finditer` does not exist in 2.2.0 or 2.2.1. 2.2.2 added `__all__.append("finditer")`. The docs saying "New in version 2.2" are right about the release, and this method saying 2.3 is right about 2.2.0. So `dating.py` returns `interpreter-contradicts-docs` and refuses, and the entry carries `manual` evidence.
@@ -335,7 +344,7 @@ And its absence has to be guarded the way a module member's is rather than waved
 Neither is exercised against a real build yet, because `interpreters.json` predates them and carries no dotted-owner `method` target.
 That also means `--check`'s removal direction, the one that catches the dataset going stale when Python drops something, says nothing about a class method: `removed()` returns `None` for a name with no mask.
 What covers the same ground meanwhile is `test_every_method_is_where_its_entry_says_it_is`, which asks the running interpreter and walks all eight of them, so a Python that removes one fails the build without needing Docker.
-The table wants rebuilding the next time somebody has an hour and a compiler.
+The table wants rebuilding the next time somebody has an hour and a compiler, and the builtins that carry `manual` evidence only because they have no row want the same trip.
 
 ### Removed syntax is searchable and never detectable
 

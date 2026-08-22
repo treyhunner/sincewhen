@@ -11,10 +11,17 @@ A corrected version is not a cosmetic fix: it changes the answer the tool gives.
 
 ### Dataset
 
-- **`repr()` is an entry, at 1.0.**
-  The builtin was missing outright, because `date_symbol` guesses what kind of thing a bare name is and `repr` was a module too: `Lib/repr.py` from 1.0 until 3.0 renamed it `reprlib`, so asking about the name answered about the module.
-  Here the two coincide, since 0.9.1's builtins table registers eighteen functions and not this one and 1.0's carries it, so the entry cites the builtin's own evidence rather than falling back to `manual` the way `cmp` has to.
-  The capability is a release older than the name, and the dataset already had that half: 0.9.1 spells it `x`, whose `UNARY_CONVERT` calls the same `reprobject()` that 1.0's `builtin_repr` wraps, and that spelling is the `backtick repr syntax` entry at 0.9.
+- **Six builtins the matcher never covered: `repr()` 1.0, `callable()` 1.1, `__import__()` 1.2, `bytes()` 2.6, `ascii()` 3.0 and `exec()` 3.0.**
+  One finding rather than six: diffing the builtins tables in the cached tarballs, and `dir(builtins)` on 3.14, against every `builtins` matcher in the dataset is what turned them up.
+  `repr` and `__import__` are ordinary source evidence, absent from one release's table and present in the next.
+  The other four each needed a reading the pipeline cannot make on its own.
+  `repr()` was missing because `date_symbol` guesses what kind of thing a bare name is and `repr` was a module too, `Lib/repr.py` from 1.0 until 3.0 renamed it `reprlib`, so asking about the name answered about the module.
+  Here the two coincide, so the entry cites the builtin's own evidence rather than falling back to `manual` the way `cmp` has to, and the capability is a release older than the name: 0.9.1 spells it `x`, whose `UNARY_CONVERT` calls the same `reprobject()` that 1.0's `builtin_repr` wraps, and that spelling is the `backtick repr syntax` entry at 0.9.
+  `callable()` is the `argparse` shape, present from 1.1, gone in 3.0 and 3.1 and back in 3.2, and those two do not count against continuity, so it is 1.1 where the arbiter could only see the 3.2 end of the story.
+  `bytes()` is 2.6, where the name is a synonym for `str`, which is the reading that already dates the `b"..."` literal to 2.6 and puts `bytes.fromhex()` at 3.0.
+  `ascii()` is 3.0: 2.6 has the name only as `future_builtins.ascii`, which is another module's name that has to be imported and not the builtin.
+  And `exec()` is 3.0, being a function in 0.9, a statement from 1.0 to 2.7 and a function again in 3.0, so it pairs with the `exec statement` entry the way `repr()` pairs with backticks.
+  Four of the six carry `manual` evidence, because the method that would settle them is the built interpreters and the probe list is built from the dataset, so a name with no entry has never been asked about.
 
 
 ## 0.8.0 - 2026-08-17
